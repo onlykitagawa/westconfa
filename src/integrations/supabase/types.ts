@@ -14,16 +14,220 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      contact_messages: {
+        Row: {
+          body: string
+          created_at: string
+          email: string
+          id: string
+          name: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          email: string
+          id?: string
+          name: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      message_reports: {
+        Row: {
+          created_at: string
+          message_id: string
+          reporter_id: string
+        }
+        Insert: {
+          created_at?: string
+          message_id: string
+          reporter_id: string
+        }
+        Update: {
+          created_at?: string
+          message_id?: string
+          reporter_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_reports_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          body: string
+          created_at: string
+          hidden: boolean
+          id: string
+          read_at: string | null
+          recipient_id: string
+          report_count: number
+          reviewed: boolean
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          hidden?: boolean
+          id?: string
+          read_at?: string | null
+          recipient_id: string
+          report_count?: number
+          reviewed?: boolean
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          hidden?: boolean
+          id?: string
+          read_at?: string | null
+          recipient_id?: string
+          report_count?: number
+          reviewed?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string
+          display_name: string | null
+          email: string
+          id: string
+          inbox_paused: boolean
+          suspended: boolean
+          username: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          display_name?: string | null
+          email: string
+          id: string
+          inbox_paused?: boolean
+          suspended?: boolean
+          username?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          display_name?: string | null
+          email?: string
+          id?: string
+          inbox_paused?: boolean
+          suspended?: boolean
+          username?: string | null
+        }
+        Relationships: []
+      }
+      rate_events: {
+        Row: {
+          created_at: string
+          id: number
+          ip_hash: string
+          recipient_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          ip_hash: string
+          recipient_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          ip_hash?: string
+          recipient_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      admin_list_users: {
+        Args: { _search: string }
+        Returns: {
+          created_at: string
+          display_name: string
+          email: string
+          id: string
+          suspended: boolean
+          username: string
+        }[]
+      }
+      admin_review_message: {
+        Args: { _message_id: string; _restore: boolean }
+        Returns: undefined
+      }
+      admin_set_suspended: {
+        Args: { _suspended: boolean; _user_id: string }
+        Returns: undefined
+      }
+      admin_stats: { Args: never; Returns: Json }
+      get_public_profile: {
+        Args: { _username: string }
+        Returns: {
+          accepting: boolean
+          display_name: string
+          username: string
+        }[]
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_allowed_email: { Args: { _email: string }; Returns: boolean }
+      is_username_available: { Args: { _username: string }; Returns: boolean }
+      message_retention_days: { Args: never; Returns: number }
+      purge_expired: { Args: never; Returns: undefined }
+      report_message: { Args: { _message_id: string }; Returns: undefined }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "moderator" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +354,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "moderator", "user"],
+    },
   },
 } as const
