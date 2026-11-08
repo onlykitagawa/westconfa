@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 import { checkMessage, isAllowedEmail, isValidUsername, MAX_MESSAGE_LENGTH, LIMIT_PER_SENDER_PER_HOUR, LIMIT_PER_SENDER_TO_RECIPIENT_PER_HOUR } from "@/lib/moderation";
 
 describe("email allowlist", () => {
-  it("accepts @wiut.uz emails", () => expect(isAllowedEmail("00012345@wiut.uz")).toBe(true));
+  it("accepts @students.wiut.uz emails", () => expect(isAllowedEmail("00012345@students.wiut.uz")).toBe(true));
+  it("rejects plain @wiut.uz emails", () => expect(isAllowedEmail("00012345@wiut.uz")).toBe(false));
   it("always accepts the owner gmail", () => expect(isAllowedEmail("ZukhrdnvoyBek@gmail.com")).toBe(true));
   it("rejects other domains", () => expect(isAllowedEmail("someone@gmail.com")).toBe(false));
   it("rejects lookalike domains", () => expect(isAllowedEmail("a@fakewiut.uz.com")).toBe(false));
