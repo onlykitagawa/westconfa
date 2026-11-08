@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { ArrowLeft, Mail } from "lucide-react";
 import { t } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
-import { isAllowedEmail } from "@/lib/moderation";
+import { isAllowedEmail, isStaffChatEmail } from "@/lib/moderation";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,6 +40,7 @@ function AuthPage() {
     e?.preventDefault();
     setErr(null);
     const clean = email.trim().toLowerCase();
+    if (isStaffChatEmail(clean)) return setErr(A.errWiutChat);
     if (!isAllowedEmail(clean)) return setErr(A.errDomain);
     if (!agree) return setErr(A.errAgree);
     setBusy(true);
@@ -81,7 +82,9 @@ function AuthPage() {
                 id="email" type="email" inputMode="email" autoComplete="email" autoFocus
                 className="h-12 rounded-2xl text-base" placeholder={A.emailPlaceholder}
                 value={email} onChange={(e) => { setEmail(e.target.value); setErr(null); }}
+                aria-describedby="email-hint"
               />
+              <p id="email-hint" className="text-sm text-muted-foreground">{A.emailHint}</p>
             </div>
             <div className="mt-5 flex items-start gap-3">
               <Checkbox id="agree" checked={agree} onCheckedChange={(v) => { setAgree(v === true); setErr(null); }} className="mt-0.5 size-5 rounded-md" />
