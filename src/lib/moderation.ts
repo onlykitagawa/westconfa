@@ -4,12 +4,12 @@ export const MAX_MESSAGE_LENGTH = 500;
 export const LIMIT_PER_SENDER_PER_HOUR = 5;
 export const LIMIT_PER_SENDER_TO_RECIPIENT_PER_HOUR = 3;
 export const ALWAYS_ALLOWED_EMAILS = ["zukhrdnvoybek@gmail.com"];
-export const ALLOWED_EMAIL_DOMAIN = "wiut.uz";
+export const ALLOWED_EMAIL_DOMAIN = "students.wiut.uz";
 
 export function isAllowedEmail(email: string): boolean {
   const e = email.trim().toLowerCase();
   if (ALWAYS_ALLOWED_EMAILS.includes(e)) return true;
-  return /^[^\s@]+@wiut\.uz$/.test(e);
+  return /^[^\s@]+@students\.wiut\.uz$/.test(e);
 }
 
 export const USERNAME_RE = /^[a-z0-9_]{3,20}$/;
