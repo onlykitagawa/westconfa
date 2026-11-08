@@ -15,6 +15,13 @@
       "when": 1794166253250,
       "tag": "0001_students_wiut_domain",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794166748051,
+      "tag": "0002_revert_wiut_domain",
+      "breakpoints": true
     }
   ]
 }

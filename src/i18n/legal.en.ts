@@ -74,7 +74,7 @@ export const terms: LegalDoc = {
     {
       h: "Who can use west confa",
       p: [
-        "Accounts are only for current students of Westminster International University in Tashkent (WIUT) with a valid @students.wiut.uz email address. You must be at least 16 years old. Anyone may send a message to a student's link without an account, but senders must follow these terms too.",
+        "Accounts are only for current students of Westminster International University in Tashkent (WIUT) with a valid @wiut.uz email address. You must be at least 16 years old. Anyone may send a message to a student's link without an account, but senders must follow these terms too.",
         "west confa is an independent student project. It is not affiliated with, endorsed by, or operated by WIUT.",
       ],
     },
