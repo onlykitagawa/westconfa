@@ -49,6 +49,7 @@ function AuthPage() {
     });
     setBusy(false);
     if (error) {
+      if (/could not be delivered|undeliverable|bounce/i.test(error.message)) return setErr(A.errUndeliverable);
       if (/rate|seconds/i.test(error.message)) return setErr(A.errRate);
       if (/database|wiut|allowed/i.test(error.message)) return setErr(A.errDomain);
       return setErr(t.common.somethingWrong);

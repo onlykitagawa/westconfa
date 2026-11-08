@@ -107,6 +107,7 @@ export const en = {
     errAgree: "Please agree to the Terms and Privacy Policy to continue.",
     errCode: "That code didn't work. Check it and try again, or request a new one.",
     errRate: "Too many attempts. Please wait a minute and try again.",
+    errUndeliverable: "We couldn't deliver email to this address — it may not exist. Double-check it and try again.",
   },
   onboarding: {
     metaTitle: "Choose your username · west confa",
