@@ -36,3 +36,5 @@ use the editor.
 - Allowed sign-up emails are enforced by a database trigger on auth.users (public.is_allowed_email); keep it in sync with moderation.ts.
 - Admin checks run in SECURITY DEFINER SQL functions using has_role; never trust client role state for privileged actions.
 - Message retention is the single SQL function public.message_retention_days(), purged daily by a pg_cron job calling public.purge_expired().
+- Password sign-in goes through the `passwordSignIn` server function, which enforces the per-account failed-attempt limit (login_attempts table, hashed email); auth errors stay neutral so they never reveal whether an account exists.
+- Spam limits for signed-in senders are keyed on a salted hash of their account id (shared campus IPs), still kept only in rate_events, never on the message.
