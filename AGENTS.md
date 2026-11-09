@@ -38,3 +38,5 @@ use the editor.
 - Message retention is the single SQL function public.message_retention_days(), purged daily by a pg_cron job calling public.purge_expired().
 - Password sign-in goes through the `passwordSignIn` server function, which enforces the per-account failed-attempt limit (login_attempts table, hashed email); auth errors stay neutral so they never reveal whether an account exists.
 - Spam limits for signed-in senders are keyed on a salted hash of their account id (shared campus IPs), still kept only in rate_events, never on the message.
+
+- Authentication emails use the managed SDK handler and a shared email layout, with email copy in src/i18n; include action tokens so the existing code-entry flows remain usable.
