@@ -161,18 +161,21 @@ export type Database = {
       }
       rate_events: {
         Row: {
+          anonymous: boolean
           created_at: string
           id: number
           ip_hash: string
           recipient_id: string
         }
         Insert: {
+          anonymous?: boolean
           created_at?: string
           id?: number
           ip_hash: string
           recipient_id: string
         }
         Update: {
+          anonymous?: boolean
           created_at?: string
           id?: number
           ip_hash?: string

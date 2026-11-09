@@ -3,8 +3,7 @@ import { getRequest } from "@tanstack/react-start/server";
 import { z } from "zod";
 import {
   checkMessage,
-  LIMIT_PER_SENDER_PER_HOUR,
-  LIMIT_PER_SENDER_TO_RECIPIENT_PER_HOUR,
+  isRateLimited,
   MAX_MESSAGE_LENGTH,
 } from "./moderation";
 
@@ -66,7 +65,7 @@ export const sendMessage = createServerFn({ method: "POST" })
     const ipHash = await sha256(senderUserId ? `${salt}:user:${senderUserId}` : `${salt}:${ip}`);
     const hourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
 
-    const [{ count: total }, { count: toRecipient }] = await Promise.all([
+    const [{ count: total }, { count: toRecipient }, { count: anonToRecipient }] = await Promise.all([
       supabaseAdmin.from("rate_events").select("id", { count: "exact", head: true }).eq("ip_hash", ipHash).gte("created_at", hourAgo),
       supabaseAdmin
         .from("rate_events")
@@ -74,8 +73,14 @@ export const sendMessage = createServerFn({ method: "POST" })
         .eq("ip_hash", ipHash)
         .eq("recipient_id", profile.id)
         .gte("created_at", hourAgo),
+      supabaseAdmin
+        .from("rate_events")
+        .select("id", { count: "exact", head: true })
+        .eq("recipient_id", profile.id)
+        .eq("anonymous", true)
+        .gte("created_at", hourAgo),
     ]);
-    if ((total ?? 0) >= LIMIT_PER_SENDER_PER_HOUR || (toRecipient ?? 0) >= LIMIT_PER_SENDER_TO_RECIPIENT_PER_HOUR) {
+    if (isRateLimited({ signedIn: !!senderUserId, total: total ?? 0, toRecipient: toRecipient ?? 0, anonToRecipient: anonToRecipient ?? 0 })) {
       return { ok: false, code: "rate" };
     }
 
@@ -84,7 +89,7 @@ export const sendMessage = createServerFn({ method: "POST" })
       console.error("send failed", error.message);
       return { ok: false, code: "generic" };
     }
-    await supabaseAdmin.from("rate_events").insert({ ip_hash: ipHash, recipient_id: profile.id });
+    await supabaseAdmin.from("rate_events").insert({ ip_hash: ipHash, recipient_id: profile.id, anonymous: !senderUserId });
     // Opportunistic cleanup of hashes older than 24h.
     await supabaseAdmin.from("rate_events").delete().lt("created_at", new Date(Date.now() - 24 * 3600 * 1000).toISOString());
     return { ok: true };
