@@ -13,6 +13,9 @@ import { useCallback, useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AuthProvider } from "@/lib/auth";
+import { consumeAuthLink, readAuthLink } from "@/lib/auth-link";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { SiteHeader, Footer, CookieNotice } from "@/components/site/chrome";
 import { themeInitScript } from "@/components/site/theme";
 import { Toaster } from "@/components/ui/sonner";
@@ -52,6 +55,22 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+  beforeLoad: async ({ context }) => {
+    if (typeof window === "undefined") return { authLink: null };
+    const url = new URL(window.location.href);
+    const params = readAuthLink(url);
+    if (!params) return { authLink: null };
+    for (const key of ["access_token", "refresh_token", "token_hash", "code", "type", "expires_in", "expires_at", "token_type", "error", "error_description", "error_code"]) url.searchParams.delete(key);
+    url.hash = "";
+    window.history.replaceState(window.history.state, "", url.pathname + url.search);
+    const authLink = await consumeAuthLink(params, supabase, async () => {
+      await context.queryClient.cancelQueries();
+      context.queryClient.clear();
+      localStorage.removeItem("wc_signed_in_at");
+    });
+    if (authLink.ok) localStorage.setItem("wc_signed_in_at", String(Date.now()));
+    return { authLink };
+  },
   head: () => ({
     meta: [
       { charSet: "utf-8" },
@@ -100,8 +119,16 @@ function RootShell({ children }: { children: ReactNode }) {
 }
 
 function RootComponent() {
-  const { queryClient } = Route.useRouteContext();
+  const { queryClient, authLink } = Route.useRouteContext();
   const router = useRouter();
+  useEffect(() => {
+    if (!authLink) return;
+    if (!authLink.ok) toast.error(t.auth.errCode, { id: "auth-link" });
+    else if (authLink.email) toast.success(t.settings.signedInAs(authLink.email), { id: "auth-link" });
+    if (authLink.ok && authLink.recovery && router.state.location.pathname !== "/reset-password") {
+      void router.navigate({ to: "/reset-password", replace: true });
+    }
+  }, [authLink, router]);
   const onChange = useCallback(
     (event: string) => {
       router.invalidate();
@@ -112,7 +139,7 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider onChange={onChange}>
+      <AuthProvider onChange={onChange} authLink={authLink}>
         <SiteHeader />
         <div id="main">
           <Outlet />
