@@ -39,7 +39,7 @@ function Landing() {
         <div className="animate-rise mt-10 flex w-full flex-col items-center gap-3 sm:w-auto" style={{ animationDelay: "180ms" }}>
           <Button asChild variant="hero" size="lg" className="w-full sm:w-auto">
             <Link to={user ? "/inbox" : "/auth"}>
-              {t.common.getMyLink} <ArrowRight />
+              {user ? t.common.openInbox : t.common.getMyLink} <ArrowRight />
             </Link>
           </Button>
           {!user && (

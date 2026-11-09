@@ -26,11 +26,14 @@ export function SiteHeader() {
         <Logo />
         <nav className="flex items-center gap-1" aria-label="Main">
           {!loading && user ? (
+            <>
+            <Link to="/inbox" className={`${navLink} md:hidden`}>{t.common.openInbox}</Link>
             <div className="hidden items-center gap-1 md:flex">
               <Link to="/inbox" className={navLink} activeProps={active}>{t.common.inbox}</Link>
               <Link to="/settings" className={navLink} activeProps={active}>{t.common.settings}</Link>
               {isAdmin && <Link to="/admin" className={navLink} activeProps={active}>{t.common.admin}</Link>}
             </div>
+            </>
           ) : !loading ? (
             <Link to="/auth" className={navLink}>{t.common.signIn}</Link>
           ) : null}

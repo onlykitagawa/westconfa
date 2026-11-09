@@ -1,6 +1,16 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { SESSION_MAX_DAYS } from "@/lib/moderation";
+
+const STAMP = "wc_signed_in_at";
+// Keeps students signed in for SESSION_MAX_DAYS on this device (tokens refresh automatically),
+// then asks for the password again.
+function sessionExpired(): boolean {
+  const raw = localStorage.getItem(STAMP);
+  if (!raw) { localStorage.setItem(STAMP, String(Date.now())); return false; }
+  return Date.now() - Number(raw) > SESSION_MAX_DAYS * 86400000;
+}
 
 export type Profile = {
   id: string;
@@ -45,8 +55,17 @@ export function AuthProvider({ children, onChange }: { children: ReactNode; onCh
   }, []);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => load(data.session?.user ?? null));
+    supabase.auth.getSession().then(async ({ data }) => {
+      if (data.session && sessionExpired()) {
+        localStorage.removeItem(STAMP);
+        await supabase.auth.signOut();
+        return load(null);
+      }
+      load(data.session?.user ?? null);
+    });
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_OUT") localStorage.removeItem(STAMP);
+      if (event === "SIGNED_IN" && !localStorage.getItem(STAMP)) localStorage.setItem(STAMP, String(Date.now()));
       if (event === "SIGNED_IN" || event === "SIGNED_OUT" || event === "USER_UPDATED") {
         void load(session?.user ?? null);
         onChange?.(event);
