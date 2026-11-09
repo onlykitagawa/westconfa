@@ -10,7 +10,7 @@ import {
 
 export type SendResult =
   | { ok: true }
-  | { ok: false; code: "slur" | "threat" | "personal" | "rate" | "paused" | "notfound" | "empty" | "generic" };
+  | { ok: false; code: "slur" | "threat" | "personal" | "rate" | "paused" | "notfound" | "empty" | "self" | "generic" };
 
 const schema = z.object({
   username: z.string().trim().toLowerCase().regex(/^[a-z0-9_]{3,20}$/),
@@ -47,13 +47,23 @@ export const sendMessage = createServerFn({ method: "POST" })
     if (profile.inbox_paused || profile.suspended) return { ok: false, code: "paused" };
 
     const req = getRequest();
+    // Optional: if the sender is signed in, key spam limits on their account instead of the
+    // shared network address (campus Wi-Fi puts many students behind one IP). The account is
+    // only used for a salted hash in rate_events, never stored with the message.
+    let senderUserId: string | null = null;
+    const auth = req.headers.get("authorization");
+    if (auth?.startsWith("Bearer ")) {
+      const { data: u } = await supabaseAdmin.auth.getUser(auth.slice(7));
+      senderUserId = u.user?.id ?? null;
+    }
+    if (senderUserId && senderUserId === profile.id) return { ok: false, code: "self" };
     const ip =
       req.headers.get("cf-connecting-ip") ??
       req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
       req.headers.get("x-real-ip") ??
       "unknown";
     const salt = process.env["IP_HASH_SALT"] ?? "";
-    const ipHash = await sha256(`${salt}:${ip}`);
+    const ipHash = await sha256(senderUserId ? `${salt}:user:${senderUserId}` : `${salt}:${ip}`);
     const hourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
 
     const [{ count: total }, { count: toRecipient }] = await Promise.all([
