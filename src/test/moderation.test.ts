@@ -29,3 +29,19 @@ describe("blocklist", () => {
   it("blocks Uzbek threats", () => expect(checkMessage("seni o'ldiraman")).toBe("threat"));
   it("blocks English slurs", () => expect(checkMessage("you are a retard")).toBe("slur"));
 });
+
+import { isValidPassword, LOGIN_MAX_FAILED_ATTEMPTS, LOGIN_WINDOW_MINUTES, SESSION_MAX_DAYS, RESEND_COOLDOWN_SECONDS } from "@/lib/moderation";
+describe("accounts", () => {
+  it("passwords need at least 8 characters", () => {
+    expect(isValidPassword("1234567")).toBe(false);
+    expect(isValidPassword("12345678")).toBe(true);
+  });
+  it("5 failed sign-ins per 15 minutes", () => {
+    expect(LOGIN_MAX_FAILED_ATTEMPTS).toBe(5);
+    expect(LOGIN_WINDOW_MINUTES).toBe(15);
+  });
+  it("sessions last 30 days, resend waits 60s", () => {
+    expect(SESSION_MAX_DAYS).toBe(30);
+    expect(RESEND_COOLDOWN_SECONDS).toBe(60);
+  });
+});
