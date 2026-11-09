@@ -38,6 +38,24 @@ export type Database = {
         }
         Relationships: []
       }
+      login_attempts: {
+        Row: {
+          created_at: string
+          email_hash: string
+          id: number
+        }
+        Insert: {
+          created_at?: string
+          email_hash: string
+          id?: number
+        }
+        Update: {
+          created_at?: string
+          email_hash?: string
+          id?: number
+        }
+        Relationships: []
+      }
       message_reports: {
         Row: {
           created_at: string
