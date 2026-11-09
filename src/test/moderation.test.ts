@@ -45,3 +45,16 @@ describe("accounts", () => {
     expect(RESEND_COOLDOWN_SECONDS).toBe(60);
   });
 });
+
+import { isRateLimited } from "@/lib/moderation";
+describe("rate limits", () => {
+  const anon = (total: number, toRecipient: number, anonToRecipient = 0) => isRateLimited({ signedIn: false, total, toRecipient, anonToRecipient });
+  it("anonymous network: 10/hour to same person", () => { expect(anon(9, 9)).toBe(false); expect(anon(10, 10)).toBe(true); });
+  it("anonymous network: 30/hour total", () => { expect(anon(29, 0)).toBe(false); expect(anon(30, 0)).toBe(true); });
+  it("anonymous visitors to one recipient: 20/hour across networks", () => { expect(anon(0, 0, 19)).toBe(false); expect(anon(0, 0, 20)).toBe(true); });
+  it("signed-in keeps 5 total and 3 per recipient, ignores anon cap", () => {
+    expect(isRateLimited({ signedIn: true, total: 4, toRecipient: 2, anonToRecipient: 50 })).toBe(false);
+    expect(isRateLimited({ signedIn: true, total: 5, toRecipient: 0, anonToRecipient: 0 })).toBe(true);
+    expect(isRateLimited({ signedIn: true, total: 3, toRecipient: 3, anonToRecipient: 0 })).toBe(true);
+  });
+});

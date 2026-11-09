@@ -3,6 +3,20 @@
 export const MAX_MESSAGE_LENGTH = 500;
 export const LIMIT_PER_SENDER_PER_HOUR = 5;
 export const LIMIT_PER_SENDER_TO_RECIPIENT_PER_HOUR = 3;
+// Visitors who aren't signed in are keyed on a shared network address (campus Wi-Fi), so looser.
+export const ANON_LIMIT_PER_NETWORK_PER_HOUR = 30;
+export const ANON_LIMIT_PER_NETWORK_TO_RECIPIENT_PER_HOUR = 10;
+// Stops one recipient being flooded by anonymous visitors from many networks.
+export const ANON_LIMIT_TO_RECIPIENT_PER_HOUR = 20;
+
+export function isRateLimited(o: { signedIn: boolean; total: number; toRecipient: number; anonToRecipient: number }): boolean {
+  if (o.signedIn) return o.total >= LIMIT_PER_SENDER_PER_HOUR || o.toRecipient >= LIMIT_PER_SENDER_TO_RECIPIENT_PER_HOUR;
+  return (
+    o.total >= ANON_LIMIT_PER_NETWORK_PER_HOUR ||
+    o.toRecipient >= ANON_LIMIT_PER_NETWORK_TO_RECIPIENT_PER_HOUR ||
+    o.anonToRecipient >= ANON_LIMIT_TO_RECIPIENT_PER_HOUR
+  );
+}
 export const ALWAYS_ALLOWED_EMAILS = ["zukhrdnvoybek@gmail.com"];
 export const ALLOWED_EMAIL_DOMAIN = "students.wiut.uz";
 
