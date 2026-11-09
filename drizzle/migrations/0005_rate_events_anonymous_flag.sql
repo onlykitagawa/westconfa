@@ -1,0 +1,2 @@
+ALTER TABLE public.rate_events ADD COLUMN IF NOT EXISTS anonymous boolean NOT NULL DEFAULT true;
+CREATE INDEX IF NOT EXISTS rate_events_recipient_anon_idx ON public.rate_events (recipient_id, created_at) WHERE anonymous;
