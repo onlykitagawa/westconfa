@@ -8,13 +8,12 @@ import {
   Scripts,
   type ErrorComponentProps,
 } from "@tanstack/react-router";
-import { useCallback, useEffect, type ReactNode } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AuthProvider } from "@/lib/auth";
-import { consumeAuthLink, readAuthLink } from "@/lib/auth-link";
-import { supabase } from "@/integrations/supabase/client";
+import type { AuthLinkResult } from "@/lib/auth-link";
 import { toast } from "sonner";
 import { SiteHeader, Footer, CookieNotice } from "@/components/site/chrome";
 import { themeInitScript } from "@/components/site/theme";
@@ -54,22 +53,9 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
   );
 }
 
-export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+export const Route = createRootRouteWithContext<{ queryClient: QueryClient; authLinkPromise?: Promise<AuthLinkResult | null> }>()({
   beforeLoad: async ({ context }) => {
-    if (typeof window === "undefined") return { authLink: null };
-    const url = new URL(window.location.href);
-    const params = readAuthLink(url);
-    if (!params) return { authLink: null };
-    for (const key of ["access_token", "refresh_token", "token_hash", "code", "type", "expires_in", "expires_at", "token_type", "error", "error_description", "error_code"]) url.searchParams.delete(key);
-    url.hash = "";
-    window.history.replaceState(window.history.state, "", url.pathname + url.search);
-    const authLink = await consumeAuthLink(params, supabase, async () => {
-      await context.queryClient.cancelQueries();
-      context.queryClient.clear();
-      localStorage.removeItem("wc_signed_in_at");
-    });
-    if (authLink.ok) localStorage.setItem("wc_signed_in_at", String(Date.now()));
-    return { authLink };
+    return { authLink: await context.authLinkPromise ?? null };
   },
   head: () => ({
     meta: [
@@ -119,7 +105,15 @@ function RootShell({ children }: { children: ReactNode }) {
 }
 
 function RootComponent() {
-  const { queryClient, authLink } = Route.useRouteContext();
+  const { queryClient, authLink: loadedAuthLink, authLinkPromise } = Route.useRouteContext();
+  const [authLink, setAuthLink] = useState(loadedAuthLink);
+  const [linkReady, setLinkReady] = useState(false);
+  useEffect(() => {
+    void (authLinkPromise ?? Promise.resolve(null)).then((result) => {
+      setAuthLink(result);
+      setLinkReady(true);
+    });
+  }, [authLinkPromise]);
   const router = useRouter();
   useEffect(() => {
     if (!authLink) return;
@@ -139,6 +133,7 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      {linkReady ? (
       <AuthProvider onChange={onChange} authLink={authLink}>
         <SiteHeader />
         <div id="main">
@@ -148,6 +143,7 @@ function RootComponent() {
         <CookieNotice />
         <Toaster position="top-center" />
       </AuthProvider>
+      ) : <main className="flex min-h-[60vh] items-center justify-center" role="status">{t.common.loading}</main>}
     </QueryClientProvider>
   );
 }
