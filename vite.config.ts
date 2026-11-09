@@ -11,11 +11,13 @@ import path from "node:path";
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
 export default defineConfig({
-  vite: { resolve: { alias: {
-    "entities/lib/decode.js": path.resolve("node_modules/entities/lib/decode.js"),
-    "entities/lib/encode.js": path.resolve("node_modules/entities/lib/encode.js"),
-    "entities": path.resolve("node_modules/entities"),
-  } } },
+  vite: { resolve: { alias: [
+    { find: /^entities\/lib\/decode\.js$/, replacement: path.resolve("node_modules/entities/lib/decode.js") },
+    { find: /^entities\/lib\/encode\.js$/, replacement: path.resolve("node_modules/entities/lib/encode.js") },
+    // Match only the root import: modern htmlparser2 must resolve entities/decode
+    // against its own newer dependency, not the legacy v4 directory.
+    { find: /^entities$/, replacement: path.resolve("node_modules/entities/lib/esm/index.js") },
+  ] } },
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this
