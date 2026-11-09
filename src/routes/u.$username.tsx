@@ -8,6 +8,7 @@ import { sendMessage } from "@/lib/messages.functions";
 import { checkMessage, MAX_MESSAGE_LENGTH } from "@/lib/moderation";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/u/$username")({
   loader: async ({ params }) => ({ profile: await getPublicProfile({ data: { username: params.username } }) }),
@@ -31,6 +32,7 @@ function SendPage() {
   const { profile } = Route.useLoaderData();
   const { username } = Route.useParams();
   const send = useServerFn(sendMessage);
+  const { profile: me } = useAuth();
   const [body, setBody] = useState("");
   const [website, setWebsite] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -97,6 +99,11 @@ function SendPage() {
               <Button variant="ghost" onClick={() => setSent(false)}>{t.send.sendAnother}</Button>
             </div>
           </div>
+        ) : me?.username === profile.username ? (
+          <div className="mt-8 rounded-2xl bg-accent p-5 text-center">
+            <p className="font-semibold text-accent-foreground">{t.send.ownLink}</p>
+            <Button asChild variant="hero" className="mt-4"><Link to="/inbox">{t.common.inbox}</Link></Button>
+          </div>
         ) : !profile.accepting ? (
           <p className="mt-8 rounded-2xl bg-muted p-5 text-center text-muted-foreground">{t.send.paused}</p>
         ) : (
@@ -115,7 +122,7 @@ function SendPage() {
             />
             {/* Honeypot: hidden from people and assistive tech */}
             <div aria-hidden className="absolute -left-[9999px] h-0 w-0 overflow-hidden">
-              <label>Website<input tabIndex={-1} autoComplete="off" value={website} onChange={(e) => setWebsite(e.target.value)} name="website" /></label>
+              <label>Leave empty<input type="text" tabIndex={-1} autoComplete="new-password" data-1p-ignore data-lpignore="true" value={website} onChange={(e) => setWebsite(e.target.value)} name="hp_confirm_field" /></label>
             </div>
             <div className="mt-2 flex items-start justify-between gap-3 px-1 text-sm">
               <p id="msg-error" role="alert" className="text-destructive">{error}</p>

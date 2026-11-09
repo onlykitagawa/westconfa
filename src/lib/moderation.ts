@@ -72,3 +72,14 @@ export function checkMessage(raw: string): RejectReason | null {
   if (hasPersonalDetails(raw)) return "personal";
   return null;
 }
+
+// Accounts & sessions
+export const MIN_PASSWORD_LENGTH = 8;
+export const LOGIN_MAX_FAILED_ATTEMPTS = 5;
+export const LOGIN_WINDOW_MINUTES = 15;
+export const SESSION_MAX_DAYS = 30;
+export const RESEND_COOLDOWN_SECONDS = 60;
+
+export function isValidPassword(pw: string) {
+  return pw.length >= MIN_PASSWORD_LENGTH && pw.length <= 72;
+}
