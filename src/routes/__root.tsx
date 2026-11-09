@@ -8,11 +8,13 @@ import {
   Scripts,
   type ErrorComponentProps,
 } from "@tanstack/react-router";
-import { useCallback, useEffect, type ReactNode } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AuthProvider } from "@/lib/auth";
+import type { AuthLinkResult } from "@/lib/auth-link";
+import { toast } from "sonner";
 import { SiteHeader, Footer, CookieNotice } from "@/components/site/chrome";
 import { themeInitScript } from "@/components/site/theme";
 import { Toaster } from "@/components/ui/sonner";
@@ -51,7 +53,10 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
   );
 }
 
-export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+export const Route = createRootRouteWithContext<{ queryClient: QueryClient; authLinkPromise?: Promise<AuthLinkResult | null> }>()({
+  beforeLoad: async ({ context }) => {
+    return { authLink: await context.authLinkPromise ?? null };
+  },
   head: () => ({
     meta: [
       { charSet: "utf-8" },
@@ -100,8 +105,24 @@ function RootShell({ children }: { children: ReactNode }) {
 }
 
 function RootComponent() {
-  const { queryClient } = Route.useRouteContext();
+  const { queryClient, authLink: loadedAuthLink, authLinkPromise } = Route.useRouteContext();
+  const [authLink, setAuthLink] = useState(loadedAuthLink);
+  const [linkReady, setLinkReady] = useState(false);
+  useEffect(() => {
+    void (authLinkPromise ?? Promise.resolve(null)).then((result) => {
+      setAuthLink(result);
+      setLinkReady(true);
+    });
+  }, [authLinkPromise]);
   const router = useRouter();
+  useEffect(() => {
+    if (!authLink) return;
+    if (!authLink.ok) toast.error(t.auth.errCode, { id: "auth-link" });
+    else if (authLink.email) toast.success(t.settings.signedInAs(authLink.email), { id: "auth-link" });
+    if (authLink.ok && authLink.recovery && router.state.location.pathname !== "/reset-password") {
+      void router.navigate({ to: "/reset-password", replace: true });
+    }
+  }, [authLink, router]);
   const onChange = useCallback(
     (event: string) => {
       router.invalidate();
@@ -112,7 +133,8 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider onChange={onChange}>
+      {linkReady ? (
+      <AuthProvider onChange={onChange} authLink={authLink}>
         <SiteHeader />
         <div id="main">
           <Outlet />
@@ -121,6 +143,7 @@ function RootComponent() {
         <CookieNotice />
         <Toaster position="top-center" />
       </AuthProvider>
+      ) : <main className="flex min-h-[60vh] items-center justify-center" role="status">{t.common.loading}</main>}
     </QueryClientProvider>
   );
 }

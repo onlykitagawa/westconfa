@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { SESSION_MAX_DAYS } from "@/lib/moderation";
+import type { AuthLinkResult } from "@/lib/auth-link";
 
 const STAMP = "wc_signed_in_at";
 // Keeps students signed in for SESSION_MAX_DAYS on this device (tokens refresh automatically),
@@ -26,12 +27,21 @@ type AuthState = {
   profile: Profile | null;
   isAdmin: boolean;
   loading: boolean;
+  openedAuthLink: boolean;
+  recoveryUserId: string | null;
   refresh: () => Promise<void>;
 };
 
-const Ctx = createContext<AuthState>({ user: null, profile: null, isAdmin: false, loading: true, refresh: async () => {} });
+const Ctx = createContext<AuthState>({ user: null, profile: null, isAdmin: false, loading: true, openedAuthLink: false, recoveryUserId: null, refresh: async () => {} });
 
-export function AuthProvider({ children, onChange }: { children: ReactNode; onChange?: (event: string) => void }) {
+export function AuthProvider({ children, onChange, authLink }: { children: ReactNode; onChange?: (event: string) => void; authLink?: AuthLinkResult | null }) {
+  const [openedAuthLink, setOpenedAuthLink] = useState(!!authLink);
+  const [recoveryUserId, setRecoveryUserId] = useState<string | null>(authLink?.ok && authLink.recovery ? authLink.userId ?? null : null);
+  useEffect(() => {
+    if (!authLink) return;
+    setOpenedAuthLink(true);
+    setRecoveryUserId(authLink.ok && authLink.recovery ? authLink.userId ?? null : null);
+  }, [authLink]);
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -55,18 +65,20 @@ export function AuthProvider({ children, onChange }: { children: ReactNode; onCh
   }, []);
 
   useEffect(() => {
-    supabase.auth.getSession().then(async ({ data }) => {
-      if (data.session && sessionExpired()) {
+    supabase.auth.getUser().then(async ({ data }) => {
+      if (data.user && sessionExpired()) {
         localStorage.removeItem(STAMP);
         await supabase.auth.signOut();
         return load(null);
       }
-      load(data.session?.user ?? null);
+      load(data.user ?? null);
     });
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_OUT") localStorage.removeItem(STAMP);
+      if (event === "SIGNED_OUT") setRecoveryUserId(null);
+      if (event === "PASSWORD_RECOVERY") setRecoveryUserId(session?.user.id ?? null);
       if (event === "SIGNED_IN" && !localStorage.getItem(STAMP)) localStorage.setItem(STAMP, String(Date.now()));
-      if (event === "SIGNED_IN" || event === "SIGNED_OUT" || event === "USER_UPDATED") {
+      if (event === "SIGNED_IN" || event === "SIGNED_OUT" || event === "USER_UPDATED" || event === "PASSWORD_RECOVERY") {
         void load(session?.user ?? null);
         onChange?.(event);
       }
@@ -79,7 +91,7 @@ export function AuthProvider({ children, onChange }: { children: ReactNode; onCh
     await load(data.user);
   }, [load]);
 
-  return <Ctx.Provider value={{ user, profile, isAdmin, loading, refresh }}>{children}</Ctx.Provider>;
+  return <Ctx.Provider value={{ user, profile, isAdmin, loading, refresh, openedAuthLink, recoveryUserId }}>{children}</Ctx.Provider>;
 }
 
 export const useAuth = () => useContext(Ctx);

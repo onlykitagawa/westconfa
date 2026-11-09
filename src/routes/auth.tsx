@@ -44,7 +44,7 @@ function mapAuthError(message: string): string {
 
 function AuthPage() {
   const navigate = useNavigate();
-  const { user, loading } = useAuth();
+  const { user, loading, openedAuthLink } = useAuth();
   const signInFn = useServerFn(passwordSignIn);
   const [tab, setTab] = useState<"signin" | "signup">("signin");
   const [step, setStep] = useState<Step>("form");
@@ -57,8 +57,8 @@ function AuthPage() {
   const holdRedirect = useRef(false);
 
   useEffect(() => {
-    if (!loading && user && !holdRedirect.current) navigate({ to: "/inbox", replace: true });
-  }, [user, loading, navigate]);
+    if (!loading && user && !openedAuthLink && !holdRedirect.current) navigate({ to: "/inbox", replace: true });
+  }, [user, loading, openedAuthLink, navigate]);
 
   const clean = () => email.trim().toLowerCase();
   const go = (s: Step) => { setErr(null); setCode(""); setStep(s); };
@@ -71,7 +71,7 @@ function AuthPage() {
     if (!agree) return setErr(A.errAgree);
     setBusy(true);
     const { error } = await supabase.auth.signUp({
-      email: clean(), password, options: { emailRedirectTo: `${window.location.origin}/inbox` },
+      email: clean(), password, options: { emailRedirectTo: `${window.location.origin}/auth` },
     });
     setBusy(false);
     // "Already registered" is treated like success so we never reveal whether an account exists.
@@ -104,7 +104,7 @@ function AuthPage() {
     if (em) return setErr(em);
     setBusy(true);
     const { error } = await supabase.auth.signInWithOtp({
-      email: clean(), options: { shouldCreateUser: false, emailRedirectTo: `${window.location.origin}/inbox` },
+      email: clean(), options: { shouldCreateUser: false, emailRedirectTo: `${window.location.origin}/auth` },
     });
     setBusy(false);
     // Unknown emails fail with "signups not allowed" — stay neutral and show the code screen anyway.
@@ -167,7 +167,12 @@ function AuthPage() {
   return (
     <main className="mx-auto max-w-md px-4 pt-6 md:pt-14">
       <div className="glass animate-rise rounded-[28px] p-6 md:p-8">
-        {step === "form" && (
+        {openedAuthLink && user ? (
+          <>
+            <h1 className="text-2xl font-bold break-words">{t.settings.signedInAs(user.email ?? "")}</h1>
+            <Button asChild variant="hero" className="mt-6 w-full"><Link to="/inbox">{t.common.openInbox}</Link></Button>
+          </>
+        ) : step === "form" && (
           <>
             <Tabs value={tab} onValueChange={(v) => { setTab(v as "signin" | "signup"); setErr(null); }}>
               <TabsList className="grid h-13 w-full grid-cols-2 rounded-2xl p-1">
@@ -217,7 +222,7 @@ function AuthPage() {
             <Button type="submit" variant="hero" className="mt-6 w-full" disabled={busy || code.length !== 6}>{busy ? A.verifying : A.verify}</Button>
             <div className="mt-2">
               <ResendButton onResend={async () => {
-                if (step === "verify-signup") await supabase.auth.resend({ type: "signup", email: clean(), options: { emailRedirectTo: `${window.location.origin}/inbox` } });
+                if (step === "verify-signup") await supabase.auth.resend({ type: "signup", email: clean(), options: { emailRedirectTo: `${window.location.origin}/auth` } });
                 else await requestCode();
                 toast.success(A.resent);
               }} />

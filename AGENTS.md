@@ -40,3 +40,4 @@ use the editor.
 - Spam limits for signed-in senders are keyed on a salted hash of their account id (shared campus IPs), still kept only in rate_events, never on the message.
 
 - Authentication emails use the managed SDK handler and a shared email layout, with email copy in src/i18n; include action tokens so the existing code-entry flows remain usable.
+- Capture email-link credentials when creating the router, await them before child guards and hydration render auth, clear private caches when replacing accounts, and grant reset readiness only to the verified recovery user.
