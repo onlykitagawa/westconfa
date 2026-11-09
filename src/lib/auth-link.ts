@@ -1,6 +1,6 @@
 import type { SupabaseClient, EmailOtpType } from "@supabase/supabase-js";
 
-export type AuthLinkResult = { ok: boolean; email?: string; userId?: string; recovery: boolean };
+export type AuthLinkResult = { ok: boolean; email?: string | undefined; userId?: string; recovery: boolean };
 
 export function readAuthLink(url: URL) {
   const params = new URLSearchParams(url.search);
@@ -29,7 +29,8 @@ export async function consumeAuthLink(
       }
       const session = data.session;
       // Exchange has already replaced the old session. Do not revoke the new token.
-      return { ok: true, email: session.user.email, userId: session.user.id, recovery: recovery || data.redirectType === "recovery" };
+      const redirectType = "redirectType" in data ? data.redirectType : null;
+      return { ok: true, email: session.user.email, userId: session.user.id, recovery: recovery || redirectType === "recovery" };
     }
     const { error: signOutError } = await client.auth.signOut({ scope: "local" });
     if (signOutError) return failed;
