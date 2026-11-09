@@ -4,7 +4,7 @@ import { emailCopy as copy } from "@/i18n/email.en";
 
 // Email-safe equivalents of the app's indigo/coral theme; mail clients cannot load app CSS.
 const theme = { background: "#ffffff", foreground: "#241b43", muted: "#615a73", primary: "#4f2fd6", accent: "#ee806b", border: "#e7e1f2", code: "#f4f1fc" };
-export function AuthEmailLayout({ type, token, confirmationUrl, detail }: { type: keyof Omit<typeof copy, "brand" | "footer" | "ignore" | "codeHint">; token?: string; confirmationUrl?: string; detail?: string }) {
+export function AuthEmailLayout({ type, token, confirmationUrl, detail }: { type: keyof Omit<typeof copy, "brand" | "footer" | "ignore" | "codeHint">; token?: string | undefined; confirmationUrl?: string | undefined; detail?: string | undefined }) {
   const content = copy[type];
   return <Html lang="en" dir="ltr"><Head /><Preview>{content.subject}</Preview>
     <Body style={{ backgroundColor: theme.background, color: theme.foreground, fontFamily: "'Plus Jakarta Sans', Arial, sans-serif", margin: 0 }}>
