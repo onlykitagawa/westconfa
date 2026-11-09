@@ -141,7 +141,7 @@ function SettingsPage() {
         <p className="mb-5 break-all text-sm text-muted-foreground">{S.signedInAs(profile.email)}</p>
         <div className="grid gap-3 sm:grid-cols-2">
           <Button variant="secondary" onClick={download}><Download /> {S.download}</Button>
-          <Button variant="secondary" onClick={signOut}><LogOut /> {t.common.signOut}</Button>
+          <Button variant="default" onClick={signOut}><LogOut /> {t.common.signOut}</Button>
           <Button variant="ghost" className="text-destructive hover:bg-destructive/10 hover:text-destructive sm:col-span-2" onClick={() => setDelOpen(true)}><Trash2 /> {S.deleteAccount}</Button>
         </div>
       </Section>

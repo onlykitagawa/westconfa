@@ -13,6 +13,7 @@ export const privacy: LegalDoc = {
         "If you send a message: only the text of the message and the time it was sent. We never store your name, account, email, device, or location with a message.",
         "For spam protection only: when someone sends a message, we store a salted, one-way hash of their network (IP) address. It cannot be turned back into the address, is never linked to the message itself, and is automatically deleted after 24 hours.",
         "If you use the contact form: the name, email and message you submit, so we can reply.",
+        "Your password is stored only as a secure one-way hash by our authentication provider. Nobody, including us, can read it.",
       ],
     },
     {
@@ -25,7 +26,8 @@ export const privacy: LegalDoc = {
       h: "How long we keep it",
       p: [
         "Messages are deleted automatically 90 days after they are sent. You can delete any message sooner.",
-        "Spam-protection hashes are deleted automatically after 24 hours.",
+        "Spam-protection hashes, including the scrambled code used to limit failed sign-in attempts, are deleted automatically after 24 hours.",
+        "When you sign in, you stay signed in on that device for up to 30 days (your session refreshes automatically). After that, you'll be asked for your password again.",
         "Your account data is kept until you delete your account. Contact form messages are kept only as long as needed to handle your request.",
       ],
     },
@@ -41,7 +43,7 @@ export const privacy: LegalDoc = {
     {
       h: "What we never do",
       p: [
-        "We do not sell, rent, or share your data with anyone for marketing. We do not show ads. We do not use analytics, advertising pixels, or third-party trackers. We only use essential cookies and local storage to keep you signed in and remember your theme preference.",
+        "We do not sell, rent, or share your data with anyone for marketing. We do not show ads. We do not use analytics, advertising pixels, or third-party trackers. We only use essential cookies and local storage to keep you signed in (for up to 30 days) and remember your theme preference.",
       ],
     },
     {
