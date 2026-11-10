@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Inbox, Settings, Share2, Shield } from "lucide-react";
+import { Inbox, MessageCircle, Settings, Share2, Shield } from "lucide-react";
 import { useEffect, useState } from "react";
 import { t } from "@/i18n";
 import { useAuth } from "@/lib/auth";
@@ -10,7 +10,7 @@ import { ShareDialog } from "./share-dialog";
 export function Logo() {
   return (
     <Link to="/" className="flex items-center gap-2.5 rounded-xl font-extrabold tracking-tight" aria-label={`${t.brand} home`}>
-      <img src="/favicon.png" alt="" width={32} height={32} className="size-8 rounded-[10px] shadow-soft" />
+      <span className="grid size-8 shrink-0 place-items-center rounded-[10px] bg-logo text-brand-foreground shadow-soft" aria-hidden><MessageCircle className="size-5" /></span>
       <span className="text-lg">{t.brand}</span>
     </Link>
   );
@@ -21,8 +21,8 @@ export function SiteHeader() {
   const navLink = "rounded-xl px-3 py-2 text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-accent";
   const active = { className: "text-foreground bg-accent" };
   return (
-    <header className="sticky top-0 z-40">
-      <div className="mx-auto flex h-18 max-w-6xl items-center justify-between gap-3 px-5 py-3">
+    <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur-xl">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 py-2 sm:px-5">
         <Logo />
         <nav className="flex items-center gap-1" aria-label="Main">
           {!loading && user ? (
@@ -54,9 +54,9 @@ export function MobileNav() {
       <nav aria-label="App" className="fixed inset-x-3 bottom-3 z-40 md:hidden" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
         <div className="glass flex items-stretch gap-1 rounded-3xl p-1.5">
           <Link to="/inbox" className={item} activeProps={active}><Inbox className="size-5" />{t.common.inbox}</Link>
-          <button type="button" className={item} onClick={() => setOpen(true)} disabled={!profile?.username}>
+          <Button type="button" variant="ghost" className={item} onClick={() => setOpen(true)} disabled={!profile?.username}>
             <Share2 className="size-5" />{t.common.share}
-          </button>
+          </Button>
           {isAdmin && <Link to="/admin" className={item} activeProps={active}><Shield className="size-5" />{t.common.admin}</Link>}
           <Link to="/settings" className={item} activeProps={active}><Settings className="size-5" />{t.common.settings}</Link>
         </div>
@@ -90,10 +90,10 @@ export function CookieNotice() {
   }, []);
   if (!show) return null;
   return (
-    <div role="region" aria-label="Cookie notice" className="animate-rise fixed inset-x-3 bottom-24 z-50 mx-auto max-w-lg md:bottom-5">
+    <div role="region" aria-label="Cookie notice" className="cookie-notice animate-rise fixed inset-x-3 z-50 max-w-sm md:left-5 md:right-auto">
       <div className="glass flex items-center gap-3 rounded-2xl py-2 pl-4 pr-2 text-sm">
         <p className="flex-1 text-muted-foreground">{t.cookie.text}</p>
-        <Button size="sm" variant="secondary" onClick={() => { localStorage.setItem("cookie-ok", "1"); setShow(false); }}>
+        <Button size="sm" variant="secondary" className="shrink-0" onClick={() => { localStorage.setItem("cookie-ok", "1"); setShow(false); }}>
           {t.cookie.ok}
         </Button>
       </div>

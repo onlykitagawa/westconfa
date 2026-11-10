@@ -186,8 +186,8 @@ function AuthPage() {
   const errorBox = err && <p role="alert" className="mt-4 rounded-2xl bg-destructive/10 px-4 py-3 text-sm text-destructive">{err}</p>;
 
   return (
-    <main className="mx-auto max-w-md px-4 pt-6 md:pt-14">
-      <div className="glass animate-rise rounded-[28px] p-6 md:p-8">
+    <main className="mx-auto max-w-lg px-4 pt-10 md:pt-20">
+      <div className="auth-card glass animate-rise rounded-3xl p-6 sm:p-10 [&_h1]:break-words [&_h1]:text-2xl sm:[&_h1]:text-3xl">
         {step === "form" && (
           <>
             <Tabs value={tab} onValueChange={(v) => { setTab(v as "signin" | "signup"); setErr(null); }}>
