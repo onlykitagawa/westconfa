@@ -8,6 +8,7 @@ vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => mocks.navigate,
 }));
 vi.mock("@tanstack/react-start", () => ({ useServerFn: () => vi.fn() }));
+vi.mock("@/lib/account.functions", () => ({ deleteMyAccount: vi.fn() }));
 vi.mock("@tanstack/react-query", () => ({ useQueryClient: () => ({ cancelQueries: vi.fn(), clear: vi.fn() }) }));
 vi.mock("sonner", () => ({ toast: { success: mocks.success, error: mocks.error } }));
 vi.mock("@/lib/auth", () => ({
