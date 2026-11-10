@@ -278,15 +278,24 @@ function AuthPage() {
         )}
 
         {step === "reset" && (
-          <form onSubmit={resetPassword} noValidate className="space-y-5">
+          <form onSubmit={resetPassword} noValidate>
             {back}
-            <h1 className="text-3xl font-extrabold tracking-tight">{A.resetTitle}</h1>
-            <p className="-mt-2 text-muted-foreground">{A.resetSubtitle(clean())}</p>
-            <CodeField value={code} onChange={(v) => { setCode(v); setErr(null); }} />
-            <PasswordField value={password} onChange={(v) => { setPassword(v); setErr(null); }} isNew label={A.newPassword} id="new-password" />
-            {errorBox}
-            <Button type="submit" variant="hero" className="w-full" disabled={busy || code.length !== 6}>{busy ? A.verifying : A.savePassword}</Button>
-            <ResendButton onResend={async () => { await requestReset(); toast.success(A.resent); }} />
+            <h1 className="text-3xl font-extrabold tracking-tight">{A.codeTitle}</h1>
+            <p className="mt-2 text-muted-foreground">{A.resetSubtitle(clean())}</p>
+            {clean().endsWith("@students.wiut.uz") && (
+              <div className="mt-5">
+                <Button asChild variant="glass" className="w-full"><a href="https://outlook.office.com/mail/" target="_blank" rel="noopener">{A.openOutlook}</a></Button>
+                <p className="mt-2 text-sm text-muted-foreground">{A.junkHint}</p>
+              </div>
+            )}
+            <div className="mt-7 space-y-5 border-t border-border pt-5">
+              <p className="text-sm text-muted-foreground">{A.resetCodeAlternative}</p>
+              <CodeField value={code} onChange={(v) => { setCode(v); setErr(null); }} />
+              <PasswordField value={password} onChange={(v) => { setPassword(v); setErr(null); }} isNew label={A.newPassword} id="new-password" />
+              {errorBox}
+              <Button type="submit" variant="hero" className="w-full" disabled={busy || code.length !== 6}>{busy ? A.verifying : A.savePassword}</Button>
+            </div>
+            <div className="mt-2"><ResendButton onResend={async () => { await requestReset(); toast.success(A.resent); }} /></div>
           </form>
         )}
       </div>
