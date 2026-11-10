@@ -14,7 +14,9 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { UsernameField, type UsernameStatus } from "@/components/site/username-field";
+import { PasswordField } from "@/components/site/auth-fields";
 import { ThemeToggle } from "@/components/site/theme";
+import { isValidPassword } from "@/lib/moderation";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({ meta: [{ title: t.settings.metaTitle }, { name: "description", content: t.settings.metaDesc }, { property: "og:title", content: t.settings.metaTitle }, { property: "og:description", content: t.settings.metaDesc }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { name: "robots", content: "noindex" }] }),
@@ -42,6 +44,8 @@ function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const [paused, setPaused] = useState(false);
   const [delOpen, setDelOpen] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [savingPassword, setSavingPassword] = useState(false);
   const [confirmText, setConfirmText] = useState("");
   const [deleting, setDeleting] = useState(false);
   const onStatus = useCallback((s: UsernameStatus) => setStatus(s), []);
@@ -83,6 +87,16 @@ function SettingsPage() {
     a.download = `west-confa-${profile.username ?? "data"}.json`;
     a.click();
     URL.revokeObjectURL(a.href);
+  };
+
+  const changePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isValidPassword(newPassword)) { toast.error(t.auth.errPassword); return; }
+    setSavingPassword(true);
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    setSavingPassword(false);
+    if (error) toast.error(S.passwordChangeFailed);
+    else { toast.success(S.passwordUpdated); setNewPassword(""); }
   };
 
   const signOut = async () => {
@@ -139,6 +153,10 @@ function SettingsPage() {
 
       <Section title={S.accountSection}>
         <p className="mb-5 break-all text-sm text-muted-foreground">{S.signedInAs(profile.email)}</p>
+        <form onSubmit={changePassword} className="mb-5 space-y-3">
+          <PasswordField value={newPassword} onChange={setNewPassword} isNew label={S.changePassword} id="settings-password" />
+          <Button type="submit" variant="secondary" disabled={savingPassword || !isValidPassword(newPassword)}>{S.savePassword}</Button>
+        </form>
         <div className="grid gap-3 sm:grid-cols-2">
           <Button variant="secondary" onClick={download}><Download /> {S.download}</Button>
           <Button variant="default" onClick={signOut}><LogOut /> {t.common.signOut}</Button>

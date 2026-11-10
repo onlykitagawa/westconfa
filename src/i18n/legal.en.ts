@@ -19,7 +19,7 @@ export const privacy: LegalDoc = {
     {
       h: "Why we collect it",
       p: [
-        "Your email lets you sign in with a one-time code and confirms you are a WIUT student. Your username and display name create your personal link. Messages are stored so you can read them. The short-lived hash lets us enforce sending limits and stop spam and abuse.",
+        "Your email and password let you sign in (or an emailed sign-in link) and confirm you are a WIUT student. Your username and display name create your personal link. Messages are stored so you can read them. The short-lived hash lets us enforce sending limits and stop spam and abuse.",
       ],
     },
     {
