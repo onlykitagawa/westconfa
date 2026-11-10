@@ -2,7 +2,7 @@ import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { t } from "@/i18n";
 
-const mocks = vi.hoisted(() => ({ signUp: vi.fn(), otp: vi.fn(), resend: vi.fn(), verify: vi.fn(), signIn: vi.fn(), navigate: vi.fn() }));
+const mocks = vi.hoisted(() => ({ signUp: vi.fn(), otp: vi.fn(), resend: vi.fn(), verify: vi.fn(), signIn: vi.fn(), navigate: vi.fn(), reset: vi.fn(), update: vi.fn() }));
 vi.mock("@tanstack/react-router", () => ({
   createFileRoute: () => (options: unknown) => ({ options }),
   useNavigate: () => mocks.navigate,
@@ -13,6 +13,7 @@ vi.mock("@/lib/auth.functions", () => ({ passwordSignIn: vi.fn() }));
 vi.mock("@/lib/auth", () => ({ useAuth: () => ({ user: null, loading: false, openedAuthLink: false }) }));
 vi.mock("@/integrations/supabase/client", () => ({ supabase: { auth: {
   signUp: mocks.signUp, signInWithOtp: mocks.otp, resend: mocks.resend, verifyOtp: mocks.verify,
+  resetPasswordForEmail: mocks.reset, updateUser: mocks.update,
 } } }));
 vi.mock("@/components/site/auth-fields", () => ({
   EmailField: ({ value, onChange }: { value: string; onChange: (value: string) => void }) => <input aria-label="email" value={value} onChange={(e) => onChange(e.target.value)} />,
@@ -32,6 +33,8 @@ describe("Sign-in verification transitions", () => {
     mocks.otp.mockResolvedValue({ error: null });
     mocks.resend.mockResolvedValue({ error: null });
     mocks.verify.mockResolvedValue({ error: null });
+    mocks.reset.mockResolvedValue({ error: null });
+    mocks.update.mockResolvedValue({ error: null });
   });
   afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
 
@@ -80,5 +83,20 @@ describe("Sign-in verification transitions", () => {
     fireEvent.change(ui.getByLabelText("code"), { target: { value: "654321" } });
     fireEvent.submit(ui.getByRole("button", { name: t.auth.verify }).closest("form") as HTMLFormElement);
     await waitFor(() => expect(mocks.verify).toHaveBeenCalledWith({ email, token: "654321", type: "signup" }));
+  });
+
+  it("requests a reset link and preserves code-based password recovery on the reset step", async () => {
+    const ui = render(<AuthPage />);
+    fireEvent.click(ui.getByRole("button", { name: t.auth.forgot }));
+    fireEvent.change(ui.getByLabelText("email"), { target: { value: email } });
+    fireEvent.submit(ui.getByRole("button", { name: t.auth.sendReset }).closest("form") as HTMLFormElement);
+    await waitFor(() => expect(mocks.reset).toHaveBeenCalledWith(email, { redirectTo: `${window.location.origin}/reset-password` }));
+    await waitFor(() => expect(ui.getByLabelText("code")).toBeDefined());
+    fireEvent.change(ui.getByLabelText("code"), { target: { value: "123456" } });
+    fireEvent.change(ui.getByLabelText("password"), { target: { value: "new-test-password" } });
+    fireEvent.submit(ui.getByRole("button", { name: t.auth.savePassword }).closest("form") as HTMLFormElement);
+    await waitFor(() => expect(mocks.verify).toHaveBeenCalledWith({ email, token: "123456", type: "recovery" }));
+    await waitFor(() => expect(mocks.update).toHaveBeenCalledWith({ password: "new-test-password" }));
+    expect(mocks.navigate).toHaveBeenCalledWith({ to: "/inbox", replace: true });
   });
 });
