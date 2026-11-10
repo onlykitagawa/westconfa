@@ -119,8 +119,9 @@ function RootComponent() {
     if (!authLink) return;
     if (!authLink.ok) toast.error(t.auth.errCode, { id: "auth-link" });
     else if (authLink.email) toast.success(t.settings.signedInAs(authLink.email), { id: "auth-link" });
-    if (authLink.ok && authLink.recovery && router.state.location.pathname !== "/reset-password") {
-      void router.navigate({ to: "/reset-password", replace: true });
+    if (authLink.ok) {
+      const to = authLink.recovery ? "/reset-password" : "/inbox";
+      if (router.state.location.pathname !== to) void router.navigate({ to, replace: true });
     }
   }, [authLink, router]);
   const onChange = useCallback(
