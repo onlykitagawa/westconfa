@@ -234,6 +234,7 @@ function AuthPage() {
             <h1 className="text-3xl font-extrabold tracking-tight">{A.codeTitle}</h1>
             {unverified && <p role="status" className="mt-2 text-sm text-muted-foreground">{A.unverifiedNote}</p>}
             <p className="mt-2 text-muted-foreground">{A.verifySubtitle(clean())}</p>
+            {step === "verify-signup" && <p className="mt-2 text-sm text-muted-foreground">{A.existingAccountNote}</p>}
             {clean().endsWith("@students.wiut.uz") && (
               <div className="mt-5">
                 <Button asChild variant="glass" className="w-full"><a href="https://outlook.office.com/mail/" target="_blank" rel="noopener">{A.openOutlook}</a></Button>

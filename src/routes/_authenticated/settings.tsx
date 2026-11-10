@@ -14,7 +14,9 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { UsernameField, type UsernameStatus } from "@/components/site/username-field";
+import { PasswordField } from "@/components/site/auth-fields";
 import { ThemeToggle } from "@/components/site/theme";
+import { isValidPassword } from "@/lib/moderation";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({ meta: [{ title: t.settings.metaTitle }, { name: "description", content: t.settings.metaDesc }, { property: "og:title", content: t.settings.metaTitle }, { property: "og:description", content: t.settings.metaDesc }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { name: "robots", content: "noindex" }] }),
