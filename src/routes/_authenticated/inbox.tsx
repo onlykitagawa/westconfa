@@ -15,7 +15,7 @@ import { ShareDialog } from "@/components/site/share-dialog";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/inbox")({
-  head: () => ({ meta: [{ title: t.inbox.metaTitle }, { name: "robots", content: "noindex" }] }),
+  head: () => ({ meta: [{ title: t.inbox.metaTitle }, { name: "description", content: t.inbox.metaDesc }, { property: "og:title", content: t.inbox.metaTitle }, { property: "og:description", content: t.inbox.metaDesc }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { name: "robots", content: "noindex" }] }),
   component: InboxPage,
 });
 

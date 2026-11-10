@@ -147,6 +147,7 @@ export const en = {
   },
   onboarding: {
     metaTitle: "Choose your username · west confa",
+    metaDesc: "Choose your username and claim your personal west confa link.",
     title: "Claim your link",
     subtitle: "Pick a username. You can change it later in settings.",
     username: "Username",
@@ -161,6 +162,7 @@ export const en = {
   },
   inbox: {
     metaTitle: "Inbox · west confa",
+    metaDesc: "Read and manage your private anonymous messages on west confa.",
     title: "Inbox",
     unread: (n: number) => (n === 1 ? "1 unread" : `${n} unread`),
     shareLink: "Share my link",
@@ -189,6 +191,7 @@ export const en = {
   },
   settings: {
     metaTitle: "Settings · west confa",
+    metaDesc: "Manage your west confa account, personal link and inbox preferences.",
     title: "Settings",
     inboxSection: "Inbox",
     pauseLabel: "Accept new messages",
@@ -210,6 +213,7 @@ export const en = {
   },
   admin: {
     metaTitle: "Admin · west confa",
+    metaDesc: "Review reports and manage safety on west confa.",
     title: "Admin",
     stats: "Overview",
     users: "Users",

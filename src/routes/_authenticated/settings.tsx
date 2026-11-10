@@ -17,7 +17,7 @@ import { UsernameField, type UsernameStatus } from "@/components/site/username-f
 import { ThemeToggle } from "@/components/site/theme";
 
 export const Route = createFileRoute("/_authenticated/settings")({
-  head: () => ({ meta: [{ title: t.settings.metaTitle }, { name: "robots", content: "noindex" }] }),
+  head: () => ({ meta: [{ title: t.settings.metaTitle }, { name: "description", content: t.settings.metaDesc }, { property: "og:title", content: t.settings.metaTitle }, { property: "og:description", content: t.settings.metaDesc }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { name: "robots", content: "noindex" }] }),
   component: SettingsPage,
 });
 

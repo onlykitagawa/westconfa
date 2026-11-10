@@ -13,7 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const Route = createFileRoute("/_authenticated/admin")({
-  head: () => ({ meta: [{ title: t.admin.metaTitle }, { name: "robots", content: "noindex" }] }),
+  head: () => ({ meta: [{ title: t.admin.metaTitle }, { name: "description", content: t.admin.metaDesc }, { property: "og:title", content: t.admin.metaTitle }, { property: "og:description", content: t.admin.metaDesc }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { name: "robots", content: "noindex" }] }),
   component: AdminPage,
 });
 

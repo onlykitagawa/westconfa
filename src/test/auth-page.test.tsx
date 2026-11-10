@@ -28,11 +28,12 @@ const email = "student@students.wiut.uz";
 describe("Sign-in verification transitions", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.stubGlobal("ResizeObserver", class { observe() {} unobserve() {} disconnect() {} });
     mocks.otp.mockResolvedValue({ error: null });
     mocks.resend.mockResolvedValue({ error: null });
     mocks.verify.mockResolvedValue({ error: null });
   });
-  afterEach(cleanup);
+  afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
 
   async function signup(identities: unknown[]) {
     mocks.signUp.mockResolvedValue({ data: { user: { identities } }, error: null });
