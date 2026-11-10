@@ -44,6 +44,8 @@ function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const [paused, setPaused] = useState(false);
   const [delOpen, setDelOpen] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [savingPassword, setSavingPassword] = useState(false);
   const [confirmText, setConfirmText] = useState("");
   const [deleting, setDeleting] = useState(false);
   const onStatus = useCallback((s: UsernameStatus) => setStatus(s), []);
@@ -85,6 +87,16 @@ function SettingsPage() {
     a.download = `west-confa-${profile.username ?? "data"}.json`;
     a.click();
     URL.revokeObjectURL(a.href);
+  };
+
+  const changePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isValidPassword(newPassword)) { toast.error(t.auth.errPassword); return; }
+    setSavingPassword(true);
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    setSavingPassword(false);
+    if (error) toast.error(S.passwordChangeFailed);
+    else { toast.success(S.passwordUpdated); setNewPassword(""); }
   };
 
   const signOut = async () => {
@@ -141,6 +153,10 @@ function SettingsPage() {
 
       <Section title={S.accountSection}>
         <p className="mb-5 break-all text-sm text-muted-foreground">{S.signedInAs(profile.email)}</p>
+        <form onSubmit={changePassword} className="mb-5 space-y-3">
+          <PasswordField value={newPassword} onChange={setNewPassword} isNew label={S.changePassword} id="settings-password" />
+          <Button type="submit" variant="secondary" disabled={savingPassword || !isValidPassword(newPassword)}>{S.savePassword}</Button>
+        </form>
         <div className="grid gap-3 sm:grid-cols-2">
           <Button variant="secondary" onClick={download}><Download /> {S.download}</Button>
           <Button variant="default" onClick={signOut}><LogOut /> {t.common.signOut}</Button>
