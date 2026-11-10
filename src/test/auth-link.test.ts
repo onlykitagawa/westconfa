@@ -59,4 +59,17 @@ describe("Email link account switching", () => {
     expect(auth.signOut).not.toHaveBeenCalled();
     expect(result).toEqual({ ok: true, email: "link@students.wiut.uz", userId: "link-account", recovery: true });
   });
+
+  for (const type of ["signup", "magiclink", "recovery"]) {
+    it(`accepts an implicit ${type} link in a fresh browser without a PKCE verifier`, async () => {
+      const { client, clear, auth } = setup();
+      auth.getUser.mockResolvedValue({ data: { user: { id: "link-account", email: "link@students.wiut.uz" } }, error: null });
+      const params = readAuthLink(new URL(`https://westconfa.lovable.app/auth#access_token=test-access&refresh_token=test-refresh&type=${type}`));
+      if (!params) throw new Error("Missing implicit link");
+      const result = await consumeAuthLink(params, client, clear);
+      expect(result).toEqual({ ok: true, email: "link@students.wiut.uz", userId: "link-account", recovery: type === "recovery" });
+      expect(auth.exchangeCodeForSession).not.toHaveBeenCalled();
+      expect(auth.setSession).toHaveBeenCalledWith({ access_token: "test-access", refresh_token: "test-refresh" });
+    });
+  }
 });

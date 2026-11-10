@@ -5,7 +5,7 @@ import { LOGIN_MAX_FAILED_ATTEMPTS, LOGIN_WINDOW_MINUTES } from "./moderation";
 
 export type SignInResult =
   | { ok: true; access_token: string; refresh_token: string }
-  | { ok: false; code: "invalid" | "locked" | "generic" };
+  | { ok: false; code: "invalid" | "locked" | "generic" | "unverified" };
 
 const schema = z.object({
   email: z.string().trim().toLowerCase().email().max(255),
@@ -47,6 +47,7 @@ export const passwordSignIn = createServerFn({ method: "POST" })
     });
     const { data: res, error } = await client.auth.signInWithPassword({ email: data.email, password: data.password });
     if (error || !res.session) {
+      if (error?.code === "email_not_confirmed") return { ok: false, code: "unverified" };
       await supabaseAdmin.from("login_attempts").insert({ email_hash: emailHash });
       if (error && error.status && error.status >= 500) return { ok: false, code: "generic" };
       return { ok: false, code: "invalid" };

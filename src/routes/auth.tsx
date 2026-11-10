@@ -53,6 +53,7 @@ function AuthPage() {
   const [agree, setAgree] = useState(false);
   const [code, setCode] = useState("");
   const [err, setErr] = useState<string | null>(null);
+  const [unverified, setUnverified] = useState(false);
   const [busy, setBusy] = useState(false);
   const holdRedirect = useRef(false);
 
@@ -61,7 +62,7 @@ function AuthPage() {
   }, [user, loading, openedAuthLink, navigate]);
 
   const clean = () => email.trim().toLowerCase();
-  const go = (s: Step) => { setErr(null); setCode(""); setStep(s); };
+  const go = (s: Step) => { setErr(null); setCode(""); setUnverified(false); setStep(s); };
 
   const signUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,9 +71,18 @@ function AuthPage() {
     if (!isValidPassword(password)) return setErr(A.errPassword);
     if (!agree) return setErr(A.errAgree);
     setBusy(true);
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email: clean(), password, options: { emailRedirectTo: `${window.location.origin}/auth` },
     });
+    if (data.user?.identities?.length === 0) {
+      try {
+        await supabase.auth.signInWithOtp({
+          email: clean(), options: { shouldCreateUser: false, emailRedirectTo: `${window.location.origin}/auth` },
+        });
+      } catch {
+        // Keep the same neutral verification screen even if the fallback fails.
+      }
+    }
     setBusy(false);
     // "Already registered" is treated like success so we never reveal whether an account exists.
     if (error && !/already|registered|exists/i.test(error.message)) return setErr(mapAuthError(error.message));
@@ -87,6 +97,17 @@ function AuthPage() {
     try {
       const res = await signInFn({ data: { email: clean(), password } });
       if (!res.ok) {
+        if (res.code === "unverified") {
+          try {
+            await supabase.auth.resend({ type: "signup", email: clean(), options: { emailRedirectTo: `${window.location.origin}/auth` } });
+          } catch {
+            // Still let the student use an existing verification email or resend later.
+          }
+          setBusy(false);
+          go("verify-signup");
+          setUnverified(true);
+          return;
+        }
         setBusy(false);
         return setErr(res.code === "locked" ? A.errLocked : res.code === "invalid" ? A.errInvalid : t.common.somethingWrong);
       }
@@ -167,12 +188,7 @@ function AuthPage() {
   return (
     <main className="mx-auto max-w-md px-4 pt-6 md:pt-14">
       <div className="glass animate-rise rounded-[28px] p-6 md:p-8">
-        {openedAuthLink && user ? (
-          <>
-            <h1 className="text-2xl font-bold break-words">{t.settings.signedInAs(user.email ?? "")}</h1>
-            <Button asChild variant="hero" className="mt-6 w-full"><Link to="/inbox">{t.common.openInbox}</Link></Button>
-          </>
-        ) : step === "form" && (
+        {step === "form" && (
           <>
             <Tabs value={tab} onValueChange={(v) => { setTab(v as "signin" | "signup"); setErr(null); }}>
               <TabsList className="grid h-13 w-full grid-cols-2 rounded-2xl p-1">
@@ -216,10 +232,20 @@ function AuthPage() {
           <form onSubmit={verify} noValidate>
             {back}
             <h1 className="text-3xl font-extrabold tracking-tight">{A.codeTitle}</h1>
-            <p className="mt-2 text-muted-foreground">{step === "verify-signup" ? A.verifySubtitle(clean()) : A.codeSubtitle(clean())}</p>
-            <div className="mt-7"><CodeField value={code} onChange={(v) => { setCode(v); setErr(null); }} /></div>
-            {errorBox}
-            <Button type="submit" variant="hero" className="mt-6 w-full" disabled={busy || code.length !== 6}>{busy ? A.verifying : A.verify}</Button>
+            {unverified && <p role="status" className="mt-2 text-sm text-muted-foreground">{A.unverifiedNote}</p>}
+            <p className="mt-2 text-muted-foreground">{A.verifySubtitle(clean())}</p>
+            {clean().endsWith("@students.wiut.uz") && (
+              <div className="mt-5">
+                <Button asChild variant="glass" className="w-full"><a href="https://outlook.office.com/mail/" target="_blank" rel="noopener">{A.openOutlook}</a></Button>
+                <p className="mt-2 text-sm text-muted-foreground">{A.junkHint}</p>
+              </div>
+            )}
+            <div className="mt-7 border-t border-border pt-5">
+              <p className="mb-4 text-sm text-muted-foreground">{A.codeAlternative}</p>
+              <CodeField value={code} onChange={(v) => { setCode(v); setErr(null); }} />
+              {errorBox}
+              <Button type="submit" variant="hero" className="mt-6 w-full" disabled={busy || code.length !== 6}>{busy ? A.verifying : A.verify}</Button>
+            </div>
             <div className="mt-2">
               <ResendButton onResend={async () => {
                 if (step === "verify-signup") await supabase.auth.resend({ type: "signup", email: clean(), options: { emailRedirectTo: `${window.location.origin}/auth` } });

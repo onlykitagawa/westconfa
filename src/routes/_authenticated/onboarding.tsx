@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { UsernameField, type UsernameStatus } from "@/components/site/username-field";
 
 export const Route = createFileRoute("/_authenticated/onboarding")({
-  head: () => ({ meta: [{ title: t.onboarding.metaTitle }, { name: "robots", content: "noindex" }] }),
+  head: () => ({ meta: [{ title: t.onboarding.metaTitle }, { name: "description", content: t.onboarding.metaDesc }, { property: "og:title", content: t.onboarding.metaTitle }, { property: "og:description", content: t.onboarding.metaDesc }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { name: "robots", content: "noindex" }] }),
   component: Onboarding,
 });
 

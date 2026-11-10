@@ -115,8 +115,11 @@ export const en = {
     sendCode: "Send me a code",
     sending: "Sending…",
     codeTitle: "Check your email",
-    verifySubtitle: (email: string) => `If ${email} can be used, we've sent a 6-digit code. Enter it below, or tap the button in the email.`,
-    codeSubtitle: (email: string) => `If there's an account for ${email}, we've sent a 6-digit code. You can also tap the button in the email.`,
+    verifySubtitle: (email: string) => `We sent an email to ${email}. Tap the button or link in it to continue.`,
+    unverifiedNote: "Your email isn't verified yet. We sent you a new email.",
+    openOutlook: "Open Outlook",
+    junkHint: "Can't find it? Check Junk or Spam.",
+    codeAlternative: "Got a 6-digit code instead? Enter it here",
     code: "6-digit code",
     verify: "Continue",
     verifying: "Checking…",
@@ -144,6 +147,7 @@ export const en = {
   },
   onboarding: {
     metaTitle: "Choose your username · west confa",
+    metaDesc: "Choose your username and claim your personal west confa link.",
     title: "Claim your link",
     subtitle: "Pick a username. You can change it later in settings.",
     username: "Username",
@@ -158,6 +162,7 @@ export const en = {
   },
   inbox: {
     metaTitle: "Inbox · west confa",
+    metaDesc: "Read and manage your private anonymous messages on west confa.",
     title: "Inbox",
     unread: (n: number) => (n === 1 ? "1 unread" : `${n} unread`),
     shareLink: "Share my link",
@@ -186,6 +191,7 @@ export const en = {
   },
   settings: {
     metaTitle: "Settings · west confa",
+    metaDesc: "Manage your west confa account, personal link and inbox preferences.",
     title: "Settings",
     inboxSection: "Inbox",
     pauseLabel: "Accept new messages",
@@ -207,6 +213,7 @@ export const en = {
   },
   admin: {
     metaTitle: "Admin · west confa",
+    metaDesc: "Review reports and manage safety on west confa.",
     title: "Admin",
     stats: "Overview",
     users: "Users",
