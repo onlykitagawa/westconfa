@@ -77,7 +77,7 @@ function SendPage() {
     <main className="mx-auto max-w-lg px-4 pt-6 md:pt-14">
       <div className="glass animate-rise rounded-[28px] p-6 md:p-8">
         <div className="flex items-center gap-4">
-          <div className="bg-brand grid size-14 shrink-0 place-items-center rounded-2xl text-2xl font-extrabold text-primary-foreground shadow-glow dark:text-foreground" aria-hidden>
+          <div className="grid size-14 shrink-0 place-items-center rounded-2xl bg-coral text-2xl font-extrabold text-coral-foreground shadow-soft" aria-hidden>
             {initial}
           </div>
           <div className="min-w-0">

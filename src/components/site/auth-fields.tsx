@@ -54,9 +54,9 @@ export function CodeField({ value, onChange }: { value: string; onChange: (v: st
         id="otp" maxLength={6} value={value} onChange={(v) => onChange(v.replace(/\D/g, ""))} autoFocus
         inputMode="numeric" autoComplete="one-time-code" pattern="^[0-9]*$" containerClassName="justify-center"
       >
-        <InputOTPGroup className="gap-2">
+        <InputOTPGroup className="grid w-full max-w-xs grid-cols-6 gap-1.5 sm:gap-2">
           {Array.from({ length: 6 }).map((_, i) => (
-            <InputOTPSlot key={i} index={i} className="h-14 w-11 rounded-xl border text-xl font-semibold first:rounded-xl last:rounded-xl sm:w-12" />
+            <InputOTPSlot key={i} index={i} className="h-14 w-full min-w-0 rounded-xl border text-xl font-semibold first:rounded-xl last:rounded-xl" />
           ))}
         </InputOTPGroup>
       </InputOTP>

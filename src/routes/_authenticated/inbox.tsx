@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
-import { Check, Flag, Inbox as InboxIcon, Share2, Trash2 } from "lucide-react";
+import { Flag, Inbox as InboxIcon, Share2, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { t } from "@/i18n";
@@ -127,16 +127,15 @@ function InboxPage() {
       </div>
 
       <Dialog open={!!openMsg} onOpenChange={(o) => !o && setOpenMsg(null)}>
-        <DialogContent className="rounded-3xl sm:max-w-lg">
+        <DialogContent className="max-h-[85dvh] w-[calc(100%-2rem)] overflow-y-auto rounded-3xl sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="text-sm font-semibold text-muted-foreground">{I.anonymous} · {openMsg && formatDistanceToNow(new Date(openMsg.created_at), { addSuffix: true })}</DialogTitle>
             <DialogDescription className="sr-only">Message</DialogDescription>
           </DialogHeader>
-          <p className="whitespace-pre-wrap break-words py-2 text-xl font-medium leading-relaxed">{openMsg?.body}</p>
-          <DialogFooter className="grid grid-cols-3 gap-2 sm:grid-cols-3">
-            <Button variant="secondary" onClick={() => openMsg && markRead.mutate(openMsg.id)} disabled={!!openMsg?.read_at}><Check /> {I.markRead}</Button>
-            <Button variant="secondary" onClick={() => setConfirm("report")}><Flag /> {I.report}</Button>
-            <Button variant="destructive" onClick={() => setConfirm("delete")}><Trash2 /> {I.delete}</Button>
+          <p className="min-w-0 whitespace-pre-wrap break-words py-2 text-lg font-medium leading-relaxed [overflow-wrap:anywhere] sm:text-xl">{openMsg?.body}</p>
+          <DialogFooter className="grid grid-cols-2 gap-2 sm:grid-cols-2 sm:space-x-0">
+            <Button variant="secondary" className="h-12 w-full" onClick={() => setConfirm("report")}><Flag /> {I.report}</Button>
+            <Button variant="destructive" className="h-12 w-full" onClick={() => setConfirm("delete")}><Trash2 /> {I.delete}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
