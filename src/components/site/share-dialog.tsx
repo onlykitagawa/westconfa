@@ -39,8 +39,8 @@ export function ShareDialog({ open, onOpenChange, username }: { open: boolean; o
           <DialogTitle className="text-2xl font-bold">{t.shareDialog.title}</DialogTitle>
           <DialogDescription>{t.shareDialog.body}</DialogDescription>
         </DialogHeader>
-        <div className="mx-auto my-2 rounded-3xl bg-white p-4 shadow-soft">
-          <QRCodeSVG value={link || " "} size={180} level="M" bgColor="#ffffff" fgColor="#1e1442" aria-label="QR code for your link" />
+        <div className="mx-auto my-2 rounded-3xl bg-qr-surface p-4 shadow-soft">
+          <QRCodeSVG value={link || " "} size={180} level="M" bgColor="var(--qr-surface)" fgColor="var(--qr-ink)" aria-label="QR code for your link" />
         </div>
         <div className="truncate rounded-2xl border bg-muted px-4 py-3 text-center font-mono text-sm">{link.replace(/^https?:\/\//, "")}</div>
         <div className="grid gap-2 sm:grid-cols-2">

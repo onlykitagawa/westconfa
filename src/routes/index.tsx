@@ -26,9 +26,9 @@ function Landing() {
   const L = t.landing;
   return (
     <main>
-      <section className="mx-auto flex max-w-3xl flex-col items-center px-5 pb-24 pt-16 text-center md:pb-36 md:pt-28">
-        <span className="animate-rise glass rounded-full px-4 py-1.5 text-sm font-semibold text-muted-foreground">{L.eyebrow}</span>
-        <h1 className="animate-rise mt-8 text-[2.75rem] font-extrabold leading-[1.02] tracking-tight md:text-7xl" style={{ animationDelay: "60ms" }}>
+      <section className="mx-auto flex max-w-3xl flex-col items-center px-5 pb-24 pt-20 text-center md:pb-32 md:pt-32">
+        <span className="animate-rise rounded-full bg-latte px-4 py-1.5 text-sm font-semibold text-coral">{L.eyebrow}</span>
+        <h1 className="animate-rise mt-10 text-[2.75rem] font-extrabold leading-[1.12] md:text-7xl" style={{ animationDelay: "60ms" }}>
           {L.title1}
           <br />
           <span className="text-gradient">{L.title2}</span>
@@ -50,12 +50,12 @@ function Landing() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-5xl px-5 py-16 md:py-24" aria-labelledby="how">
+      <section className="mx-auto max-w-5xl px-5 py-20 md:py-28" aria-labelledby="how">
         <h2 id="how" className="text-center text-3xl font-extrabold tracking-tight md:text-4xl">{L.howTitle}</h2>
         <ol className="mt-12 grid gap-4 md:grid-cols-3">
           {L.steps.map((s, i) => (
             <li key={s.title} className="glass rounded-3xl p-7">
-              <span className="bg-brand grid size-10 place-items-center rounded-2xl text-base font-bold text-primary-foreground dark:text-foreground">{i + 1}</span>
+              <span className="grid size-10 place-items-center rounded-2xl bg-latte text-base font-bold text-coral">{i + 1}</span>
               <h3 className="mt-5 text-lg font-bold">{s.title}</h3>
               <p className="mt-2 text-muted-foreground">{s.body}</p>
             </li>
@@ -63,27 +63,29 @@ function Landing() {
         </ol>
       </section>
 
-      <section className="mx-auto max-w-5xl px-5 py-16 md:py-24" aria-labelledby="safe">
-        <h2 id="safe" className="text-center text-3xl font-extrabold tracking-tight md:text-4xl">{L.safeTitle}</h2>
-        <div className="mt-12 grid gap-10 md:grid-cols-3">
+      <section className="mx-auto max-w-5xl px-5 py-20 md:py-28" aria-labelledby="safe">
+        <div className="rounded-3xl bg-safety-surface px-6 py-8 text-safety-foreground md:px-10 md:py-10">
+        <h2 id="safe" className="text-2xl font-extrabold">{L.safeTitle}</h2>
+        <div className="mt-7 grid gap-7 md:grid-cols-3 md:gap-8">
           {L.safe.map((s, i) => {
-            const Icon = safeIcons[i]!;
+            const Icon = safeIcons[i] ?? EyeOff;
             return (
-              <div key={s.title} className="text-center">
-                <div className="mx-auto grid size-14 place-items-center rounded-2xl bg-accent text-primary">
-                  <Icon className="size-6" />
+              <div key={s.title} className="flex items-start gap-3">
+                <Icon className="mt-1 size-5 shrink-0" />
+                <div>
+                  <h3 className="text-base font-bold">{s.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed">{s.body}</p>
                 </div>
-                <h3 className="mt-5 text-lg font-bold">{s.title}</h3>
-                <p className="mx-auto mt-2 max-w-xs text-muted-foreground">{s.body}</p>
               </div>
             );
           })}
         </div>
       </section>
 
-      <section className="mx-auto max-w-2xl px-5 py-16 md:py-24" aria-labelledby="faq">
+        </div>
+      <section className="mx-auto max-w-2xl px-5 py-20 md:py-28" aria-labelledby="faq">
         <h2 id="faq" className="text-center text-3xl font-extrabold tracking-tight md:text-4xl">{L.faqTitle}</h2>
-        <Accordion type="single" collapsible className="glass mt-10 rounded-3xl px-6">
+        <Accordion type="single" collapsible className="mt-10 border-t">
           {L.faq.map((f, i) => (
             <AccordionItem key={f.q} value={`q${i}`} className={i === L.faq.length - 1 ? "border-b-0" : ""}>
               <AccordionTrigger className="min-h-14 text-left text-base font-semibold">{f.q}</AccordionTrigger>
