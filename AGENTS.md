@@ -42,3 +42,4 @@ use the editor.
 - Authentication emails use the managed SDK handler and a shared email layout, with email copy in src/i18n; include action tokens so the existing code-entry flows remain usable.
 - Capture email-link credentials when creating the router, await them before child guards and hydration render auth, clear private caches when replacing accounts, and grant reset readiness only to the verified recovery user.
 - Successful non-recovery email links navigate directly to inbox; recovery links navigate to password reset so link sign-in never needs an extra confirmation tap.
+- Keep the inline brand glyph token-colored and mirror its geometry in the SVG favicon; retain existing raster icons as fallbacks so small-icon rendering stays consistent.

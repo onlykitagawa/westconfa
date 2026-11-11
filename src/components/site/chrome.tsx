@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Inbox, MessageCircle, Settings, Share2, Shield } from "lucide-react";
+import { Inbox, Settings, Share2, Shield } from "lucide-react";
 import { useEffect, useState } from "react";
 import { t } from "@/i18n";
 import { useAuth } from "@/lib/auth";
@@ -9,8 +9,16 @@ import { ShareDialog } from "./share-dialog";
 
 export function Logo() {
   return (
-    <Link to="/" className="flex items-center gap-2.5 rounded-xl font-extrabold tracking-tight" aria-label={`${t.brand} home`}>
-      <span className="grid size-8 shrink-0 place-items-center rounded-[10px] bg-logo text-brand-foreground shadow-soft" aria-hidden><MessageCircle className="size-5" /></span>
+    <Link to="/" className="flex items-center gap-2.5 rounded-xl font-extrabold" aria-label={`${t.brand} home`}>
+      <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-brand text-brand-foreground shadow-soft" aria-hidden>
+        <svg viewBox="0 0 48 48" className="size-[22px]" aria-hidden="true">
+          <path d="M22 4h18a6 6 0 0 1 6 6v9a6 6 0 0 1-6 6h-1v6l-6-6H22a6 6 0 0 1-6-6v-9a6 6 0 0 1 6-6z" fill="var(--caramel)" />
+          <g transform="translate(2 12) scale(0.78)">
+            <path d="M10 5h28a6 6 0 0 1 6 6v18a6 6 0 0 1-6 6H22l-9 8v-8h-3a6 6 0 0 1-6-6V11a6 6 0 0 1 6-6z" fill="var(--brand-foreground)" stroke="var(--brand-ink)" strokeWidth="3.5" strokeLinejoin="round" className="[paint-order:stroke]" />
+            <path d="M13.5 15.5l4.2 12 6.3-11.5 6.3 11.5 4.2-12" fill="none" stroke="var(--brand-ink)" strokeWidth="3.6" strokeLinecap="round" strokeLinejoin="round" />
+          </g>
+        </svg>
+      </span>
       <span className="text-lg">{t.brand}</span>
     </Link>
   );
@@ -21,7 +29,7 @@ export function SiteHeader() {
   const navLink = "rounded-xl px-3 py-2 text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-accent";
   const active = { className: "text-foreground bg-accent" };
   return (
-    <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur-xl">
+    <header className="sticky top-0 z-40 border-b bg-background/70 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 py-2 sm:px-5">
         <Logo />
         <nav className="flex items-center gap-1" aria-label="Main">
@@ -35,7 +43,7 @@ export function SiteHeader() {
             </div>
             </>
           ) : !loading ? (
-            <Link to="/auth" className={navLink}>{t.common.signIn}</Link>
+            <Button asChild variant="glass" className="h-11 rounded-full px-5 text-sm font-semibold"><Link to="/auth">{t.common.signIn}</Link></Button>
           ) : null}
           <ThemeToggle />
         </nav>
