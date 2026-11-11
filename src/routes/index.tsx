@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, EyeOff, ShieldCheck, SlidersHorizontal } from "lucide-react";
+import { EyeOff, ShieldCheck, SlidersHorizontal } from "lucide-react";
 import { t } from "@/i18n";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -26,75 +26,59 @@ function Landing() {
   const L = t.landing;
   return (
     <main>
-      <section className="mx-auto flex max-w-3xl flex-col items-center px-5 pb-24 pt-20 text-center md:pb-32 md:pt-32">
-        <span className="animate-rise rounded-full bg-latte px-4 py-1.5 text-sm font-semibold text-coral">
-          {L.eyebrow}
-        </span>
-        <h1
-          className="animate-rise mt-10 text-[2.75rem] font-extrabold leading-[1.12] md:text-7xl"
-          style={{ animationDelay: "60ms" }}
-        >
-          {L.title1}
-          <br />
-          <span className="text-gradient">{L.title2}</span>
-        </h1>
-        <p
-          className="animate-rise mt-6 max-w-md text-lg text-muted-foreground md:text-xl"
-          style={{ animationDelay: "120ms" }}
-        >
-          {L.subtitle}
-        </p>
-        <div
-          className="animate-rise mt-10 flex w-full flex-col items-center gap-3 sm:w-auto"
-          style={{ animationDelay: "180ms" }}
-        >
-          <Button asChild variant="hero" size="lg" className="w-full sm:w-auto">
-            <Link to={user ? "/inbox" : "/auth"}>
-              {user ? t.common.openInbox : t.common.getMyLink} <ArrowRight />
-            </Link>
-          </Button>
-          {!user && (
-            <Link
-              to="/auth"
-              className="rounded-lg px-2 py-2 text-sm font-semibold text-muted-foreground hover:text-foreground"
-            >
-              {t.common.signIn}
-            </Link>
-          )}
+      <section className="mx-auto max-w-7xl px-5 pb-16 pt-16 text-center md:pb-24 md:pt-24">
+        <div className="mx-auto max-w-3xl">
+          <h1 className="animate-rise text-[2.4rem] font-extrabold leading-[1.04] text-foreground md:text-7xl">
+            {L.title1}<br />{L.title2}
+          </h1>
+          <p className="animate-rise mx-auto mt-6 max-w-md text-lg text-muted-foreground md:text-xl">{L.subtitle}</p>
+        </div>
+        <div className="relative mx-auto mt-10 max-w-6xl md:min-h-[250px]">
+          <div className="relative z-10 mx-auto flex max-w-[17rem] flex-col items-center">
+            <Button asChild variant="hero" size="lg" className="h-14 px-10">
+              <Link to={user ? "/inbox" : "/auth"}>{user ? t.common.openInbox : t.common.getMyLink}</Link>
+            </Button>
+            {!user && <Link to="/auth" className="mt-3 rounded-lg px-2 py-2 text-sm font-semibold text-muted-foreground hover:text-foreground">{t.common.signIn}</Link>}
+            <p className="mt-4 text-sm leading-relaxed text-muted-foreground">{L.note}</p>
+          </div>
+          <div aria-hidden="true" className="mt-12 flex flex-col gap-7 text-left md:mt-0">
+            <div className="glass -rotate-3 self-start rounded-[26px_26px_26px_8px] p-4 px-5 md:absolute md:left-0 md:top-4 md:w-[calc((100%-20rem)/2)] lg:max-w-[280px] max-md:mr-3">
+              <p className="mb-2 flex items-center gap-2 text-xs font-semibold text-muted-foreground"><span className="size-2 shrink-0 rounded-full bg-coral" />{L.sampleMeta}</p>
+              <p className="text-[17px] font-medium leading-relaxed">{L.sample1}</p>
+            </div>
+            <div className="glass rotate-3 self-end rounded-[26px_26px_8px_26px] p-4 px-5 md:absolute md:right-0 md:top-4 md:w-[calc((100%-20rem)/2)] lg:max-w-[280px] max-md:ml-3">
+              <p className="mb-2 flex items-center gap-2 text-xs font-semibold text-muted-foreground"><span className="size-2 shrink-0 rounded-full bg-coral" />{L.sampleMeta}</p>
+              <p className="text-[17px] font-medium leading-relaxed">{L.sample2}</p>
+            </div>
+          </div>
         </div>
       </section>
 
-      <section className="mx-auto max-w-5xl px-5 py-20 md:py-28" aria-labelledby="how">
-        <h2 id="how" className="text-center text-3xl font-extrabold tracking-tight md:text-4xl">
-          {L.howTitle}
-        </h2>
-        <ol className="mt-12 grid gap-4 md:grid-cols-3">
-          {L.steps.map((s, i) => (
-            <li key={s.title} className="glass rounded-3xl p-7">
-              <span className="grid size-10 place-items-center rounded-2xl bg-latte text-base font-bold text-coral">
-                {i + 1}
-              </span>
-              <h3 className="mt-5 text-lg font-bold">{s.title}</h3>
-              <p className="mt-2 text-muted-foreground">{s.body}</p>
+      <section className="mx-auto max-w-5xl px-5 py-16 md:py-24" aria-labelledby="how">
+        <h2 id="how" className="text-center text-3xl font-extrabold md:text-4xl">{L.howTitle}</h2>
+        <ol className="glass mt-10 grid divide-y divide-border rounded-[32px] md:grid-cols-3 md:divide-x md:divide-y-0">
+          {L.steps.map((step, i) => (
+            <li key={step.title} className="p-7 md:p-8">
+              <span className="grid size-11 place-items-center rounded-full bg-brand text-base font-bold text-brand-foreground">{i + 1}</span>
+              <h3 className="mt-5 text-[21px] font-bold leading-snug">{step.title}</h3>
+              <p className="mt-3 leading-relaxed text-muted-foreground">{step.body}</p>
             </li>
           ))}
         </ol>
       </section>
 
-      <section className="mx-auto max-w-5xl px-5 py-20 md:py-28" aria-labelledby="safe">
-        <div className="rounded-3xl bg-safety-surface px-6 py-8 text-safety-foreground md:px-10 md:py-10">
-          <h2 id="safe" className="text-2xl font-extrabold">
-            {L.safeTitle}
-          </h2>
-          <div className="mt-7 grid gap-7 md:grid-cols-3 md:gap-8">
-            {L.safe.map((s, i) => {
+      <section className="mx-auto max-w-5xl px-5 py-16 md:py-24" aria-labelledby="safe">
+        <div className="glass rounded-[32px] p-7 md:p-10">
+          <h2 id="safe" className="text-center text-3xl font-extrabold md:text-4xl">{L.safeTitle}</h2>
+          <div className="mt-10 grid gap-8 md:grid-cols-3">
+            {L.safe.map((item, i) => {
               const Icon = safeIcons[i] ?? EyeOff;
               return (
-                <div key={s.title} className="flex items-start gap-3">
-                  <Icon className="mt-1 size-5 shrink-0" />
+                <div key={item.title} className="flex items-start gap-3">
+                  <span className="grid size-10 shrink-0 place-items-center rounded-full bg-accent text-accent-foreground"><Icon className="size-5" aria-hidden="true" /></span>
                   <div>
-                    <h3 className="text-base font-bold">{s.title}</h3>
-                    <p className="mt-2 text-sm leading-relaxed">{s.body}</p>
+                    <h3 className="text-base font-bold">{item.title}</h3>
+                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{item.body}</p>
                   </div>
                 </div>
               );
@@ -103,15 +87,13 @@ function Landing() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-2xl px-5 py-20 md:py-28" aria-labelledby="faq">
-        <h2 id="faq" className="text-center text-3xl font-extrabold tracking-tight md:text-4xl">
-          {L.faqTitle}
-        </h2>
+      <section className="mx-auto max-w-2xl px-5 py-16 md:py-24" aria-labelledby="faq">
+        <h2 id="faq" className="text-center text-3xl font-extrabold md:text-4xl">{L.faqTitle}</h2>
         <Accordion type="single" collapsible className="mt-10 border-t">
-          {L.faq.map((f, i) => (
-            <AccordionItem key={f.q} value={`q${i}`} className={i === L.faq.length - 1 ? "border-b-0" : ""}>
-              <AccordionTrigger className="min-h-14 text-left text-base font-semibold">{f.q}</AccordionTrigger>
-              <AccordionContent className="text-base leading-relaxed text-muted-foreground">{f.a}</AccordionContent>
+          {L.faq.map((item, i) => (
+            <AccordionItem key={item.q} value={`q${i}`}>
+              <AccordionTrigger className="min-h-14 text-left text-base font-semibold">{item.q}</AccordionTrigger>
+              <AccordionContent className="text-base leading-relaxed text-muted-foreground">{item.a}</AccordionContent>
             </AccordionItem>
           ))}
         </Accordion>
