@@ -24,7 +24,7 @@ import { t } from "@/i18n";
 function NotFoundComponent() {
   return (
     <main className="mx-auto flex min-h-[60vh] max-w-md flex-col items-center justify-center px-5 text-center">
-      <p className="text-gradient text-8xl font-extrabold">404</p>
+      <p className="text-primary text-8xl font-extrabold">404</p>
       <h1 className="mt-4 text-2xl font-bold">{t.notFound.title}</h1>
       <p className="mt-2 text-muted-foreground">{t.notFound.body}</p>
       <Button asChild variant="hero" className="mt-8">
@@ -66,16 +66,17 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient; auth
       { property: "og:site_name", content: t.brand },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "theme-color", content: "oklch(0.985 0.005 85)", media: "(prefers-color-scheme: light)" },
-      { name: "theme-color", content: "oklch(0.17 0.04 262)", media: "(prefers-color-scheme: dark)" },
+      { name: "theme-color", content: "#FBFCFF", media: "(prefers-color-scheme: light)" },
+      { name: "theme-color", content: "#0B1430", media: "(prefers-color-scheme: dark)" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-title", content: t.brand },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" },
+      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&display=swap" },
       { rel: "stylesheet", href: appCss },
+      { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
       { rel: "icon", type: "image/png", href: "/favicon.png" },
       { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
       { rel: "manifest", href: "/manifest.webmanifest" },
