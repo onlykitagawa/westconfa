@@ -1,4 +1,5 @@
 # Sign-in fixes
+- [x] Cloud design Part 1: shared tokens, font, logo/favicon, header and landing presentation/copy; existing tests and automatic preview checks passed.
 - [x] Send a neutral sign-in email for an existing-account signup.
 - [x] Resend verification for an unconfirmed password sign-in without counting a failed attempt.
 - [x] Support links and codes on verification screens, including Outlook access.
