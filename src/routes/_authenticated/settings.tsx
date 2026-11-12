@@ -79,7 +79,7 @@ function SettingsPage() {
   const download = async () => {
     const [{ data: p }, { data: msgs }] = await Promise.all([
       supabase.from("profiles").select("email, username, display_name, avatar_url, bio, inbox_paused, created_at").eq("id", user.id).single(),
-      supabase.from("messages").select("body, created_at, read_at").order("created_at", { ascending: false }),
+      supabase.from("messages").select("body, created_at, read_at").eq("recipient_id", user.id).eq("status", "approved").eq("hidden", false).order("created_at", { ascending: false }),
     ]);
     const blob = new Blob([JSON.stringify({ exported_at: new Date().toISOString(), profile: p, messages: msgs ?? [] }, null, 2)], { type: "application/json" });
     const a = document.createElement("a");

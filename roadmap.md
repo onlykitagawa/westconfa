@@ -1,4 +1,5 @@
 # Sign-in fixes
+- [ ] Moderation step 1: AI screening, private pending queue, admin SQL decisions and verification; admin UI/legal follow in step 2.
 - [x] Cloud design Part 2: app surfaces, inputs, bubbles and mobile navigation; 44 existing tests and automatic preview checks passed; browser/360px visual checks not run; heading spacing kept at zero per platform constraint.
 - [x] Cloud design Part 1: shared tokens, font, logo/favicon, header and landing presentation/copy; existing tests and automatic preview checks passed.
 - [x] Send a neutral sign-in email for an existing-account signup.

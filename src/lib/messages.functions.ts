@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { z } from "zod";
+import { screenMessage } from "./message-screening";
 import {
   checkMessage,
   isRateLimited,
@@ -9,7 +10,7 @@ import {
 
 export type SendResult =
   | { ok: true }
-  | { ok: false; code: "slur" | "threat" | "personal" | "rate" | "paused" | "notfound" | "empty" | "self" | "generic" };
+  | { ok: false; code: "slur" | "threat" | "personal" | "rate" | "paused" | "notfound" | "empty" | "self" | "generic" | "blocked" };
 
 const schema = z.object({
   username: z.string().trim().toLowerCase().regex(/^[a-z0-9_]{3,20}$/),
@@ -84,12 +85,20 @@ export const sendMessage = createServerFn({ method: "POST" })
       return { ok: false, code: "rate" };
     }
 
-    const { error } = await supabaseAdmin.from("messages").insert({ recipient_id: profile.id, body });
+    const { callModerationAI } = await import("./ai-moderation.server");
+    const { data: setting, error: settingError } = await supabaseAdmin.from("app_settings").select("value").eq("key", "review_all_messages").maybeSingle();
+    // Missing/unreadable settings fail closed. The SQL transaction checks this again.
+    const decision = await screenMessage(body, !!settingError || setting?.value !== false, callModerationAI);
+    if (decision.blocked) return { ok: false, code: "blocked" };
+    // Message, private moderation record and separate rate event commit atomically.
+    const { error } = await supabaseAdmin.rpc("store_screened_message", {
+      _recipient_id: profile.id, _body: body, _status: decision.status,
+      _source: decision.source, _category: decision.category, _reason: decision.reason,
+      _rate_hash: ipHash, _anonymous: !senderUserId,
+    });
     if (error) {
-      console.error("send failed", error.message);
       return { ok: false, code: "generic" };
     }
-    await supabaseAdmin.from("rate_events").insert({ ip_hash: ipHash, recipient_id: profile.id, anonymous: !senderUserId });
     // Opportunistic cleanup of hashes older than 24h.
     await supabaseAdmin.from("rate_events").delete().lt("created_at", new Date(Date.now() - 24 * 3600 * 1000).toISOString());
     return { ok: true };
