@@ -35,6 +35,8 @@
   --color-coral-foreground: var(--coral-foreground);
   --color-success: var(--success);
   --color-glass: var(--glass);
+  --color-glass-read: var(--glass-read);
+  --color-field: var(--field);
   --color-glass-border: var(--glass-border);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
@@ -79,6 +81,9 @@
   --caramel: oklch(0.807251 0.076603 67.036);
   --success: oklch(0.6 0.14 160);
   --glass: oklch(1 0 0 / 0.78);
+  --glass-read: oklch(1 0 0 / 0.48);
+  --field: var(--popover);
+  --shadow-read: 0 12px 28px -24px oklch(0.288974 0.096140 263.827 / 0.20);
   --glass-border: oklch(0.288974 0.096140 263.827 / 0.08);
   --destructive: oklch(0.55 0.22 25);
   --destructive-foreground: oklch(0.99 0 0);
@@ -131,6 +136,9 @@
   --caramel: oklch(0.807251 0.076603 67.036);
   --success: oklch(0.72 0.14 160);
   --glass: oklch(0.291651 0.085951 266.642 / 0.55);
+  --glass-read: oklch(0.291651 0.085951 266.642 / 0.32);
+  --field: oklch(0.201339 0.057226 267.646 / 0.6);
+  --shadow-read: 0 12px 28px -24px oklch(0 0 0 / 0.30);
   --glass-border: oklch(1 0 0 / 0.10);
   --destructive: oklch(0.68 0.19 22);
   --destructive-foreground: oklch(0.15 0.03 20);
@@ -168,6 +176,7 @@
     line-height: 1.04;
     letter-spacing: 0;
   }
+  h3 { letter-spacing: 0; }
   :focus-visible {
     outline: 2px solid var(--color-ring);
     outline-offset: 2px;
@@ -187,6 +196,11 @@
 
 @utility shadow-soft {
   box-shadow: var(--shadow-soft);
+}
+
+@utility glass-read {
+  background: var(--glass-read);
+  box-shadow: var(--shadow-read);
 }
 
 @utility shadow-glow {
@@ -237,7 +251,7 @@
 .cookie-notice { bottom: calc(0.75rem + env(safe-area-inset-bottom)); }
 body:has(.cookie-notice) { padding-bottom: 6rem; }
 @media (max-width: 767px) {
-  body:has(nav[aria-label="App"]) .cookie-notice { bottom: calc(6rem + env(safe-area-inset-bottom)); }
+  body:has(nav[aria-label="App"]) .cookie-notice { bottom: calc(6.25rem + env(safe-area-inset-bottom)); }
 }
 .auth-card input { min-height: 3.25rem; font-size: 1rem; }
 .auth-card input:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }

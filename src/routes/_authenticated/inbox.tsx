@@ -81,7 +81,7 @@ function InboxPage() {
           <h1 className="text-4xl font-extrabold tracking-tight">{I.title}</h1>
           <p className="mt-1 text-sm text-muted-foreground" aria-live="polite">{data ? I.unread(unread) : "\u00a0"}</p>
         </div>
-        <Button variant="hero" onClick={() => setShareOpen(true)} disabled={!profile?.username}>
+        <Button variant="hero" className="h-11 px-5" onClick={() => setShareOpen(true)} disabled={!profile?.username}>
           <Share2 /> <span className="hidden sm:inline">{I.shareLink}</span><span className="sm:hidden">{t.common.share}</span>
         </Button>
       </div>
@@ -92,14 +92,14 @@ function InboxPage() {
       <div className="mt-6 space-y-3">
         {isLoading &&
           Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="glass rounded-3xl p-5">
+            <div key={i} className="glass max-w-[34rem] rounded-[32px] p-5">
               <Skeleton className="h-4 w-3/4 rounded-full" />
               <Skeleton className="mt-3 h-4 w-1/2 rounded-full" />
             </div>
           ))}
 
         {data && data.length === 0 && (
-          <div className="glass animate-rise rounded-3xl px-6 py-14 text-center">
+          <div className="glass animate-rise rounded-[32px] px-6 py-14 text-center">
             <div className="animate-floaty mx-auto grid size-16 place-items-center rounded-2xl bg-accent text-primary"><InboxIcon className="size-7" /></div>
             <h2 className="mt-6 text-xl font-bold">{I.emptyTitle}</h2>
             <p className="mx-auto mt-2 max-w-sm text-muted-foreground">{I.emptyBody}</p>
@@ -110,24 +110,26 @@ function InboxPage() {
         <ul className="space-y-3">
           {data?.map((m, i) => (
             <li key={m.id} className="animate-rise" style={{ animationDelay: `${Math.min(i, 8) * 30}ms` }}>
-              <button
+              <Button variant="ghost"
                 type="button"
                 onClick={() => open(m)}
-                className="glass press flex w-full items-start gap-4 rounded-3xl p-5 text-left hover:bg-accent/60"
+                className={cn("glass press block h-auto w-full max-w-[34rem] whitespace-normal rounded-[26px_26px_26px_8px] px-5 py-4 text-left hover:bg-accent/60", m.read_at && "glass-read")}
               >
-                <span className={cn("mt-2 size-2.5 shrink-0 rounded-full", m.read_at ? "bg-transparent" : "bg-coral")} aria-label={m.read_at ? undefined : "Unread"} />
-                <span className="min-w-0 flex-1">
-                  <span className={cn("line-clamp-2 break-words", !m.read_at && "font-semibold")}>{m.body}</span>
-                  <span className="mt-2 block text-xs text-muted-foreground">{formatDistanceToNow(new Date(m.created_at), { addSuffix: true })}</span>
+                <span className="block min-w-0">
+                  <span className="mb-2 flex items-center gap-2 text-xs font-semibold text-muted-foreground">
+                    {!m.read_at && <span className="size-2 shrink-0 rounded-full bg-coral" aria-hidden />}
+                    <span>{I.anonymous} · {formatDistanceToNow(new Date(m.created_at), { addSuffix: true })}</span>
+                  </span>
+                  <span className={cn("line-clamp-2 break-words text-[17px] leading-snug [overflow-wrap:anywhere]", m.read_at ? "font-medium" : "font-bold")}>{m.body}</span>
                 </span>
-              </button>
+              </Button>
             </li>
           ))}
         </ul>
       </div>
 
       <Dialog open={!!openMsg} onOpenChange={(o) => !o && setOpenMsg(null)}>
-        <DialogContent className="max-h-[85dvh] w-[calc(100%-2rem)] overflow-y-auto rounded-3xl sm:max-w-lg">
+        <DialogContent className="max-h-[85dvh] w-[calc(100%-2rem)] overflow-y-auto rounded-[28px] bg-popover sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="text-sm font-semibold text-muted-foreground">{I.anonymous} · {openMsg && formatDistanceToNow(new Date(openMsg.created_at), { addSuffix: true })}</DialogTitle>
             <DialogDescription className="sr-only">Message</DialogDescription>
@@ -141,7 +143,7 @@ function InboxPage() {
       </Dialog>
 
       <AlertDialog open={!!confirm} onOpenChange={(o) => !o && setConfirm(null)}>
-        <AlertDialogContent className="rounded-3xl">
+        <AlertDialogContent className="rounded-[28px] bg-popover">
           <AlertDialogHeader>
             <AlertDialogTitle>{confirm === "delete" ? I.deleteTitle : I.reportTitle}</AlertDialogTitle>
             <AlertDialogDescription>{confirm === "delete" ? I.deleteBody : I.reportBody}</AlertDialogDescription>

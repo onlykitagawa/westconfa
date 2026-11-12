@@ -32,7 +32,7 @@ function SendPage() {
   const { profile } = Route.useLoaderData();
   const { username } = Route.useParams();
   const send = useServerFn(sendMessage);
-  const { profile: me } = useAuth();
+  const { profile: me, user, loading } = useAuth();
   const [body, setBody] = useState("");
   const [website, setWebsite] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -75,14 +75,14 @@ function SendPage() {
 
   return (
     <main className="mx-auto max-w-lg px-4 pt-6 md:pt-14">
-      <div className="glass animate-rise rounded-[28px] p-6 md:p-8">
+      <div className="glass animate-rise rounded-[32px] p-6 md:p-8">
         <div className="flex items-center gap-4">
-          <div className="grid size-14 shrink-0 place-items-center rounded-2xl bg-coral text-2xl font-extrabold text-coral-foreground shadow-soft" aria-hidden>
+          <div className="grid size-[60px] shrink-0 place-items-center rounded-full bg-coral text-[26px] font-extrabold text-coral-foreground" aria-hidden>
             {initial}
           </div>
           <div className="min-w-0">
             <p className="text-sm font-medium text-muted-foreground">{t.send.eyebrow}</p>
-            <h1 className="truncate text-2xl font-extrabold tracking-tight">{profile.display_name}</h1>
+            <h1 className="break-words text-[28px] font-extrabold [overflow-wrap:anywhere]">{profile.display_name}</h1>
             <p className="truncate text-sm text-muted-foreground">@{profile.username}</p>
           </div>
         </div>
@@ -95,7 +95,7 @@ function SendPage() {
             <h2 className="animate-rise mt-6 text-3xl font-extrabold">{t.send.successTitle}</h2>
             <p className="animate-rise mx-auto mt-2 max-w-xs text-muted-foreground">{t.send.successBody}</p>
             <div className="mt-8 grid gap-3">
-              <Button asChild variant="hero" size="lg"><Link to="/">{t.common.getYourOwn}</Link></Button>
+              <Button asChild variant="hero" size="lg" className="w-full px-4"><Link to="/">{t.common.getYourOwn}</Link></Button>
               <Button variant="ghost" onClick={() => setSent(false)}>{t.send.sendAnother}</Button>
             </div>
           </div>
@@ -118,7 +118,7 @@ function SendPage() {
               maxLength={MAX_MESSAGE_LENGTH}
               aria-describedby="counter msg-error"
               aria-invalid={!!error}
-              className="w-full resize-none rounded-3xl border bg-background/60 p-5 text-lg leading-relaxed outline-none transition placeholder:text-muted-foreground focus:border-ring focus:ring-4 focus:ring-ring/20"
+               className="min-h-[220px] w-full resize-none rounded-[22px] border border-input bg-field p-[18px] text-[17px] leading-relaxed outline-none transition placeholder:text-muted-foreground focus:border-ring focus:ring-4 focus:ring-ring/30"
             />
             {/* Honeypot: hidden from people and assistive tech */}
             <div aria-hidden className="absolute -left-[9999px] h-0 w-0 overflow-hidden">
@@ -126,7 +126,7 @@ function SendPage() {
             </div>
             <div className="mt-2 flex items-start justify-between gap-3 px-1 text-sm">
               <p id="msg-error" role="alert" className="text-destructive">{error}</p>
-              <span id="counter" className={cn("shrink-0 tabular-nums text-muted-foreground", remaining < 50 && "text-coral font-semibold")}>
+                <span id="counter" className={cn("shrink-0 tabular-nums text-muted-foreground", remaining < 50 && "text-primary font-semibold")}>
                 {body.length}/{MAX_MESSAGE_LENGTH}
               </span>
             </div>
@@ -140,6 +140,7 @@ function SendPage() {
           <Lock className="size-4 shrink-0" /> {t.send.note}
         </p>
       </div>
+      {!loading && !user && <p className="mt-5 text-center text-sm text-muted-foreground">{t.send.wantOwnLink} <Link to="/auth" className="rounded-sm underline underline-offset-4 hover:text-foreground">{t.send.getYours}</Link></p>}
     </main>
   );
 }

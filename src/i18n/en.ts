@@ -73,6 +73,8 @@ export const en = {
     successTitle: "Sent!",
     successBody: "Your message is on its way. Nobody will know it was you.",
     sendAnother: "Send another",
+    wantOwnLink: "Want your own link?",
+    getYours: "Get yours",
     ownLink: "This is your link. Share it with friends!",
     paused: "This inbox is paused right now. Try again later.",
     notFoundTitle: "No one here yet",

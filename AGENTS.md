@@ -43,3 +43,4 @@ use the editor.
 - Capture email-link credentials when creating the router, await them before child guards and hydration render auth, clear private caches when replacing accounts, and grant reset readiness only to the verified recovery user.
 - Successful non-recovery email links navigate directly to inbox; recovery links navigate to password reset so link sign-in never needs an extra confirmation tap.
 - Keep the inline brand glyph token-colored and mirror its geometry in the SVG favicon; retain existing raster icons as fallbacks so small-icon rendering stays consistent.
+- Shared field surfaces and read-message glass use semantic CSS tokens so app screens inherit both themes without local color literals.
