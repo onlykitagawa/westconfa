@@ -80,6 +80,7 @@ export const en = {
     notFoundTitle: "No one here yet",
     notFoundBody: "This link doesn't belong to anyone. Double-check the username.",
     errors: {
+      blocked: "That message could hurt someone, so we can't send it. Try saying it more kindly.",
       slur: "Let's keep it respectful. Your message contains words we don't allow.",
       threat: "Messages that threaten or encourage harm aren't allowed here.",
       personal: "For everyone's safety, please don't share phone numbers, emails or contact handles.",

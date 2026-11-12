@@ -43,6 +43,13 @@
       "when": 1794189526751,
       "tag": "0005_rate_events_anonymous_flag",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1794447037271,
+      "tag": "0006_message_ai_moderation",
+      "breakpoints": true
     }
   ]
 }

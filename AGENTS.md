@@ -44,3 +44,5 @@ use the editor.
 - Successful non-recovery email links navigate directly to inbox; recovery links navigate to password reset so link sign-in never needs an extra confirmation tap.
 - Keep the inline brand glyph token-colored and mirror its geometry in the SVG favicon; retain existing raster icons as fallbacks so small-icon rendering stays consistent.
 - Shared field surfaces and read-message glass use semantic CSS tokens so app screens inherit both themes without local color literals.
+- AI screening runs in server-only modules; a service-role-only SQL function atomically stores screened messages, private reasons and separate rate events so pending messages never reach recipient reads.
+- Recipient inbox and export queries explicitly scope to the recipient, approved status and visible rows, including for admins whose RLS read policy is wider.

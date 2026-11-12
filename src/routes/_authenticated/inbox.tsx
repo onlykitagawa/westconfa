@@ -33,7 +33,7 @@ function InboxPage() {
   const { data, isLoading } = useQuery({
     queryKey: KEY,
     queryFn: async () => {
-      const { data, error } = await supabase.from("messages").select("id, body, created_at, read_at").order("created_at", { ascending: false }).limit(500);
+      const { data, error } = await supabase.from("messages").select("id, body, created_at, read_at").eq("recipient_id", profile?.id ?? "00000000-0000-0000-0000-000000000000").eq("status", "approved").eq("hidden", false).order("created_at", { ascending: false }).limit(500);
       if (error) throw error;
       return data as Msg[];
     },
