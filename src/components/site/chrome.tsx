@@ -55,12 +55,12 @@ export function SiteHeader() {
 export function MobileNav() {
   const { profile, isAdmin } = useAuth();
   const [open, setOpen] = useState(false);
-  const item = "press flex min-h-14 flex-1 flex-col items-center justify-center gap-1 rounded-2xl text-xs font-semibold text-muted-foreground";
-  const active = { className: "text-primary" };
+  const item = "press flex min-h-[58px] min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-[22px] px-1 text-[12px] font-semibold text-muted-foreground [&_svg]:size-5";
+  const active = { className: "bg-brand text-brand-foreground" };
   return (
     <>
       <nav aria-label="App" className="fixed inset-x-3 bottom-3 z-40 md:hidden" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
-        <div className="glass flex items-stretch gap-1 rounded-3xl p-1.5">
+        <div className="glass flex items-stretch gap-1 rounded-[30px] p-2">
           <Link to="/inbox" className={item} activeProps={active}><Inbox className="size-5" />{t.common.inbox}</Link>
           <Button type="button" variant="ghost" className={item} onClick={() => setOpen(true)} disabled={!profile?.username}>
             <Share2 className="size-5" />{t.common.share}

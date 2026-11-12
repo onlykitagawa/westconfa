@@ -187,7 +187,7 @@ function AuthPage() {
 
   return (
     <main className="mx-auto max-w-lg px-4 pt-10 md:pt-20">
-      <div className="auth-card glass animate-rise rounded-3xl p-6 sm:p-10 [&_h1]:break-words [&_h1]:text-2xl sm:[&_h1]:text-3xl">
+      <div className="auth-card glass animate-rise rounded-[32px] p-6 sm:p-10 [&_h1]:break-words [&_h1]:text-2xl sm:[&_h1]:text-3xl [&_p]:[overflow-wrap:anywhere]">
         {step === "form" && (
           <>
             <Tabs value={tab} onValueChange={(v) => { setTab(v as "signin" | "signup"); setErr(null); }}>
