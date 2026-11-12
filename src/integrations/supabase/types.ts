@@ -14,6 +14,21 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_settings: {
+        Row: {
+          key: string
+          value: Json
+        }
+        Insert: {
+          key: string
+          value: Json
+        }
+        Update: {
+          key?: string
+          value?: Json
+        }
+        Relationships: []
+      }
       contact_messages: {
         Row: {
           body: string
@@ -56,6 +71,38 @@ export type Database = {
         }
         Relationships: []
       }
+      message_moderation: {
+        Row: {
+          category: string | null
+          created_at: string
+          message_id: string
+          reason: string | null
+          source: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          message_id: string
+          reason?: string | null
+          source: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          message_id?: string
+          reason?: string | null
+          source?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_moderation_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: true
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       message_reports: {
         Row: {
           created_at: string
@@ -92,6 +139,7 @@ export type Database = {
           recipient_id: string
           report_count: number
           reviewed: boolean
+          status: string
         }
         Insert: {
           body: string
@@ -102,6 +150,7 @@ export type Database = {
           recipient_id: string
           report_count?: number
           reviewed?: boolean
+          status?: string
         }
         Update: {
           body?: string
@@ -112,6 +161,7 @@ export type Database = {
           recipient_id?: string
           report_count?: number
           reviewed?: boolean
+          status?: string
         }
         Relationships: [
           {
@@ -206,6 +256,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_decide_message: {
+        Args: { _approve: boolean; _message_id: string }
+        Returns: undefined
+      }
       admin_list_users: {
         Args: { _search: string }
         Returns: {
@@ -246,6 +300,19 @@ export type Database = {
       message_retention_days: { Args: never; Returns: number }
       purge_expired: { Args: never; Returns: undefined }
       report_message: { Args: { _message_id: string }; Returns: undefined }
+      store_screened_message: {
+        Args: {
+          _anonymous: boolean
+          _body: string
+          _category: string
+          _rate_hash: string
+          _reason: string
+          _recipient_id: string
+          _source: string
+          _status: string
+        }
+        Returns: string
+      }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
