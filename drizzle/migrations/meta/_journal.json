@@ -57,6 +57,13 @@
       "when": 1794550193911,
       "tag": "0007_tighten_contact_insert",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1794550966817,
+      "tag": "0008_message_senders_admin_details",
+      "breakpoints": true
     }
   ]
 }
