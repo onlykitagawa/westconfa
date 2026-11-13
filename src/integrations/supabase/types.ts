@@ -129,6 +129,42 @@ export type Database = {
           },
         ]
       }
+      message_senders: {
+        Row: {
+          created_at: string
+          message_id: string
+          sender_network_hash: string | null
+          sender_user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          message_id: string
+          sender_network_hash?: string | null
+          sender_user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          message_id?: string
+          sender_network_hash?: string | null
+          sender_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_senders_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: true
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_senders_sender_user_id_fkey"
+            columns: ["sender_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           body: string
@@ -271,6 +307,19 @@ export type Database = {
           username: string
         }[]
       }
+      admin_message_details: {
+        Args: { _message_ids: string[] }
+        Returns: {
+          message_id: string
+          recipient_display_name: string
+          recipient_username: string
+          sender_email: string
+          sender_kind: string
+          sender_network_code: string
+          sender_other_messages: number
+          sender_username: string
+        }[]
+      }
       admin_review_message: {
         Args: { _message_id: string; _restore: boolean }
         Returns: undefined
@@ -308,6 +357,8 @@ export type Database = {
           _rate_hash: string
           _reason: string
           _recipient_id: string
+          _sender_network_hash: string
+          _sender_user_id: string
           _source: string
           _status: string
         }

@@ -95,6 +95,9 @@ export const sendMessage = createServerFn({ method: "POST" })
       _recipient_id: profile.id, _body: body, _status: decision.status,
       _source: decision.source, _category: decision.category, _reason: decision.reason,
       _rate_hash: ipHash, _anonymous: !senderUserId,
+      // Private moderator-only sender record: account id for signed-in senders, network hash for guests.
+      // Generated RPC types mark args non-null; SQL accepts null for either.
+      _sender_user_id: senderUserId as string, _sender_network_hash: (senderUserId ? null : ipHash) as string,
     });
     if (error) {
       return { ok: false, code: "generic" };
