@@ -32,7 +32,7 @@ use the editor.
 ## Project rules
 - All user-facing text lives in src/i18n (en.ts, legal.en.ts); components read `t`/`legal` so ru/uz can be added by swapping the dictionary.
 - Moderation, email allowlist and rate-limit constants live in src/lib/moderation.ts and are shared by browser and server; tests in src/test/moderation.test.ts.
-- Anonymous sending goes only through the `sendMessage` server function (service role); the messages table has no insert grant for clients, and sender identity is never stored.
+- Anonymous sending goes only through the `sendMessage` server function (service role); the messages table has no insert grant for clients. Sender identity is kept only in message_senders (service-role only, no RLS policies) and is readable solely by admins via admin_message_details for held or reported messages; recipients never see it.
 - Allowed sign-up emails are enforced by a database trigger on auth.users (public.is_allowed_email); keep it in sync with moderation.ts.
 - Admin checks run in SECURITY DEFINER SQL functions using has_role; never trust client role state for privileged actions.
 - Message retention is the single SQL function public.message_retention_days(), purged daily by a pg_cron job calling public.purge_expired().
