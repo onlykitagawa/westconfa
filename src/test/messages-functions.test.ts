@@ -32,13 +32,13 @@ it("AI failures store pending atomically and return the identical success", asyn
 });it("guests store a network hash and no account; signed-in senders store their account and no hash", async () => {
   mocks.ai.mockResolvedValue(JSON.stringify({ verdict: "allow", category: null, reason: "" }));
   await send({ data: { username: "student", body: "Hi" } });
-  const guest = mocks.store.mock.calls[0][1];
+  const guest = mocks.store.mock.calls[0]![1];
   expect(guest._sender_user_id).toBeNull();
   expect(guest._sender_network_hash).toMatch(/^[0-9a-f]{64}$/);
   mocks.headers = { authorization: "Bearer tok" };
   mocks.getUser.mockResolvedValue({ data: { user: { id: "sender-1" } } });
   await send({ data: { username: "student", body: "Hi" } });
-  const member = mocks.store.mock.calls[1][1];
+  const member = mocks.store.mock.calls[1]![1];
   expect(member._sender_user_id).toBe("sender-1");
   expect(member._sender_network_hash).toBeNull();
 });
