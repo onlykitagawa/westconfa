@@ -95,6 +95,8 @@ export const sendMessage = createServerFn({ method: "POST" })
       _recipient_id: profile.id, _body: body, _status: decision.status,
       _source: decision.source, _category: decision.category, _reason: decision.reason,
       _rate_hash: ipHash, _anonymous: !senderUserId,
+      // Private moderator-only sender record: account id for signed-in senders, network hash for guests.
+      _sender_user_id: senderUserId, _sender_network_hash: senderUserId ? null : ipHash,
     });
     if (error) {
       return { ok: false, code: "generic" };
