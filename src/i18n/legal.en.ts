@@ -10,8 +10,9 @@ export const privacy: LegalDoc = {
       h: "What we collect",
       p: [
         "If you have an account: your WIUT email address, the username you choose, an optional display name, and the messages people send to you. The account fields for profile picture and bio exist for a future update but stay empty unless you fill them in.",
-        "If you send a message: only the text of the message and the time it was sent. We never store your name, account, email, device, or location with a message.",
-        "For spam protection only: when someone sends a message, we store a salted, one-way hash of their network (IP) address. It cannot be turned back into the address, is never linked to the message itself, and is automatically deleted after 24 hours.",
+        "If you send a message: the text of the message, the time it was sent, and sender details that we keep privately with it. If you are signed in to west confa when you send, that is your account. If you are not, it is a scrambled, one-way code made from your network (IP) address, never the address itself. The person you message never sees any of this. We do not store your name, device or location.",
+        "Safety check: every message is sent, as text only, to an automated AI service that checks it for safety before it is delivered. Nothing about who sent it or who it is for goes with it. For messages that are held for review, we keep the AI's short reason in a private record that only moderators can see.",
+        "For spam protection: when someone sends a message, we also store a separate scrambled code of their network (IP) address for 24 hours to enforce sending limits. This 24-hour code is kept apart from the message and is then deleted automatically.",
         "If you use the contact form: the name, email and message you submit, so we can reply.",
         "Your password is stored only as a secure one-way hash by our authentication provider. Nobody, including us, can read it.",
       ],
@@ -19,14 +20,14 @@ export const privacy: LegalDoc = {
     {
       h: "Why we collect it",
       p: [
-        "Your email and password let you sign in (or an emailed sign-in link) and confirm you are a WIUT student. Your username and display name create your personal link. Messages are stored so you can read them. The short-lived hash lets us enforce sending limits and stop spam and abuse.",
+        "Your email and password let you sign in (or an emailed sign-in link) and confirm you are a WIUT student. Your username and display name create your personal link. Messages are stored so you can read them. The automated check and the short-lived spam code let us stop abuse and enforce sending limits. Sender details let moderators deal with reports and repeated abuse.",
       ],
     },
     {
       h: "How long we keep it",
       p: [
-        "Messages are deleted automatically 90 days after they are sent. You can delete any message sooner.",
-        "Spam-protection hashes, including the scrambled code used to limit failed sign-in attempts, are deleted automatically after 24 hours.",
+        "Messages are deleted automatically 90 days after they are sent. You can delete any message sooner. Sender details are deleted together with the message. A message that a moderator rejects after review is deleted immediately.",
+        "Spam-protection codes, including the scrambled code used to limit failed sign-in attempts, are deleted automatically after 24 hours.",
         "When you sign in, you stay signed in on that device for up to 30 days (your session refreshes automatically). After that, you'll be asked for your password again.",
         "Your account data is kept until you delete your account. Contact form messages are kept only as long as needed to handle your request.",
       ],
@@ -49,8 +50,10 @@ export const privacy: LegalDoc = {
     {
       h: "Who can see what",
       p: [
-        "Only you can read the messages sent to you. If you report a message, our moderators can see that message so they can review it. Moderators cannot see who sent any message, because we do not have that information.",
-        "We may disclose information if we are legally required to, but because we do not store sender identity, we cannot reveal who sent a message.",
+        "You can read only the approved messages sent to you, and we never show you who sent them.",
+        "Our moderators can read messages that are held for review and messages that are reported. For those messages only, they can also see who the message was sent to and the sender details described above. They cannot browse other messages. During some periods we may review every message before it is delivered.",
+        "A signed-in sender is identified by their account. For someone without an account, the sender detail is only a scrambled network code. It can be matched against a network address we already know, but it cannot be turned back into an address.",
+        "We may disclose information we hold if we are legally required to.",
       ],
     },
     {
@@ -101,7 +104,7 @@ export const terms: LegalDoc = {
     {
       h: "Moderation, suspension and termination",
       p: [
-        "We filter some content automatically and review reported messages. We may remove any content and suspend or permanently close any account that breaks these terms or our Community Guidelines, with or without notice. You can stop using west confa and delete your account at any time.",
+        "Messages are checked automatically. Some are blocked, and some are held for a human moderator to review before they are delivered. We also review reported messages. Being anonymous to the person you message does not hide you from our moderators: they can see sender details for messages that are held or reported. We may remove any content and suspend or permanently close any account that breaks these terms or our Community Guidelines, with or without notice. You can stop using west confa and delete your account at any time.",
       ],
     },
     {
@@ -144,9 +147,15 @@ export const guidelines: LegalDoc = {
       ],
     },
     {
+      h: "Why a message may not arrive",
+      p: [
+        "Every message is checked automatically before it is delivered. A message that is clearly harmful is blocked, and the sender sees a short note saying it can't be sent. A few messages are held until a moderator has looked at them, so some may arrive a little later, or not at all if they break the rules.",
+      ],
+    },
+    {
       h: "How to report",
       p: [
-        "Open the message in your inbox and tap Report. The message is removed from your inbox straight away and sent to our moderators. Moderators can delete messages and suspend accounts that break the rules.",
+        "Open the message in your inbox and tap Report. The message is removed from your inbox straight away and sent to our moderators. Moderators can see who sent a reported message, and they can delete messages and suspend accounts that break the rules.",
         "If you'd rather not receive anything for a while, go to Settings and turn off 'Accept new messages'. You can turn it back on whenever you're ready.",
         "For anything else, including a safety concern about an account, use the Contact page.",
       ],

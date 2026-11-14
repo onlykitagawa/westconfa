@@ -23,7 +23,9 @@ async function sha256(input: string) {
   return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-// Public endpoint: anyone can send. Sender identity is never stored with the message.
+// Public endpoint: anyone can send. Sender details are stored privately in message_senders
+// (service role only, readable by admins only through admin_message_details for held or reported messages);
+// the rate-limit hash is stored separately in rate_events for 24 hours.
 export const sendMessage = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => schema.parse(input))
   .handler(async ({ data }): Promise<SendResult> => {
@@ -48,8 +50,10 @@ export const sendMessage = createServerFn({ method: "POST" })
 
     const req = getRequest();
     // Optional: if the sender is signed in, key spam limits on their account instead of the
-    // shared network address (campus Wi-Fi puts many students behind one IP). The account is
-    // only used for a salted hash in rate_events, never stored with the message.
+    // shared network address (campus Wi-Fi puts many students behind one IP). Sender details are
+    // stored privately in message_senders (service role only, readable by admins only through
+    // admin_message_details for held or reported messages); the rate-limit hash is stored
+    // separately in rate_events for 24 hours.
     let senderUserId: string | null = null;
     const auth = req.headers.get("authorization");
     if (auth?.startsWith("Bearer ")) {
