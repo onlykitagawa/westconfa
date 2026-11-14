@@ -60,3 +60,12 @@ it("a failed status link still reports the message as sent", async () => {
   mocks.store.mockImplementation(async (fn: string) => (fn === "store_screened_message" ? { data: "message-1", error: null } : { error: { message: "down" } }));
   expect(await send({ data: { username: "student", body: "Hi" } })).toEqual({ ok: true });
 });
+it("word-filter hits are held for a moderator instead of being rejected", async () => {
+  mocks.ai.mockResolvedValue(JSON.stringify({ verdict: "allow", category: "none", reason: "" }));
+  expect(await send({ data: { username: "student", body: "you are a retard" } })).toEqual({ ok: true });
+  expect(mocks.store).toHaveBeenCalledWith("store_screened_message", expect.objectContaining({ _status: "pending", _source: "ai", _reason: "Word filter: swearing or offensive word." }));
+});
+it("contact details are still refused before storage", async () => {
+  expect(await send({ data: { username: "student", body: "call me +998 90 123 45 67" } })).toEqual({ ok: false, code: "personal" });
+  expect(mocks.store).not.toHaveBeenCalled();
+});

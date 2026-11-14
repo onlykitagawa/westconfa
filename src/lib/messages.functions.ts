@@ -44,8 +44,11 @@ export const sendMessage = createServerFn({ method: "POST" })
     const body = data.body.trim();
     if (!body) return { ok: false, code: "empty" };
     if (body.length > MAX_MESSAGE_LENGTH) return { ok: false, code: "generic" };
+    // Contact details are refused outright (they can expose people). Swearing and threat words
+    // from the word filter are never rejected here: the message is held for a human moderator.
     const reason = checkMessage(body);
-    if (reason) return { ok: false, code: reason };
+    if (reason === "personal") return { ok: false, code: reason };
+    const filterHit = reason;
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
@@ -101,8 +104,14 @@ export const sendMessage = createServerFn({ method: "POST" })
     const { callModerationAI } = await import("./ai-moderation.server");
     const { data: setting, error: settingError } = await supabaseAdmin.from("app_settings").select("value").eq("key", "review_all_messages").maybeSingle();
     // Missing/unreadable settings fail closed. The SQL transaction checks this again.
-    const decision = await screenMessage(body, !!settingError || setting?.value !== false, callModerationAI);
-    if (decision.blocked) return { ok: false, code: "blocked" };
+    const screened = await screenMessage(body, !!settingError || setting?.value !== false, callModerationAI);
+    if (screened.blocked) return { ok: false, code: "blocked" };
+    // A word-filter hit always waits for a moderator, whatever the AI said.
+    const decision = filterHit && screened.status === "approved"
+      ? { ...screened, status: "pending" as const, source: "ai" as const,
+          category: filterHit === "threat" ? "threat" : "harassment",
+          reason: filterHit === "threat" ? "Word filter: possible threat." : "Word filter: swearing or offensive word." }
+      : screened;
     // Message, private moderation record and separate rate event commit atomically.
     const { data: messageId, error } = await supabaseAdmin.rpc("store_screened_message", {
       _recipient_id: profile.id, _body: body, _status: decision.status,

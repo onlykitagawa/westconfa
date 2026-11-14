@@ -84,8 +84,7 @@ function SendPage() {
     setError(null);
     const trimmed = body.trim();
     if (!trimmed) return setError(t.send.errors.empty);
-    const local = checkMessage(trimmed);
-    if (local) return setError(t.send.errors[local]);
+    if (checkMessage(trimmed) === "personal") return setError(t.send.errors.personal);
     setSending(true);
     try {
       const res = await send({ data: { username, body: trimmed, website } });
