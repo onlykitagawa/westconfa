@@ -165,6 +165,35 @@ export type Database = {
           },
         ]
       }
+      message_trackers: {
+        Row: {
+          created_at: string
+          final_state: string | null
+          message_id: string | null
+          token_hash: string
+        }
+        Insert: {
+          created_at?: string
+          final_state?: string | null
+          message_id?: string | null
+          token_hash: string
+        }
+        Update: {
+          created_at?: string
+          final_state?: string | null
+          message_id?: string | null
+          token_hash?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_trackers_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: true
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           body: string
@@ -329,6 +358,10 @@ export type Database = {
         Returns: undefined
       }
       admin_stats: { Args: never; Returns: Json }
+      attach_message_tracker: {
+        Args: { _message_id: string; _token_hash: string }
+        Returns: undefined
+      }
       get_public_profile: {
         Args: { _username: string }
         Returns: {
@@ -347,6 +380,14 @@ export type Database = {
       is_allowed_email: { Args: { _email: string }; Returns: boolean }
       is_username_available: { Args: { _username: string }; Returns: boolean }
       message_retention_days: { Args: never; Returns: number }
+      message_status: {
+        Args: { _token: string }
+        Returns: {
+          body: string
+          sent_at: string
+          state: string
+        }[]
+      }
       purge_expired: { Args: never; Returns: undefined }
       report_message: { Args: { _message_id: string }; Returns: undefined }
       store_screened_message: {

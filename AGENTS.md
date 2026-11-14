@@ -46,3 +46,4 @@ use the editor.
 - Shared field surfaces and read-message glass use semantic CSS tokens so app screens inherit both themes without local color literals.
 - AI screening runs in server-only modules; a service-role-only SQL function atomically stores screened messages, private reasons and separate rate events so pending messages never reach recipient reads.
 - Recipient inbox and export queries explicitly scope to the recipient, approved status and visible rows, including for admins whose RLS read policy is wider.
+- Senders get a private status link (/m/$token) after sending: only the token's SHA-256 is stored, in message_trackers (service-role only, written by attach_message_tracker after store_screened_message). public.message_status(token) returns only the state (waiting/delivered/seen/not_delivered), send time and the sender's own text; a BEFORE DELETE trigger on messages keeps the final state, and trackers are purged with messages after message_retention_days().

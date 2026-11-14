@@ -9,7 +9,7 @@ import {
 } from "./moderation";
 
 export type SendResult =
-  | { ok: true }
+  | { ok: true; tracker?: string }
   | { ok: false; code: "slur" | "threat" | "personal" | "rate" | "paused" | "notfound" | "empty" | "self" | "generic" | "blocked" };
 
 const schema = z.object({
@@ -21,6 +21,15 @@ const schema = z.object({
 async function sha256(input: string) {
   const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(input));
   return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+// 32 random bytes as base64url (43 characters). Only its SHA-256 is stored (message_trackers),
+// so the private status link can't be recovered or guessed from the database.
+function newTrackerToken() {
+  const bytes = crypto.getRandomValues(new Uint8Array(32));
+  let bin = "";
+  for (const b of bytes) bin += String.fromCharCode(b);
+  return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
 // Public endpoint: anyone can send. Sender details are stored privately in message_senders
@@ -95,7 +104,7 @@ export const sendMessage = createServerFn({ method: "POST" })
     const decision = await screenMessage(body, !!settingError || setting?.value !== false, callModerationAI);
     if (decision.blocked) return { ok: false, code: "blocked" };
     // Message, private moderation record and separate rate event commit atomically.
-    const { error } = await supabaseAdmin.rpc("store_screened_message", {
+    const { data: messageId, error } = await supabaseAdmin.rpc("store_screened_message", {
       _recipient_id: profile.id, _body: body, _status: decision.status,
       _source: decision.source, _category: decision.category, _reason: decision.reason,
       _rate_hash: ipHash, _anonymous: !senderUserId,
@@ -106,7 +115,17 @@ export const sendMessage = createServerFn({ method: "POST" })
     if (error) {
       return { ok: false, code: "generic" };
     }
+    // Private status link (waiting / delivered / seen). The message is already stored, so a
+    // failure here only means no link is shown; it never turns a sent message into an error.
+    let tracker: string | undefined;
+    if (messageId) {
+      const token = newTrackerToken();
+      const { error: trackerError } = await supabaseAdmin.rpc("attach_message_tracker", {
+        _message_id: messageId, _token_hash: await sha256(token),
+      });
+      if (!trackerError) tracker = token;
+    }
     // Opportunistic cleanup of hashes older than 24h.
     await supabaseAdmin.from("rate_events").delete().lt("created_at", new Date(Date.now() - 24 * 3600 * 1000).toISOString());
-    return { ok: true };
+    return { ok: true, tracker };
   });

@@ -11,7 +11,7 @@ const PUBLIC_SITE_URL = "https://westconfa.lovable.app";
 
 // Inside the Lovable editor the page runs on a private preview address that makes visitors
 // log in to Lovable first. That address must never end up in a link someone else opens.
-function shareOrigin() {
+export function shareOrigin() {
   const { origin, hostname } = window.location;
   const isPrivatePreview = hostname.startsWith("id-preview--") || hostname.endsWith(".lovableproject.com");
   return isPrivatePreview ? PUBLIC_SITE_URL : origin;

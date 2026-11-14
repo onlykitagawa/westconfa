@@ -1,12 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { Check, Lock, Send } from "lucide-react";
+import { Check, Copy, ExternalLink, Lock, Send } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 import { t } from "@/i18n";
 import { getPublicProfile } from "@/lib/profile.functions";
 import { sendMessage } from "@/lib/messages.functions";
 import { checkMessage, MAX_MESSAGE_LENGTH } from "@/lib/moderation";
 import { Button } from "@/components/ui/button";
+import { shareOrigin } from "@/components/site/share-dialog";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
 
@@ -28,6 +30,33 @@ export const Route = createFileRoute("/u/$username")({
   component: SendPage,
 });
 
+// The sender's private status link, shown once right after sending. Only its hash is stored.
+function TrackLink({ token }: { token: string }) {
+  const [copied, setCopied] = useState(false);
+  const link = `${shareOrigin()}/m/${token}`;
+  const copy = async () => {
+    await navigator.clipboard.writeText(link);
+    setCopied(true);
+    toast.success(t.send.trackCopied);
+    setTimeout(() => setCopied(false), 1800);
+  };
+  return (
+    <div className="mt-8 rounded-[22px] bg-accent p-5 text-left">
+      <p className="font-semibold text-accent-foreground">{t.send.trackTitle}</p>
+      <p className="mt-1 text-sm text-muted-foreground">{t.send.trackBody}</p>
+      <div className="mt-3 truncate rounded-2xl border bg-background/60 px-4 py-3 font-mono text-sm">{link.replace(/^https?:\/\//, "")}</div>
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        <Button type="button" variant="secondary" onClick={copy}>
+          {copied ? <Check /> : <Copy />} {t.send.trackCopy}
+        </Button>
+        <Button asChild variant="ghost">
+          <a href={`/m/${token}`} target="_blank" rel="noopener noreferrer"><ExternalLink /> {t.send.trackOpen}</a>
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 function SendPage() {
   const { profile } = Route.useLoaderData();
   const { username } = Route.useParams();
@@ -38,6 +67,7 @@ function SendPage() {
   const [error, setError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
+  const [tracker, setTracker] = useState<string | null>(null);
 
   if (!profile) {
     return (
@@ -60,6 +90,7 @@ function SendPage() {
     try {
       const res = await send({ data: { username, body: trimmed, website } });
       if (res.ok) {
+        setTracker(res.tracker ?? null);
         setSent(true);
         setBody("");
       } else setError(t.send.errors[res.code]);
@@ -94,9 +125,10 @@ function SendPage() {
             </div>
             <h2 className="animate-rise mt-6 text-3xl font-extrabold">{t.send.successTitle}</h2>
             <p className="animate-rise mx-auto mt-2 max-w-xs text-muted-foreground">{t.send.successBody}</p>
+            {tracker && <TrackLink token={tracker} />}
             <div className="mt-8 grid gap-3">
               <Button asChild variant="hero" size="lg" className="w-full px-4"><Link to="/">{t.common.getYourOwn}</Link></Button>
-              <Button variant="ghost" onClick={() => setSent(false)}>{t.send.sendAnother}</Button>
+              <Button variant="ghost" onClick={() => { setSent(false); setTracker(null); }}>{t.send.sendAnother}</Button>
             </div>
           </div>
         ) : me?.username === profile.username ? (

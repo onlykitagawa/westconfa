@@ -13,6 +13,7 @@ export const privacy: LegalDoc = {
         "If you send a message: the text of the message, the time it was sent, and sender details that we keep privately with it. If you are signed in to west confa when you send, that is your account. If you are not, it is a scrambled, one-way code made from your network (IP) address, never the address itself. The person you message never sees any of this. We do not store your name, device or location.",
         "Safety check: every message is sent, as text only, to an automated AI service that checks it for safety before it is delivered. Nothing about who sent it or who it is for goes with it. For messages that are held for review, we keep the AI's short reason in a private record that only moderators can see.",
         "For spam protection: when someone sends a message, we also store a separate scrambled code of their network (IP) address for 24 hours to enforce sending limits. This 24-hour code is kept apart from the message and is then deleted automatically.",
+        "Message status link: after you send a message, we show you a private link where you can check whether it is waiting for review, delivered or seen. We store only a scrambled, one-way version of that link, so we can't look it up or send it to you again. Anyone who has the link can see that status and the text of that message, so keep it to yourself.",
         "If you use the contact form: the name, email and message you submit, so we can reply.",
         "Your password is stored only as a secure one-way hash by our authentication provider. Nobody, including us, can read it.",
       ],
@@ -27,6 +28,7 @@ export const privacy: LegalDoc = {
       h: "How long we keep it",
       p: [
         "Messages are deleted automatically 90 days after they are sent. You can delete any message sooner. Sender details are deleted together with the message. A message that a moderator rejects after review is deleted immediately.",
+        "Message status links stop working and are deleted 90 days after the message was sent.",
         "Spam-protection codes, including the scrambled code used to limit failed sign-in attempts, are deleted automatically after 24 hours.",
         "When you sign in, you stay signed in on that device for up to 30 days (your session refreshes automatically). After that, you'll be asked for your password again.",
         "Your account data is kept until you delete your account. Contact form messages are kept only as long as needed to handle your request.",
@@ -51,6 +53,7 @@ export const privacy: LegalDoc = {
       h: "Who can see what",
       p: [
         "You can read only the approved messages sent to you, and we never show you who sent them.",
+        "If the person who sent you a message kept their status link, they can see whether it was delivered and whether you have opened it. They see nothing else about you or your inbox.",
         "Our moderators can read messages that are held for review and messages that are reported. For those messages only, they can also see who the message was sent to and the sender details described above. They cannot browse other messages. During some periods we may review every message before it is delivered.",
         "A signed-in sender is identified by their account. For someone without an account, the sender detail is only a scrambled network code. It can be matched against a network address we already know, but it cannot be turned back into an address.",
         "We may disclose information we hold if we are legally required to.",
@@ -149,7 +152,7 @@ export const guidelines: LegalDoc = {
     {
       h: "Why a message may not arrive",
       p: [
-        "Every message is checked automatically before it is delivered. A message that is clearly harmful is blocked, and the sender sees a short note saying it can't be sent. A few messages are held until a moderator has looked at them, so some may arrive a little later, or not at all if they break the rules.",
+        "Every message is checked automatically before it is delivered. A message that is clearly harmful is blocked, and the sender sees a short note saying it can't be sent. A few messages are held until a moderator has looked at them, so some may arrive a little later, or not at all if they break the rules. If you saved the private link shown after sending, it tells you whether your message is waiting, delivered or seen.",
       ],
     },
     {
