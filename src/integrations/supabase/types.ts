@@ -605,8 +605,8 @@ export type Database = {
         }
         Returns: string
       }
-      report_answer: { Args: { _answer_id: string }; Returns: undefined }
       purge_expired: { Args: never; Returns: undefined }
+      report_answer: { Args: { _answer_id: string }; Returns: undefined }
       report_message: { Args: { _message_id: string }; Returns: undefined }
       search_profiles: {
         Args: { _query: string }
