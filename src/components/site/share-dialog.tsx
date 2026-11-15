@@ -1,10 +1,11 @@
-import { Check, Copy, Share2 } from "lucide-react";
+import { Check, Copy, Link2, Share2 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { t } from "@/i18n";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { StoryButton } from "./story-image";
 
 // The public address people should open. Change this when a custom domain is connected.
 const PUBLIC_SITE_URL = "https://westconfa.lovable.app";
@@ -23,6 +24,74 @@ export function useProfileLink(username: string) {
   return `${origin}/u/${username}`;
 }
 
+export const shortLink = (link: string) => link.replace(/^https?:\/\//, "");
+
+// Copy and native share for a link, shared by every place that offers the personal link.
+export function useCopyShare(link: string) {
+  const [copied, setCopied] = useState(false);
+  const [canShare, setCanShare] = useState(false);
+  useEffect(() => setCanShare(typeof navigator !== "undefined" && typeof navigator.share === "function"), []);
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(link);
+      setCopied(true);
+      toast.success(t.shareDialog.copied);
+      setTimeout(() => setCopied(false), 1800);
+    } catch {
+      toast.error(t.common.somethingWrong);
+    }
+  };
+  const share = async () => {
+    try {
+      await navigator.share({ title: t.brand, text: t.shareDialog.shareText, url: link });
+    } catch {
+      /* user cancelled */
+    }
+  };
+  return { copied, canShare, copy, share };
+}
+
+// A slim bar with the personal link and a one-tap Copy button (top of the inbox).
+export function LinkBar({ username }: { username: string }) {
+  const link = useProfileLink(username);
+  const { copied, copy } = useCopyShare(link);
+  return (
+    <div className="glass mt-5 flex items-center gap-3 rounded-2xl py-2 pl-4 pr-2">
+      <Link2 className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+      <span className="min-w-0 flex-1 truncate font-mono text-sm" title={link}>{shortLink(link)}</span>
+      <Button type="button" variant="secondary" size="sm" className="h-10 shrink-0 rounded-xl px-4" onClick={copy}>
+        {copied ? <Check /> : <Copy />} {t.shareDialog.copyShort}
+      </Button>
+    </div>
+  );
+}
+
+// QR code, the link, Copy, Share and the story image. Used by the share dialog and the
+// "your link is ready" screen.
+export function LinkPanel({ username }: { username: string }) {
+  const link = useProfileLink(username);
+  const { copied, canShare, copy, share } = useCopyShare(link);
+  return (
+    <div className="space-y-3">
+      <div className="mx-auto w-fit rounded-3xl bg-qr-surface p-4 shadow-soft">
+        <QRCodeSVG value={link || " "} size={168} level="M" bgColor="var(--qr-surface)" fgColor="var(--qr-ink)" aria-label={t.shareDialog.qrLabel} />
+      </div>
+      <div className="truncate rounded-2xl border bg-muted px-4 py-3 text-center font-mono text-sm">{shortLink(link)}</div>
+      <div className="grid gap-2 sm:grid-cols-2">
+        <Button onClick={copy} variant={canShare ? "secondary" : "hero"} className={canShare ? "" : "sm:col-span-2"}>
+          {copied ? <Check /> : <Copy />} {t.shareDialog.copy}
+        </Button>
+        {canShare && (
+          <Button onClick={share} variant="hero">
+            <Share2 /> {t.shareDialog.nativeShare}
+          </Button>
+        )}
+      </div>
+      <StoryButton username={username} link={link} />
+    </div>
+  );
+}
+
 export function ShareDialog({
   open,
   onOpenChange,
@@ -32,55 +101,14 @@ export function ShareDialog({
   onOpenChange: (o: boolean) => void;
   username: string;
 }) {
-  const link = useProfileLink(username);
-  const [copied, setCopied] = useState(false);
-  const [canShare, setCanShare] = useState(false);
-  useEffect(() => setCanShare(typeof navigator !== "undefined" && !!navigator.share), []);
-
-  const copy = async () => {
-    await navigator.clipboard.writeText(link);
-    setCopied(true);
-    toast.success(t.shareDialog.copied);
-    setTimeout(() => setCopied(false), 1800);
-  };
-  const share = async () => {
-    try {
-      await navigator.share({ title: t.brand, text: t.shareDialog.shareText, url: link });
-    } catch {
-      /* user cancelled */
-    }
-  };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="rounded-3xl sm:max-w-md">
+      <DialogContent className="max-h-[90dvh] overflow-y-auto rounded-3xl sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold">{t.shareDialog.title}</DialogTitle>
           <DialogDescription>{t.shareDialog.body}</DialogDescription>
         </DialogHeader>
-        <div className="mx-auto my-2 rounded-3xl bg-qr-surface p-4 shadow-soft">
-          <QRCodeSVG
-            value={link || " "}
-            size={180}
-            level="M"
-            bgColor="var(--qr-surface)"
-            fgColor="var(--qr-ink)"
-            aria-label="QR code for your link"
-          />
-        </div>
-        <div className="truncate rounded-2xl border bg-muted px-4 py-3 text-center font-mono text-sm">
-          {link.replace(/^https?:\/\//, "")}
-        </div>
-        <div className="grid gap-2 sm:grid-cols-2">
-          <Button onClick={copy} variant={canShare ? "secondary" : "hero"} className={canShare ? "" : "sm:col-span-2"}>
-            {copied ? <Check /> : <Copy />} {t.shareDialog.copy}
-          </Button>
-          {canShare && (
-            <Button onClick={share} variant="hero">
-              <Share2 /> {t.shareDialog.nativeShare}
-            </Button>
-          )}
-        </div>
+        <LinkPanel username={username} />
       </DialogContent>
     </Dialog>
   );

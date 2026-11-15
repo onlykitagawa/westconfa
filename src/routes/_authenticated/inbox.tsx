@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { ShareDialog } from "@/components/site/share-dialog";
+import { LinkBar, ShareDialog } from "@/components/site/share-dialog";
 import { MessageTabs } from "@/components/site/message-tabs";
 import { cn } from "@/lib/utils";
 
@@ -138,6 +138,8 @@ function InboxPage() {
           <Share2 /> <span className="hidden sm:inline">{I.shareLink}</span><span className="sm:hidden">{t.common.share}</span>
         </Button>
       </div>
+
+      {profile?.username && <LinkBar username={profile.username} />}
 
       {profile?.suspended && <p className="mt-6 rounded-2xl bg-destructive/10 p-4 text-sm text-destructive">{I.suspended}</p>}
       {profile?.inbox_paused && !profile.suspended && <p className="mt-6 rounded-2xl bg-accent p-4 text-sm text-accent-foreground">{I.paused}</p>}

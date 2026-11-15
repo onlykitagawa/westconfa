@@ -1,4 +1,4 @@
-import { Eye, EyeOff } from "lucide-react";
+import { ExternalLink, Eye, EyeOff, Mail } from "lucide-react";
 import { useEffect, useState } from "react";
 import { t } from "@/i18n";
 import { Input } from "@/components/ui/input";
@@ -7,7 +7,39 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 import { RESEND_COOLDOWN_SECONDS } from "@/lib/moderation";
 import { Button } from "@/components/ui/button";
 
+const DOMAIN = "students.wiut.uz";
+
+// Offers to finish the address when someone types only the first part, or part of the domain.
+function suggestEmail(raw: string): string | null {
+  const v = raw.trim().toLowerCase();
+  if (v.length < 2 || /\s/.test(v)) return null;
+  const at = v.indexOf("@");
+  if (at === -1) return `${v}@${DOMAIN}`;
+  const local = v.slice(0, at);
+  const domain = v.slice(at + 1);
+  if (!local || domain === DOMAIN || domain.includes("@")) return null;
+  return DOMAIN.startsWith(domain) && domain !== "" ? `${local}@${DOMAIN}` : null;
+}
+
+// A visible "which email?" box with a button that opens Outlook, where the student email is shown.
+export function EmailHelp() {
+  return (
+    <div className="mt-6 rounded-[22px] border border-primary/15 bg-accent p-4">
+      <p className="flex items-center gap-2 font-semibold text-accent-foreground">
+        <Mail className="size-4 shrink-0" aria-hidden="true" /> {t.auth.helpTitle}
+      </p>
+      <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{t.auth.helpBody}</p>
+      <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{t.auth.helpFind}</p>
+      <Button asChild variant="secondary" size="sm" className="mt-3 h-10 rounded-xl">
+        <a href="https://outlook.office.com/mail/" target="_blank" rel="noopener noreferrer"><ExternalLink /> {t.auth.helpOpen}</a>
+      </Button>
+      <p className="mt-2 text-xs text-muted-foreground">{t.auth.helpNotChat}</p>
+    </div>
+  );
+}
+
 export function EmailField({ value, onChange, autoFocus, showHint }: { value: string; onChange: (v: string) => void; autoFocus?: boolean; showHint?: boolean }) {
+  const suggestion = suggestEmail(value);
   return (
     <div className="space-y-2">
       <Label htmlFor="email">{t.auth.email}</Label>
@@ -16,6 +48,15 @@ export function EmailField({ value, onChange, autoFocus, showHint }: { value: st
         autoFocus={autoFocus} className="h-[52px] rounded-2xl text-base" placeholder={t.auth.emailPlaceholder}
         value={value} onChange={(e) => onChange(e.target.value)} aria-describedby={showHint ? "email-hint" : undefined}
       />
+      {suggestion && (
+        <button
+          type="button"
+          onClick={() => onChange(suggestion)}
+          className="press inline-flex max-w-full items-center rounded-full bg-accent px-3 py-1.5 text-sm font-semibold text-accent-foreground"
+        >
+          <span className="truncate">{t.auth.suggestUse(suggestion)}</span>
+        </button>
+      )}
       {showHint && <p id="email-hint" className="text-sm text-muted-foreground">{t.auth.emailHint}</p>}
     </div>
   );

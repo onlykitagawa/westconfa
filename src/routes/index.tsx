@@ -39,7 +39,7 @@ function Landing() {
         <div className="relative mx-auto mt-10 max-w-6xl md:min-h-[250px]">
           <div className="relative z-10 mx-auto flex max-w-[17rem] flex-col items-center">
             <Button asChild variant="hero" size="lg" className="h-14 px-10">
-              <Link to={user ? "/inbox" : "/auth"}>{user ? t.common.openInbox : t.common.getMyLink}</Link>
+              {user ? <Link to="/inbox">{t.common.openInbox}</Link> : <Link to="/auth" search={{ mode: "signup" }}>{t.common.getMyLink}</Link>}
             </Button>
             {!user && (
               <Link

@@ -233,7 +233,7 @@ function SendPage() {
         </p>
       </div>
       <AnswerCards username={profile.username} isOwner={me?.username === profile.username} canReport={!!user && me?.username !== profile.username} />
-      {!loading && !user && <p className="mt-5 text-center text-sm text-muted-foreground">{t.send.wantOwnLink} <Link to="/auth" className="rounded-sm underline underline-offset-4 hover:text-foreground">{t.send.getYours}</Link></p>}
+      {!loading && !user && <p className="mt-5 text-center text-sm text-muted-foreground">{t.send.wantOwnLink} <Link to="/auth" search={{ mode: "signup" }} className="rounded-sm underline underline-offset-4 hover:text-foreground">{t.send.getYours}</Link></p>}
     </main>
   );
 }

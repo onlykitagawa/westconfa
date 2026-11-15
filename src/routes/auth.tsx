@@ -12,9 +12,11 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CodeField, EmailField, PasswordField, ResendButton } from "@/components/site/auth-fields";
+import { CodeField, EmailField, EmailHelp, PasswordField, ResendButton } from "@/components/site/auth-fields";
 
 export const Route = createFileRoute("/auth")({
+  // /auth?mode=signup opens straight on "Create account" (used by every "Get my link" button).
+  validateSearch: (search: Record<string, unknown>): { mode?: "signup" } => (search.mode === "signup" ? { mode: "signup" } : {}),
   head: () => ({
     meta: [
       { title: t.auth.metaTitle }, { name: "description", content: t.auth.metaDesc },
@@ -45,8 +47,9 @@ function mapAuthError(message: string): string {
 function AuthPage() {
   const navigate = useNavigate();
   const { user, loading, openedAuthLink } = useAuth();
+  const { mode } = Route.useSearch();
   const signInFn = useServerFn(passwordSignIn);
-  const [tab, setTab] = useState<"signin" | "signup">("signin");
+  const [tab, setTab] = useState<"signin" | "signup">(mode === "signup" ? "signup" : "signin");
   const [step, setStep] = useState<Step>("form");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -56,6 +59,7 @@ function AuthPage() {
   const [unverified, setUnverified] = useState(false);
   const [busy, setBusy] = useState(false);
   const holdRedirect = useRef(false);
+  useEffect(() => setTab(mode === "signup" ? "signup" : "signin"), [mode]);
 
   useEffect(() => {
     if (!loading && user && !openedAuthLink && !holdRedirect.current) navigate({ to: "/inbox", replace: true });
@@ -198,6 +202,7 @@ function AuthPage() {
             </Tabs>
             <h1 className="mt-7 text-3xl font-extrabold tracking-tight">{tab === "signin" ? A.signInTitle : A.signUpTitle}</h1>
             <p className="mt-1 text-muted-foreground">{A.subtitle}</p>
+            <EmailHelp />
 
             {tab === "signin" ? (
               <form onSubmit={signIn} noValidate className="mt-7 space-y-5" key="signin">
@@ -212,7 +217,7 @@ function AuthPage() {
               </form>
             ) : (
               <form onSubmit={signUp} noValidate className="mt-7 space-y-5" key="signup">
-                <EmailField value={email} onChange={(v) => { setEmail(v); setErr(null); }} showHint />
+                <EmailField value={email} onChange={(v) => { setEmail(v); setErr(null); }} />
                 <PasswordField value={password} onChange={(v) => { setPassword(v); setErr(null); }} isNew />
                 <div className="flex items-start gap-3">
                   <Checkbox id="agree" checked={agree} onCheckedChange={(v) => { setAgree(v === true); setErr(null); }} className="mt-0.5 size-5 rounded-md" />
@@ -261,6 +266,7 @@ function AuthPage() {
           <form onSubmit={requestCode} noValidate className="space-y-5">
             {back}
             <h1 className="text-3xl font-extrabold tracking-tight">{A.codeInstead}</h1>
+            <EmailHelp />
             <EmailField value={email} onChange={(v) => { setEmail(v); setErr(null); }} autoFocus />
             {errorBox}
             <Button type="submit" variant="hero" className="w-full" disabled={busy}>{busy ? A.sending : A.sendCode}</Button>
@@ -272,6 +278,7 @@ function AuthPage() {
             {back}
             <h1 className="text-3xl font-extrabold tracking-tight">{A.forgotTitle}</h1>
             <p className="-mt-2 text-muted-foreground">{A.forgotSubtitle}</p>
+            <EmailHelp />
             <EmailField value={email} onChange={(v) => { setEmail(v); setErr(null); }} autoFocus />
             {errorBox}
             <Button type="submit" variant="hero" className="w-full" disabled={busy}>{busy ? A.sending : A.sendReset}</Button>
