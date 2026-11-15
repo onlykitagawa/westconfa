@@ -136,5 +136,5 @@ export const sendMessage = createServerFn({ method: "POST" })
     }
     // Opportunistic cleanup of hashes older than 24h.
     await supabaseAdmin.from("rate_events").delete().lt("created_at", new Date(Date.now() - 24 * 3600 * 1000).toISOString());
-    return { ok: true, tracker };
+    return tracker === undefined ? { ok: true } : { ok: true, tracker };
   });
