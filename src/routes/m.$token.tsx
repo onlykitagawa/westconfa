@@ -1,9 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { formatDistanceToNow } from "date-fns";
 import { Check, CheckCheck, Clock, Eye, RefreshCw, XCircle } from "lucide-react";
 import { t } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
+import { replyAsSender } from "@/lib/replies.functions";
+import { ReplyBox, ThreadBubbles } from "@/components/site/thread";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
@@ -26,6 +29,9 @@ type Status = { state: State; sent_at: string; body: string | null };
 function TrackPage() {
   const { token } = Route.useParams();
   const T = t.track;
+  const TH = t.thread;
+  const qc = useQueryClient();
+  const reply = useServerFn(replyAsSender);
   const q = useQuery({
     queryKey: ["message-status", token],
     queryFn: async (): Promise<Status | null> => {
@@ -33,6 +39,19 @@ function TrackPage() {
       if (error) throw error;
       const row = (data ?? [])[0];
       return row ? (row as Status) : null;
+    },
+    refetchInterval: 30000,
+    refetchOnWindowFocus: true,
+  });
+
+  // The private conversation with the recipient, if they chose to reply. Only approved replies and the
+  // sender's own waiting reply come back; the token is the only key.
+  const thread = useQuery({
+    queryKey: ["message-thread", token],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("message_thread", { _token: token });
+      if (error) throw error;
+      return data ?? [];
     },
     refetchInterval: 30000,
     refetchOnWindowFocus: true,
@@ -56,6 +75,7 @@ function TrackPage() {
 
   const { state, sent_at, body } = q.data;
   const reached = state === "delivered" || state === "seen";
+  const rows = thread.data ?? [];
   const steps = [
     { label: T.sent, done: true, Icon: Check },
     { label: T.delivered, done: reached, Icon: CheckCheck },
@@ -108,7 +128,33 @@ function TrackPage() {
           </>
         )}
 
-        <Button variant="ghost" className="mt-4 w-full" onClick={() => q.refetch()} disabled={q.isFetching}>
+        {reached && (
+          <section className="mt-6 border-t pt-6" aria-labelledby="thread-title">
+            <h2 id="thread-title" className="text-sm font-bold uppercase tracking-wider text-muted-foreground">{TH.title}</h2>
+            {rows.length === 0 ? (
+              <p className="mt-3 text-sm text-muted-foreground">{TH.noReplyYet}</p>
+            ) : (
+              <div className="mt-4 space-y-4">
+                <ThreadBubbles rows={rows} viewer="sender" />
+                {rows[0]?.closed ? (
+                  <p className="rounded-2xl bg-muted p-4 text-sm text-muted-foreground" role="status">{TH.closed}</p>
+                ) : rows[0]?.can_reply ? (
+                  <ReplyBox
+                    placeholder={TH.placeholder}
+                    sendLabel={TH.send}
+                    onSubmit={(body) => reply({ data: { token, body } })}
+                    onDone={() => qc.invalidateQueries({ queryKey: ["message-thread", token] })}
+                  />
+                ) : (
+                  <p className="text-sm text-muted-foreground" role="status">{TH.waiting}</p>
+                )}
+                <p className="text-xs text-muted-foreground">{TH.privateNote}</p>
+              </div>
+            )}
+          </section>
+        )}
+
+        <Button variant="ghost" className="mt-4 w-full" onClick={() => { q.refetch(); thread.refetch(); }} disabled={q.isFetching}>
           <RefreshCw className={cn(q.isFetching && "animate-spin")} /> {T.refresh}
         </Button>
         <p className="mt-4 text-center text-xs text-muted-foreground">{T.privateNote}</p>

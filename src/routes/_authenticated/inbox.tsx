@@ -1,12 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
-import { Flag, Inbox as InboxIcon, Share2, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { Flag, Globe, Inbox as InboxIcon, Reply, Share2, Trash2 } from "lucide-react";
+import { useMemo, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { t } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { answerPublicly, replyToMessage } from "@/lib/replies.functions";
+import { ReplyBox, ThreadBubbles } from "@/components/site/thread";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -19,8 +22,9 @@ export const Route = createFileRoute("/_authenticated/inbox")({
   component: InboxPage,
 });
 
-type Msg = { id: string; body: string; created_at: string; read_at: string | null };
+type Msg = { id: string; body: string; created_at: string; read_at: string | null; replies_closed: boolean };
 const KEY = ["inbox"];
+const REPLIES_KEY = ["inbox-replies"];
 
 function InboxPage() {
   const I = t.inbox;
@@ -29,15 +33,61 @@ function InboxPage() {
   const [shareOpen, setShareOpen] = useState(false);
   const [openMsg, setOpenMsg] = useState<Msg | null>(null);
   const [confirm, setConfirm] = useState<null | "delete" | "report">(null);
+  const [mode, setMode] = useState<"view" | "reply" | "answer">("view");
+  const reply = useServerFn(replyToMessage);
+  const answer = useServerFn(answerPublicly);
 
   const { data, isLoading } = useQuery({
     queryKey: KEY,
     queryFn: async () => {
-      const { data, error } = await supabase.from("messages").select("id, body, created_at, read_at").eq("recipient_id", profile?.id ?? "00000000-0000-0000-0000-000000000000").eq("status", "approved").eq("hidden", false).order("created_at", { ascending: false }).limit(500);
+      const { data, error } = await supabase.from("messages").select("id, body, created_at, read_at, replies_closed").eq("recipient_id", profile?.id ?? "00000000-0000-0000-0000-000000000000").eq("status", "approved").eq("hidden", false).order("created_at", { ascending: false }).limit(500);
       if (error) throw error;
       return data as Msg[];
     },
     refetchOnWindowFocus: true,
+  });
+
+  // One light query for the list badges (no text), one full query for the open conversation.
+  const summary = useQuery({
+    queryKey: REPLIES_KEY,
+    enabled: !!profile?.id,
+    refetchOnWindowFocus: true,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("message_replies").select("message_id, author, status").order("created_at", { ascending: true }).limit(1000);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+  const threadState = useMemo(() => {
+    const map = new Map<string, { replied: boolean; waiting: boolean }>();
+    for (const r of summary.data ?? []) {
+      const cur = map.get(r.message_id) ?? { replied: false, waiting: false };
+      if (r.author === "owner") cur.replied = true;
+      if (r.status === "approved") cur.waiting = r.author === "sender";
+      map.set(r.message_id, cur);
+    }
+    return map;
+  }, [summary.data]);
+  const thread = useQuery({
+    queryKey: ["inbox-thread", openMsg?.id],
+    enabled: !!openMsg,
+    refetchOnWindowFocus: true,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("message_replies").select("id, author, body, created_at, status").eq("message_id", openMsg!.id).order("created_at", { ascending: true });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+  const setClosed = useMutation({
+    mutationFn: async (v: { id: string; closed: boolean }) => {
+      const { error } = await supabase.rpc("set_thread_closed", { _message_id: v.id, _closed: v.closed });
+      if (error) throw error;
+    },
+    onSuccess: (_d, v) => {
+      optimistic((l) => l.map((m) => (m.id === v.id ? { ...m, replies_closed: v.closed } : m)));
+      setOpenMsg((m) => (m && m.id === v.id ? { ...m, replies_closed: v.closed } : m));
+    },
+    onError: () => toast.error(t.common.somethingWrong),
   });
 
   const optimistic = (fn: (list: Msg[]) => Msg[]) => qc.setQueryData<Msg[]>(KEY, (old) => fn(old ?? []));
@@ -70,6 +120,7 @@ function InboxPage() {
 
   const open = (m: Msg) => {
     setOpenMsg(m);
+    setMode("view");
     if (!m.read_at) markRead.mutate(m.id);
   };
   const unread = data?.filter((m) => !m.read_at).length ?? 0;
@@ -119,6 +170,11 @@ function InboxPage() {
                   <span className="mb-2 flex items-center gap-2 text-xs font-semibold text-muted-foreground">
                     {!m.read_at && <span className="size-2 shrink-0 rounded-full bg-coral" aria-hidden />}
                     <span>{I.anonymous} · {formatDistanceToNow(new Date(m.created_at), { addSuffix: true })}</span>
+                    {threadState.get(m.id)?.waiting ? (
+                      <span className="rounded-full bg-coral px-2 py-0.5 text-[11px] font-bold text-coral-foreground">{I.newReply}</span>
+                    ) : threadState.get(m.id)?.replied ? (
+                      <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-bold text-muted-foreground">{I.replied}</span>
+                    ) : null}
                   </span>
                   <span className={cn("line-clamp-2 break-words text-[17px] leading-snug [overflow-wrap:anywhere]", m.read_at ? "font-medium" : "font-bold")}>{m.body}</span>
                 </span>
@@ -128,17 +184,57 @@ function InboxPage() {
         </ul>
       </div>
 
-      <Dialog open={!!openMsg} onOpenChange={(o) => !o && setOpenMsg(null)}>
+      <Dialog open={!!openMsg} onOpenChange={(o) => { if (!o) { setOpenMsg(null); setMode("view"); } }}>
         <DialogContent className="max-h-[85dvh] w-[calc(100%-2rem)] overflow-y-auto rounded-[28px] bg-popover sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="text-sm font-semibold text-muted-foreground">{I.anonymous} · {openMsg && formatDistanceToNow(new Date(openMsg.created_at), { addSuffix: true })}</DialogTitle>
             <DialogDescription className="sr-only">Message</DialogDescription>
           </DialogHeader>
           <p className="min-w-0 whitespace-pre-wrap break-words py-2 text-lg font-medium leading-relaxed [overflow-wrap:anywhere] sm:text-xl">{openMsg?.body}</p>
-          <DialogFooter className="grid grid-cols-2 gap-2 sm:grid-cols-2 sm:space-x-0">
-            <Button variant="secondary" className="h-12 w-full" onClick={() => setConfirm("report")}><Flag /> {I.report}</Button>
-            <Button variant="destructive" className="h-12 w-full" onClick={() => setConfirm("delete")}><Trash2 /> {I.delete}</Button>
-          </DialogFooter>
+          {!!thread.data?.length && (
+            <div className="border-t pt-4">
+              <ThreadBubbles rows={thread.data} viewer="owner" />
+            </div>
+          )}
+          {mode === "view" ? (
+            <>
+              {openMsg?.replies_closed && <p className="rounded-2xl bg-muted p-3 text-sm text-muted-foreground" role="status">{I.closedNote}</p>}
+              <DialogFooter className="grid grid-cols-2 gap-2 sm:grid-cols-2 sm:space-x-0">
+                {!openMsg?.replies_closed && <Button variant="hero" className="h-12 w-full" onClick={() => setMode("reply")}><Reply /> {I.reply}</Button>}
+                <Button variant="secondary" className={cn("h-12 w-full", openMsg?.replies_closed && "col-span-2")} onClick={() => setMode("answer")}><Globe /> {I.answer}</Button>
+                <Button variant="secondary" className="h-12 w-full" onClick={() => setConfirm("report")}><Flag /> {I.report}</Button>
+                <Button variant="destructive" className="h-12 w-full" onClick={() => setConfirm("delete")}><Trash2 /> {I.delete}</Button>
+              </DialogFooter>
+              {!!thread.data?.length && openMsg && (
+                <Button variant="ghost" className="w-full" disabled={setClosed.isPending} onClick={() => setClosed.mutate({ id: openMsg.id, closed: !openMsg.replies_closed })}>
+                  {openMsg.replies_closed ? I.reopenThread : I.closeThread}
+                </Button>
+              )}
+            </>
+          ) : (
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">{mode === "reply" ? I.replyHint : I.answerHint}</p>
+              <ReplyBox
+                key={mode}
+                autoFocus
+                placeholder={mode === "reply" ? I.replyPlaceholder : I.answerPlaceholder}
+                sendLabel={mode === "reply" ? I.replySend : I.answerSend}
+                onSubmit={(body) => (mode === "reply" ? reply({ data: { messageId: openMsg!.id, body } }) : answer({ data: { messageId: openMsg!.id, answer: body } }))}
+                onDone={(held) => {
+                  if (mode === "reply") {
+                    toast.success(held ? I.replyHeld : I.replySent);
+                    qc.invalidateQueries({ queryKey: ["inbox-thread", openMsg?.id] });
+                    qc.invalidateQueries({ queryKey: REPLIES_KEY });
+                  } else {
+                    toast.success(held ? I.answerHeld : I.answerPosted);
+                    if (profile?.username) qc.invalidateQueries({ queryKey: ["answers", profile.username] });
+                  }
+                  setMode("view");
+                }}
+              />
+              <Button variant="ghost" className="w-full" onClick={() => setMode("view")}>{I.back}</Button>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 

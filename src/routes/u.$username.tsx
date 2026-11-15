@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { Check, Copy, ExternalLink, Lock, Send } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Check, Copy, ExternalLink, Flag, Lock, Send, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { t } from "@/i18n";
@@ -11,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { shareOrigin } from "@/components/site/share-dialog";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/u/$username")({
   loader: async ({ params }) => ({ profile: await getPublicProfile({ data: { username: params.username } }) }),
@@ -54,6 +56,58 @@ function TrackLink({ token }: { token: string }) {
         </Button>
       </div>
     </div>
+  );
+}
+
+type Answer = { id: string; question: string; answer: string; created_at: string };
+
+// Messages the owner chose to answer in public. Only the text is shown; nothing links a card to its sender.
+function AnswerCards({ username, isOwner, canReport }: { username: string; isOwner: boolean; canReport: boolean }) {
+  const qc = useQueryClient();
+  const q = useQuery({
+    queryKey: ["answers", username],
+    staleTime: 30_000,
+    queryFn: async (): Promise<Answer[]> => {
+      const { data, error } = await supabase.rpc("get_public_answers", { _username: username });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+  const refresh = () => qc.invalidateQueries({ queryKey: ["answers", username] });
+  const remove = async (id: string) => {
+    const { error } = await supabase.from("public_answers").delete().eq("id", id);
+    if (error) return toast.error(t.common.somethingWrong);
+    toast.success(t.send.qaRemoved);
+    refresh();
+  };
+  const report = async (id: string) => {
+    const { error } = await supabase.rpc("report_answer", { _answer_id: id });
+    if (error) return toast.error(t.common.somethingWrong);
+    toast.success(t.send.qaReported);
+  };
+  if (!q.data?.length) return null;
+  return (
+    <section className="mt-6" aria-labelledby="qa-title">
+      <h2 id="qa-title" className="px-1 text-sm font-bold uppercase tracking-wider text-muted-foreground">{t.send.qaTitle}</h2>
+      <ul className="mt-3 space-y-3">
+        {q.data.map((a) => (
+          <li key={a.id} className="glass animate-rise rounded-[26px] p-5">
+            <p className="text-xs font-semibold text-muted-foreground">{t.send.qaAsked}</p>
+            <p className="mt-1 whitespace-pre-wrap break-words rounded-[18px] bg-field px-4 py-3 text-[16px] leading-snug [overflow-wrap:anywhere]">{a.question}</p>
+            <p className="mt-3 whitespace-pre-wrap break-words px-1 text-[17px] font-medium leading-snug [overflow-wrap:anywhere]">{a.answer}</p>
+            {(isOwner || canReport) && (
+              <div className="mt-3 flex justify-end">
+                {isOwner ? (
+                  <Button type="button" variant="ghost" size="sm" onClick={() => remove(a.id)}><Trash2 /> {t.send.qaRemove}</Button>
+                ) : (
+                  <Button type="button" variant="ghost" size="sm" onClick={() => report(a.id)}><Flag /> {t.send.qaReport}</Button>
+                )}
+              </div>
+            )}
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 
@@ -164,6 +218,7 @@ function SendPage() {
             <Button type="submit" variant="hero" size="lg" className="mt-4 w-full" disabled={sending || !body.trim()}>
               <Send /> {sending ? t.send.sending : t.send.button}
             </Button>
+            <p className="mt-3 text-center text-xs text-muted-foreground">{t.send.publicNote}</p>
           </form>
         )}
 
@@ -171,6 +226,7 @@ function SendPage() {
           <Lock className="size-4 shrink-0" /> {t.send.note}
         </p>
       </div>
+      <AnswerCards username={profile.username} isOwner={me?.username === profile.username} canReport={!!user && me?.username !== profile.username} />
       {!loading && !user && <p className="mt-5 text-center text-sm text-muted-foreground">{t.send.wantOwnLink} <Link to="/auth" className="rounded-sm underline underline-offset-4 hover:text-foreground">{t.send.getYours}</Link></p>}
     </main>
   );

@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      answer_reports: {
+        Row: {
+          answer_id: string
+          created_at: string
+          reporter_id: string
+        }
+        Insert: {
+          answer_id: string
+          created_at?: string
+          reporter_id: string
+        }
+        Update: {
+          answer_id?: string
+          created_at?: string
+          reporter_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "answer_reports_answer_id_fkey"
+            columns: ["answer_id"]
+            isOneToOne: false
+            referencedRelation: "public_answers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "answer_reports_reporter_id_fkey"
+            columns: ["reporter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       app_settings: {
         Row: {
           key: string
@@ -98,6 +131,44 @@ export type Database = {
             foreignKeyName: "message_moderation_message_id_fkey"
             columns: ["message_id"]
             isOneToOne: true
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      message_replies: {
+        Row: {
+          author: string
+          body: string
+          created_at: string
+          id: string
+          message_id: string
+          reason: string | null
+          status: string
+        }
+        Insert: {
+          author: string
+          body: string
+          created_at?: string
+          id?: string
+          message_id: string
+          reason?: string | null
+          status?: string
+        }
+        Update: {
+          author?: string
+          body?: string
+          created_at?: string
+          id?: string
+          message_id?: string
+          reason?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_replies_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
             referencedRelation: "messages"
             referencedColumns: ["id"]
           },
@@ -202,6 +273,7 @@ export type Database = {
           id: string
           read_at: string | null
           recipient_id: string
+          replies_closed: boolean
           report_count: number
           reviewed: boolean
           status: string
@@ -213,6 +285,7 @@ export type Database = {
           id?: string
           read_at?: string | null
           recipient_id: string
+          replies_closed?: boolean
           report_count?: number
           reviewed?: boolean
           status?: string
@@ -224,6 +297,7 @@ export type Database = {
           id?: string
           read_at?: string | null
           recipient_id?: string
+          replies_closed?: boolean
           report_count?: number
           reviewed?: boolean
           status?: string
@@ -276,6 +350,50 @@ export type Database = {
           username?: string | null
         }
         Relationships: []
+      }
+      public_answers: {
+        Row: {
+          answer: string
+          created_at: string
+          hidden: boolean
+          id: string
+          owner_id: string
+          question: string
+          reason: string | null
+          report_count: number
+          status: string
+        }
+        Insert: {
+          answer: string
+          created_at?: string
+          hidden?: boolean
+          id?: string
+          owner_id: string
+          question: string
+          reason?: string | null
+          report_count?: number
+          status?: string
+        }
+        Update: {
+          answer?: string
+          created_at?: string
+          hidden?: boolean
+          id?: string
+          owner_id?: string
+          question?: string
+          reason?: string | null
+          report_count?: number
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "public_answers_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       rate_events: {
         Row: {
@@ -350,8 +468,35 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_owner_reply: {
+        Args: {
+          _body: string
+          _message_id: string
+          _owner: string
+          _reason: string
+          _status: string
+        }
+        Returns: string
+      }
+      add_sender_reply: {
+        Args: {
+          _body: string
+          _reason: string
+          _status: string
+          _token_hash: string
+        }
+        Returns: string
+      }
+      admin_decide_answer: {
+        Args: { _approve: boolean; _id: string }
+        Returns: undefined
+      }
       admin_decide_message: {
         Args: { _approve: boolean; _message_id: string }
+        Returns: undefined
+      }
+      admin_decide_reply: {
+        Args: { _approve: boolean; _id: string }
         Returns: undefined
       }
       admin_list_users: {
@@ -382,6 +527,18 @@ export type Database = {
         Args: { _message_id: string; _restore: boolean }
         Returns: undefined
       }
+      admin_review_queue: {
+        Args: never
+        Returns: {
+          body: string
+          context: string
+          created_at: string
+          id: string
+          kind: string
+          reason: string
+          reports: number
+        }[]
+      }
       admin_set_suspended: {
         Args: { _suspended: boolean; _user_id: string }
         Returns: undefined
@@ -390,6 +547,15 @@ export type Database = {
       attach_message_tracker: {
         Args: { _message_id: string; _token_hash: string }
         Returns: undefined
+      }
+      get_public_answers: {
+        Args: { _username: string }
+        Returns: {
+          answer: string
+          created_at: string
+          id: string
+          question: string
+        }[]
       }
       get_public_profile: {
         Args: { _username: string }
@@ -417,6 +583,29 @@ export type Database = {
           state: string
         }[]
       }
+      message_thread: {
+        Args: { _token: string }
+        Returns: {
+          author: string
+          body: string
+          can_reply: boolean
+          closed: boolean
+          created_at: string
+          id: string
+          status: string
+        }[]
+      }
+      publish_answer: {
+        Args: {
+          _answer: string
+          _message_id: string
+          _owner: string
+          _reason: string
+          _status: string
+        }
+        Returns: string
+      }
+      report_answer: { Args: { _answer_id: string }; Returns: undefined }
       purge_expired: { Args: never; Returns: undefined }
       report_message: { Args: { _message_id: string }; Returns: undefined }
       search_profiles: {
@@ -426,6 +615,10 @@ export type Database = {
           display_name: string
           username: string
         }[]
+      }
+      set_thread_closed: {
+        Args: { _closed: boolean; _message_id: string }
+        Returns: undefined
       }
       store_screened_message: {
         Args: {

@@ -15,6 +15,7 @@ export const privacy: LegalDoc = {
         "For spam protection: when someone sends a message, we also store a separate scrambled code of their network (IP) address for 24 hours to enforce sending limits. This 24-hour code is kept apart from the message and is then deleted automatically.",
         "Search: when you search for someone, we keep a record that you searched (not what you typed) for 24 hours, only to stop people from copying the whole student list.",
         "Message status link: after you send a message, we show you a private link where you can check whether it is waiting for review, delivered or seen. We store only a scrambled, one-way version of that link, so we can't look it up or send it to you again. Anyone who has the link can see that status and the text of that message, so keep it to yourself.",
+        "Replies: if the student you messaged replies, that reply is kept with your message and shows on your private status link, where you can answer back. Replies go through the same safety check. If a student chooses to post a message on their public profile, the text of the message and their answer are shown to everyone who visits that profile, without your name or any sender details, until the student removes them.",
         "If you use the contact form: the name, email and message you submit, so we can reply.",
         "Your password is stored only as a secure one-way hash by our authentication provider. Nobody, including us, can read it.",
       ],
@@ -30,6 +31,7 @@ export const privacy: LegalDoc = {
       p: [
         "Messages are deleted automatically 90 days after they are sent. You can delete any message sooner. Sender details are deleted together with the message. A message that a moderator rejects after review is deleted immediately.",
         "Message status links stop working and are deleted 90 days after the message was sent.",
+        "Replies are deleted together with the message they belong to. A message and answer that a student has posted on their profile stay there until that student removes them or deletes their account.",
         "Spam-protection codes, including the scrambled code used to limit failed sign-in attempts, are deleted automatically after 24 hours.",
         "When you sign in, you stay signed in on that device for up to 30 days (your session refreshes automatically). After that, you'll be asked for your password again.",
         "Your account data is kept until you delete your account. Contact form messages are kept only as long as needed to handle your request.",
@@ -55,7 +57,8 @@ export const privacy: LegalDoc = {
       p: [
         "You can read only the approved messages sent to you, and we never show you who sent them.",
         "Signed-in WIUT students can find you in search by your display name or @username, and see whether your inbox is open. Nothing else from your account is shown. You can hide yourself from search in Settings → Show me in search; your link keeps working either way.",
-        "If the person who sent you a message kept their status link, they can see whether it was delivered and whether you have opened it. They see nothing else about you or your inbox.",
+        "If the person who sent you a message kept their status link, they can see whether it was delivered and whether you have opened it, and they can read any reply you send them and answer back. They see nothing else about you or your inbox.",
+        "Anyone who visits your profile can read the messages and answers you choose to post there. They are shown without any information about who sent the message.",
         "Our moderators can read messages that are held for review and messages that are reported. For those messages only, they can also see who the message was sent to and the sender details described above. They cannot browse other messages. During some periods we may review every message before it is delivered.",
         "A signed-in sender is identified by their account. For someone without an account, the sender detail is only a scrambled network code. It can be matched against a network address we already know, but it cannot be turned back into an address.",
         "We may disclose information we hold if we are legally required to.",
@@ -109,7 +112,7 @@ export const terms: LegalDoc = {
     {
       h: "Moderation, suspension and termination",
       p: [
-        "Messages are checked automatically. Some are blocked, and some are held for a human moderator to review before they are delivered. We also review reported messages. Being anonymous to the person you message does not hide you from our moderators: they can see sender details for messages that are held or reported. We may remove any content and suspend or permanently close any account that breaks these terms or our Community Guidelines, with or without notice. You can stop using west confa and delete your account at any time.",
+        "Messages, replies and answers are checked automatically. Some are blocked, and some are held for a human moderator to review before they are delivered. We also review reported messages and answers. Being anonymous to the person you message does not hide you from our moderators: they can see sender details for messages that are held or reported. We may remove any content and suspend or permanently close any account that breaks these terms or our Community Guidelines, with or without notice. You can stop using west confa and delete your account at any time.",
       ],
     },
     {

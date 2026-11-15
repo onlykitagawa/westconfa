@@ -104,6 +104,70 @@ function AdminPage() {
   return <AdminInner />;
 }
 
+// Held replies, held public answers and reported public answers, with the text they answer.
+function useReviewQueue() {
+  return useQuery({
+    queryKey: ["admin", "queue"],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("admin_review_queue");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+}
+
+function RepliesQueue() {
+  const A = t.admin;
+  const qc = useQueryClient();
+  const list = useReviewQueue();
+  const decide = useMutation({
+    mutationFn: async (v: { kind: string; id: string; approve: boolean }) => {
+      const { error } = v.kind.startsWith("reply_")
+        ? await supabase.rpc("admin_decide_reply", { _id: v.id, _approve: v.approve })
+        : await supabase.rpc("admin_decide_answer", { _id: v.id, _approve: v.approve });
+      if (error) throw error;
+    },
+    onSuccess: (_d, v) => {
+      toast.success(v.approve ? N.approved : N.rejected);
+      qc.invalidateQueries({ queryKey: ["admin", "queue"] });
+    },
+    onError: () => toast.error(t.common.somethingWrong),
+  });
+  const label: Record<string, string> = {
+    reply_sender: A.kindReplySender, reply_owner: A.kindReplyOwner, answer_pending: A.kindAnswerPending, answer_reported: A.kindAnswerReported,
+  };
+  const items = list.data ?? [];
+  return (
+    <div className="mt-4 space-y-3">
+      {list.isLoading ? (
+        <Skeleton className="h-32 rounded-3xl" />
+      ) : items.length === 0 ? (
+        <p className="glass rounded-3xl p-8 text-center text-muted-foreground">{A.noReplies}</p>
+      ) : (
+        <ul className="space-y-3">
+          {items.map((it) => (
+            <li key={`${it.kind}-${it.id}`} className="glass rounded-3xl p-5">
+              <div className="flex flex-wrap items-center gap-2 text-xs">
+                <span className="rounded-full bg-accent px-2.5 py-1 font-semibold text-accent-foreground">{label[it.kind] ?? it.kind}</span>
+                {it.reports > 0 && <span className="rounded-full bg-muted px-2.5 py-1 font-semibold">{A.reportsCount(it.reports)}</span>}
+                <span className="text-muted-foreground">{formatDistanceToNow(new Date(it.created_at), { addSuffix: true })}</span>
+              </div>
+              <p className="mt-3 whitespace-pre-wrap break-words text-[17px] [overflow-wrap:anywhere]">{it.body}</p>
+              <p className="mt-3 text-xs font-semibold text-muted-foreground">{A.context}</p>
+              <p className="mt-1 whitespace-pre-wrap break-words rounded-2xl bg-field p-3 text-sm text-muted-foreground [overflow-wrap:anywhere]">{it.context}</p>
+              {it.reason && <p className="mt-2 text-sm text-muted-foreground [overflow-wrap:anywhere]">{it.reason}</p>}
+              <div className="mt-4 flex gap-2">
+                <Button size="sm" variant="hero" disabled={decide.isPending} onClick={() => decide.mutate({ kind: it.kind, id: it.id, approve: true })}>{A.approve}</Button>
+                <Button size="sm" variant="destructive" disabled={decide.isPending} onClick={() => decide.mutate({ kind: it.kind, id: it.id, approve: false })}>{N.reject}</Button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 function AdminInner() {
   const A = t.admin;
   const stats = useQuery({
@@ -115,6 +179,7 @@ function AdminInner() {
     },
   });
   const pending = stats.data?.pending_review ?? 0;
+  const queueCount = useReviewQueue().data?.length ?? 0;
   const cards: { label: string; value: number; hot?: boolean; wide?: boolean }[] = stats.data
     ? [
         { label: A.users, value: stats.data.users },
@@ -160,11 +225,16 @@ function AdminInner() {
             {pending > 0 && <span className="ml-2 rounded-full bg-primary px-2 py-0.5 text-xs font-bold text-primary-foreground">{pending}</span>}
           </TabsTrigger>
           <TabsTrigger value="reports" className="h-10 shrink-0 rounded-xl px-4">{A.reports}</TabsTrigger>
+          <TabsTrigger value="replies" className="h-10 shrink-0 rounded-xl px-4">
+            {A.replies}
+            {queueCount > 0 && <span className="ml-2 rounded-full bg-primary px-2 py-0.5 text-xs font-bold text-primary-foreground">{queueCount}</span>}
+          </TabsTrigger>
           <TabsTrigger value="users" className="h-10 shrink-0 rounded-xl px-4">{A.accounts}</TabsTrigger>
           <TabsTrigger value="contact" className="h-10 shrink-0 rounded-xl px-4">{A.contact}</TabsTrigger>
         </TabsList>
         <TabsContent value="review"><NeedsReview /></TabsContent>
         <TabsContent value="reports"><Reports /></TabsContent>
+        <TabsContent value="replies"><RepliesQueue /></TabsContent>
         <TabsContent value="users"><Users /></TabsContent>
         <TabsContent value="contact"><Contact /></TabsContent>
       </Tabs>
