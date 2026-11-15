@@ -405,6 +405,8 @@ export const en = {
     displayName: "Display name",
     saved: "Saved",
     accountSection: "Account",
+    dangerSection: "Delete account",
+    dangerHint: "Permanently deletes your account, your link and every message. This can't be undone.",
     signedInAs: (email: string) => `Signed in as ${email}`,
     download: "Download my data",
     changePassword: "Change password",

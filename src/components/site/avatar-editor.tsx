@@ -1,5 +1,5 @@
 import { useServerFn } from "@tanstack/react-start";
-import { Camera } from "lucide-react";
+import { Camera, Trash2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { t } from "@/i18n";
@@ -43,7 +43,7 @@ async function renderJpeg(el: HTMLImageElement, rect: { sx: number; sy: number; 
 }
 
 // Pick a photo, drag and zoom it inside a circle, save. The server does the safety check.
-export function AvatarEditor({ open, onOpenChange, onDone }: { open: boolean; onOpenChange: (open: boolean) => void; onDone: () => void }) {
+export function AvatarEditor({ open, onOpenChange, onDone, onRemove }: { open: boolean; onOpenChange: (open: boolean) => void; onDone: () => void; onRemove?: () => Promise<void> }) {
   const A = t.avatar;
   const upload = useServerFn(uploadAvatar);
   const [picked, setPicked] = useState<Picked | null>(null);
@@ -203,6 +203,25 @@ export function AvatarEditor({ open, onOpenChange, onDone }: { open: boolean; on
 
         <p role="alert" className="min-h-5 text-center text-sm text-destructive">{error}</p>
         {!picked && <p className="text-center text-xs text-muted-foreground">{A.publicNote}</p>}
+        {!picked && onRemove && (
+          <Button
+            type="button"
+            variant="ghost"
+            className="w-full text-destructive hover:bg-destructive/10 hover:text-destructive"
+            disabled={busy}
+            onClick={async () => {
+              setBusy(true);
+              try {
+                await onRemove();
+                onOpenChange(false);
+              } finally {
+                setBusy(false);
+              }
+            }}
+          >
+            <Trash2 /> {A.remove}
+          </Button>
+        )}
 
         {picked && (
           <div className="grid grid-cols-2 gap-2">

@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Download, LogOut, Trash2 } from "lucide-react";
+import { Download, KeyRound, LogOut, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { t } from "@/i18n";
@@ -15,18 +15,18 @@ import { Switch } from "@/components/ui/switch";
 import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { UsernameField, type UsernameStatus } from "@/components/site/username-field";
 import { PasswordField } from "@/components/site/auth-fields";
-import { ThemeToggle } from "@/components/site/theme";
 import { isValidPassword } from "@/lib/moderation";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({ meta: [{ title: t.settings.metaTitle }, { name: "description", content: t.settings.metaDesc }, { property: "og:title", content: t.settings.metaTitle }, { property: "og:description", content: t.settings.metaDesc }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { name: "robots", content: "noindex" }] }),
   component: SettingsPage,
 });
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ title, children, danger }: { title: string; children: React.ReactNode; danger?: boolean }) {
   return (
-    <section className="glass rounded-3xl p-6">
-      <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">{title}</h2>
+    <section className={cn("glass rounded-3xl p-6", danger && "border-destructive/30")}>
+      <h2 className={cn("text-sm font-bold uppercase tracking-wider", danger ? "text-destructive" : "text-muted-foreground")}>{title}</h2>
       <div className="mt-5">{children}</div>
     </section>
   );
@@ -47,6 +47,7 @@ function SettingsPage() {
   const [delOpen, setDelOpen] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [savingPassword, setSavingPassword] = useState(false);
+  const [passwordOpen, setPasswordOpen] = useState(false);
   const [confirmText, setConfirmText] = useState("");
   const [deleting, setDeleting] = useState(false);
   const onStatus = useCallback((s: UsernameStatus) => setStatus(s), []);
@@ -104,7 +105,7 @@ function SettingsPage() {
     const { error } = await supabase.auth.updateUser({ password: newPassword });
     setSavingPassword(false);
     if (error) toast.error(S.passwordChangeFailed);
-    else { toast.success(S.passwordUpdated); setNewPassword(""); }
+    else { toast.success(S.passwordUpdated); setNewPassword(""); setPasswordOpen(false); }
   };
 
   const signOut = async () => {
@@ -132,7 +133,10 @@ function SettingsPage() {
 
   return (
     <main className="mx-auto max-w-2xl space-y-4 px-4 pt-4 md:pt-10">
-      <h1 className="px-1 text-4xl font-extrabold tracking-tight">{S.title}</h1>
+      <div className="flex items-center justify-between gap-3 px-1">
+        <h1 className="text-4xl font-extrabold tracking-tight">{S.title}</h1>
+        <Button variant="secondary" className="h-11 rounded-full px-4" onClick={signOut}><LogOut /> {t.common.signOut}</Button>
+      </div>
 
       <Section title={S.inboxSection}>
         <div className="flex items-center justify-between gap-4">
@@ -162,21 +166,26 @@ function SettingsPage() {
         </form>
       </Section>
 
-      <Section title={S.theme}>
-        <div className="flex items-center justify-between"><span className="text-muted-foreground">Light / Dark</span><ThemeToggle /></div>
-      </Section>
-
       <Section title={S.accountSection}>
         <p className="mb-5 break-all text-sm text-muted-foreground">{S.signedInAs(profile.email)}</p>
-        <form onSubmit={changePassword} className="mb-5 space-y-3">
-          <PasswordField value={newPassword} onChange={setNewPassword} isNew label={S.changePassword} id="settings-password" />
-          <Button type="submit" variant="secondary" disabled={savingPassword || !isValidPassword(newPassword)}>{S.savePassword}</Button>
-        </form>
+        {passwordOpen ? (
+          <form onSubmit={changePassword} className="mb-5 space-y-3">
+            <PasswordField value={newPassword} onChange={setNewPassword} isNew label={S.changePassword} id="settings-password" />
+            <div className="flex gap-2">
+              <Button type="submit" variant="hero" disabled={savingPassword || !isValidPassword(newPassword)}>{S.savePassword}</Button>
+              <Button type="button" variant="ghost" onClick={() => { setPasswordOpen(false); setNewPassword(""); }}>{t.common.cancel}</Button>
+            </div>
+          </form>
+        ) : null}
         <div className="grid gap-3 sm:grid-cols-2">
+          {!passwordOpen && <Button variant="secondary" onClick={() => setPasswordOpen(true)}><KeyRound /> {S.changePassword}</Button>}
           <Button variant="secondary" onClick={download}><Download /> {S.download}</Button>
-          <Button variant="default" onClick={signOut}><LogOut /> {t.common.signOut}</Button>
-          <Button variant="ghost" className="text-destructive hover:bg-destructive/10 hover:text-destructive sm:col-span-2" onClick={() => setDelOpen(true)}><Trash2 /> {S.deleteAccount}</Button>
         </div>
+      </Section>
+
+      <Section title={S.dangerSection} danger>
+        <p className="mb-4 text-sm text-muted-foreground">{S.dangerHint}</p>
+        <Button variant="ghost" className="w-full text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={() => setDelOpen(true)}><Trash2 /> {S.deleteAccount}</Button>
       </Section>
 
       <AlertDialog open={delOpen} onOpenChange={(o) => { setDelOpen(o); if (!o) setConfirmText(""); }}>

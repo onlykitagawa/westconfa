@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { Camera, ExternalLink, Pencil, Settings as SettingsIcon, Share2, Trash2 } from "lucide-react";
+import { Camera, ExternalLink, Pencil, Settings as SettingsIcon, Share2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { t } from "@/i18n";
@@ -124,9 +124,6 @@ function ProfilePage() {
                 <Link to="/u/$username" params={{ username: profile.username }}><ExternalLink /> {P.viewPublic}</Link>
               </Button>
             </div>
-            {profile.avatar_url && (
-              <Button type="button" variant="ghost" size="sm" className="mt-2" onClick={removePhoto}><Trash2 /> {t.avatar.remove}</Button>
-            )}
           </>
         )}
       </section>
@@ -143,7 +140,7 @@ function ProfilePage() {
         }
       />
       <ShareDialog open={shareOpen} onOpenChange={setShareOpen} username={profile.username} />
-      <AvatarEditor open={photoOpen} onOpenChange={setPhotoOpen} onDone={() => { void refresh(); }} />
+      <AvatarEditor open={photoOpen} onOpenChange={setPhotoOpen} onDone={() => { void refresh(); }} onRemove={profile.avatar_url ? removePhoto : undefined} />
     </main>
   );
 }
