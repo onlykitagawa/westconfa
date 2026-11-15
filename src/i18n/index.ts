@@ -49,6 +49,6 @@ export function changeLang(next: Lang) {
 }
 
 export function timeAgo(date: string | Date) {
-  const locale = lang === "ru" ? ruDate : lang === "uz" ? uzDate : undefined;
-  return formatDistanceToNow(new Date(date), { addSuffix: true, locale });
+  const locale = lang === "ru" ? ruDate : lang === "uz" ? uzDate : null;
+  return formatDistanceToNow(new Date(date), locale ? { addSuffix: true, locale } : { addSuffix: true });
 }

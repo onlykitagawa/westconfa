@@ -16,7 +16,7 @@ import { CodeField, EmailField, EmailHelp, PasswordField, ResendButton } from "@
 
 export const Route = createFileRoute("/auth")({
   // /auth?mode=signup opens straight on "Create account" (used by every "Get my link" button).
-  validateSearch: (search: Record<string, unknown>): { mode?: "signup" } => (search.mode === "signup" ? { mode: "signup" } : {}),
+  validateSearch: (search: Record<string, unknown>): { mode?: "signup" } => (search["mode"] === "signup" ? { mode: "signup" } : {}),
   head: () => ({
     meta: [
       { title: t.auth.metaTitle }, { name: "description", content: t.auth.metaDesc },

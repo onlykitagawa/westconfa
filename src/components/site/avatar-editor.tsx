@@ -43,7 +43,7 @@ async function renderJpeg(el: HTMLImageElement, rect: { sx: number; sy: number; 
 }
 
 // Pick a photo, drag and zoom it inside a circle, save. The server does the safety check.
-export function AvatarEditor({ open, onOpenChange, onDone, onRemove }: { open: boolean; onOpenChange: (open: boolean) => void; onDone: () => void; onRemove?: () => Promise<void> }) {
+export function AvatarEditor({ open, onOpenChange, onDone, onRemove }: { open: boolean; onOpenChange: (open: boolean) => void; onDone: () => void; onRemove?: (() => Promise<void>) | undefined }) {
   const A = t.avatar;
   const upload = useServerFn(uploadAvatar);
   const [picked, setPicked] = useState<Picked | null>(null);
