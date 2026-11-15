@@ -34,6 +34,13 @@ export const en = {
     account: "Account menu",
     newItems: "new",
   },
+  install: {
+    title: "Add west confa to your home screen",
+    ios: "It opens like an app. In Safari, tap the Share button, then \"Add to Home Screen\".",
+    android: "It opens like an app. In Chrome, tap the ⋮ menu, then \"Add to Home screen\" or \"Install app\".",
+    install: "Install",
+    close: "Close tip",
+  },
   cookie: {
     text: "We only use essential cookies to keep you signed in. No tracking, ever.",
     ok: "Got it",

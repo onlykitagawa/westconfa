@@ -17,6 +17,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { LinkBar, ShareDialog } from "@/components/site/share-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { MessageTabs } from "@/components/site/message-tabs";
+import { InstallHint } from "@/components/site/install-hint";
 import { cn } from "@/lib/utils";
 import { INBOX_KEY, REPLIES_KEY, threadStates, useInboxMessages, useInboxReplies, type InboxMsg } from "@/lib/inbox-data";
 import { SHEET_CLASS } from "@/components/site/sheet";
@@ -130,6 +131,7 @@ function InboxPage() {
       </div>
 
       {profile?.username && <LinkBar username={profile.username} />}
+      <InstallHint />
 
       {profile?.suspended && <p className="mt-6 rounded-2xl bg-destructive/10 p-4 text-sm text-destructive">{I.suspended}</p>}
       {profile?.inbox_paused && !profile.suspended && <p className="mt-6 rounded-2xl bg-accent p-4 text-sm text-accent-foreground">{I.paused}</p>}
