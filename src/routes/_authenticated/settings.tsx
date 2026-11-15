@@ -43,6 +43,7 @@ function SettingsPage() {
   const [status, setStatus] = useState<UsernameStatus>("idle");
   const [saving, setSaving] = useState(false);
   const [paused, setPaused] = useState(false);
+  const [searchable, setSearchable] = useState(true);
   const [delOpen, setDelOpen] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [savingPassword, setSavingPassword] = useState(false);
@@ -55,6 +56,7 @@ function SettingsPage() {
       setUsername(profile.username ?? "");
       setDisplayName(profile.display_name ?? "");
       setPaused(profile.inbox_paused);
+      setSearchable(profile.searchable !== false);
     }
   }, [profile]);
 
@@ -64,6 +66,12 @@ function SettingsPage() {
     setPaused(!accepting);
     const { error } = await supabase.from("profiles").update({ inbox_paused: !accepting }).eq("id", user.id);
     if (error) { setPaused(accepting); toast.error(t.common.somethingWrong); } else { toast.success(S.saved); refresh(); }
+  };
+
+  const toggleSearchable = async (on: boolean) => {
+    setSearchable(on);
+    const { error } = await supabase.from("profiles").update({ searchable: on }).eq("id", user.id);
+    if (error) { setSearchable(!on); toast.error(t.common.somethingWrong); } else { toast.success(S.saved); refresh(); }
   };
 
   const saveProfile = async (e: React.FormEvent) => {
@@ -78,7 +86,7 @@ function SettingsPage() {
 
   const download = async () => {
     const [{ data: p }, { data: msgs }] = await Promise.all([
-      supabase.from("profiles").select("email, username, display_name, avatar_url, bio, inbox_paused, created_at").eq("id", user.id).single(),
+      supabase.from("profiles").select("email, username, display_name, avatar_url, bio, inbox_paused, searchable, created_at").eq("id", user.id).single(),
       supabase.from("messages").select("body, created_at, read_at").eq("recipient_id", user.id).eq("status", "approved").eq("hidden", false).order("created_at", { ascending: false }),
     ]);
     const blob = new Blob([JSON.stringify({ exported_at: new Date().toISOString(), profile: p, messages: msgs ?? [] }, null, 2)], { type: "application/json" });
@@ -133,6 +141,13 @@ function SettingsPage() {
             <p className="mt-1 text-sm text-muted-foreground">{S.pauseHint}</p>
           </div>
           <Switch id="accepting" checked={!paused} onCheckedChange={togglePause} />
+        </div>
+        <div className="mt-5 flex items-center justify-between gap-4 border-t pt-5">
+          <div>
+            <Label htmlFor="searchable" className="text-base font-semibold">{S.searchLabel}</Label>
+            <p className="mt-1 text-sm text-muted-foreground">{S.searchHint}</p>
+          </div>
+          <Switch id="searchable" checked={searchable} onCheckedChange={toggleSearchable} />
         </div>
       </Section>
 

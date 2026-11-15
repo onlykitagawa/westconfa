@@ -19,6 +19,7 @@ export type Profile = {
   username: string | null;
   display_name: string | null;
   inbox_paused: boolean;
+  searchable: boolean;
   suspended: boolean;
 };
 
@@ -56,7 +57,7 @@ export function AuthProvider({ children, onChange, authLink }: { children: React
       return;
     }
     const [{ data: p }, { data: roles }] = await Promise.all([
-      supabase.from("profiles").select("id, email, username, display_name, inbox_paused, suspended").eq("id", u.id).maybeSingle(),
+      supabase.from("profiles").select("id, email, username, display_name, inbox_paused, searchable, suspended").eq("id", u.id).maybeSingle(),
       supabase.from("user_roles").select("role").eq("user_id", u.id),
     ]);
     setProfile((p as Profile) ?? null);

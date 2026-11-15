@@ -71,6 +71,13 @@
       "when": 1794681461967,
       "tag": "0009_message_trackers",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1794708717723,
+      "tag": "0010_profile_search",
+      "breakpoints": true
     }
   ]
 }

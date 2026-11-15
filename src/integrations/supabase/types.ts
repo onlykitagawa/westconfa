@@ -247,6 +247,7 @@ export type Database = {
           email: string
           id: string
           inbox_paused: boolean
+          searchable: boolean
           suspended: boolean
           username: string | null
         }
@@ -258,6 +259,7 @@ export type Database = {
           email: string
           id: string
           inbox_paused?: boolean
+          searchable?: boolean
           suspended?: boolean
           username?: string | null
         }
@@ -269,6 +271,7 @@ export type Database = {
           email?: string
           id?: string
           inbox_paused?: boolean
+          searchable?: boolean
           suspended?: boolean
           username?: string | null
         }
@@ -297,6 +300,32 @@ export type Database = {
           recipient_id?: string
         }
         Relationships: []
+      }
+      search_events: {
+        Row: {
+          created_at: string
+          id: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "search_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -390,6 +419,14 @@ export type Database = {
       }
       purge_expired: { Args: never; Returns: undefined }
       report_message: { Args: { _message_id: string }; Returns: undefined }
+      search_profiles: {
+        Args: { _query: string }
+        Returns: {
+          accepting: boolean
+          display_name: string
+          username: string
+        }[]
+      }
       store_screened_message: {
         Args: {
           _anonymous: boolean
