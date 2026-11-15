@@ -30,6 +30,10 @@ export const en = {
     guidelines: "Guidelines & Safety",
     contact: "Contact",
   },
+  nav: {
+    account: "Account menu",
+    newItems: "new",
+  },
   cookie: {
     text: "We only use essential cookies to keep you signed in. No tracking, ever.",
     ok: "Got it",
@@ -318,6 +322,8 @@ export const en = {
     paused: "Your inbox is paused. New messages are turned off.",
     suspended: "Your account is suspended. Contact us if you think this is a mistake.",
     markRead: "Mark read",
+    markAllRead: "Mark all read",
+    more: "More actions",
     delete: "Delete",
     report: "Report",
     reportTitle: "Report this message?",

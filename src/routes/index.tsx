@@ -1,4 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { EyeOff, ShieldCheck, SlidersHorizontal } from "lucide-react";
 import { t } from "@/i18n";
 import { Button } from "@/components/ui/button";
@@ -23,8 +24,14 @@ export const Route = createFileRoute("/")({
 const safeIcons = [EyeOff, ShieldCheck, SlidersHorizontal];
 
 function Landing() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
   const L = t.landing;
+  // Signed-in students go straight to their inbox; the landing page is for newcomers.
+  useEffect(() => {
+    if (!loading && user) navigate({ to: "/inbox", replace: true });
+  }, [loading, user, navigate]);
+  if (loading || user) return null;
   return (
     <main>
       <section className="mx-auto max-w-7xl px-5 pb-16 pt-16 text-center md:pb-24 md:pt-24">

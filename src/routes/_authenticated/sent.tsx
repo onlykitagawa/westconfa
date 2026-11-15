@@ -13,6 +13,8 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { SENT_KEY, useSentMessages, type SentItem } from "@/lib/inbox-data";
+import { SHEET_CLASS } from "@/components/site/sheet";
 
 export const Route = createFileRoute("/_authenticated/sent")({
   head: () => ({ meta: [{ title: t.sent.metaTitle }, { name: "description", content: t.sent.metaDesc }, { name: "robots", content: "noindex" }] }),
@@ -20,18 +22,8 @@ export const Route = createFileRoute("/_authenticated/sent")({
 });
 
 type State = "waiting" | "delivered" | "seen" | "not_delivered";
-type Item = {
-  message_id: string | null;
-  state: string;
-  sent_at: string;
-  body: string | null;
-  to_username: string | null;
-  to_name: string | null;
-  reply_count: number;
-  awaiting_you: boolean;
-};
-
-const KEY = ["sent"];
+type Item = SentItem;
+const KEY = SENT_KEY;
 
 // Signed-in students see what they sent, how far it got and any replies. my_sent_messages() only
 // returns rows tied to their own account; the recipient never learns who sent a message.
@@ -42,16 +34,7 @@ function SentPage() {
   const reply = useServerFn(replyAsMember);
   const [open, setOpen] = useState<Item | null>(null);
 
-  const list = useQuery({
-    queryKey: KEY,
-    refetchOnWindowFocus: true,
-    refetchInterval: 30000,
-    queryFn: async (): Promise<Item[]> => {
-      const { data, error } = await supabase.rpc("my_sent_messages");
-      if (error) throw error;
-      return (data ?? []) as Item[];
-    },
-  });
+  const list = useSentMessages();
 
   const messageId = open?.message_id ?? null;
   const thread = useQuery({
@@ -120,7 +103,7 @@ function SentPage() {
       </div>
 
       <Dialog open={!!open} onOpenChange={(o) => { if (!o) setOpen(null); }}>
-        <DialogContent className="max-h-[85dvh] w-[calc(100%-2rem)] overflow-y-auto rounded-[28px] bg-popover sm:max-w-lg">
+        <DialogContent className={cn("max-h-[88dvh] overflow-y-auto bg-popover md:w-[calc(100%-2rem)] md:max-w-lg md:rounded-[28px]", SHEET_CLASS)}>
           <DialogHeader>
             <DialogTitle className="text-sm font-semibold text-muted-foreground">
               {open?.to_name ? S.to(open.to_name) : S.toUnknown} · {open && formatDistanceToNow(new Date(open.sent_at), { addSuffix: true })}

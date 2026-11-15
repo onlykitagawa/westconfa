@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
-import { Flag, Globe, Inbox as InboxIcon, Reply, Share2, Trash2 } from "lucide-react";
+import { CheckCheck, Flag, Globe, Inbox as InboxIcon, Lock, LockOpen, MoreHorizontal, Reply, Share2, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -12,20 +12,22 @@ import { answerPublicly, replyToMessage } from "@/lib/replies.functions";
 import { ReplyBox, ThreadBubbles } from "@/components/site/thread";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { LinkBar, ShareDialog } from "@/components/site/share-dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { MessageTabs } from "@/components/site/message-tabs";
 import { cn } from "@/lib/utils";
+import { INBOX_KEY, REPLIES_KEY, threadStates, useInboxMessages, useInboxReplies, type InboxMsg } from "@/lib/inbox-data";
+import { SHEET_CLASS } from "@/components/site/sheet";
 
 export const Route = createFileRoute("/_authenticated/inbox")({
   head: () => ({ meta: [{ title: t.inbox.metaTitle }, { name: "description", content: t.inbox.metaDesc }, { property: "og:title", content: t.inbox.metaTitle }, { property: "og:description", content: t.inbox.metaDesc }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { name: "robots", content: "noindex" }] }),
   component: InboxPage,
 });
 
-type Msg = { id: string; body: string; created_at: string; read_at: string | null; replies_closed: boolean };
-const KEY = ["inbox"];
-const REPLIES_KEY = ["inbox-replies"];
+type Msg = InboxMsg;
+const KEY = INBOX_KEY;
 
 function InboxPage() {
   const I = t.inbox;
@@ -38,37 +40,10 @@ function InboxPage() {
   const reply = useServerFn(replyToMessage);
   const answer = useServerFn(answerPublicly);
 
-  const { data, isLoading } = useQuery({
-    queryKey: KEY,
-    queryFn: async () => {
-      const { data, error } = await supabase.from("messages").select("id, body, created_at, read_at, replies_closed").eq("recipient_id", profile?.id ?? "00000000-0000-0000-0000-000000000000").eq("status", "approved").eq("hidden", false).order("created_at", { ascending: false }).limit(500);
-      if (error) throw error;
-      return data as Msg[];
-    },
-    refetchOnWindowFocus: true,
-  });
-
-  // One light query for the list badges (no text), one full query for the open conversation.
-  const summary = useQuery({
-    queryKey: REPLIES_KEY,
-    enabled: !!profile?.id,
-    refetchOnWindowFocus: true,
-    queryFn: async () => {
-      const { data, error } = await supabase.from("message_replies").select("message_id, author, status").order("created_at", { ascending: true }).limit(1000);
-      if (error) throw error;
-      return data ?? [];
-    },
-  });
-  const threadState = useMemo(() => {
-    const map = new Map<string, { replied: boolean; waiting: boolean }>();
-    for (const r of summary.data ?? []) {
-      const cur = map.get(r.message_id) ?? { replied: false, waiting: false };
-      if (r.author === "owner") cur.replied = true;
-      if (r.status === "approved") cur.waiting = r.author === "sender";
-      map.set(r.message_id, cur);
-    }
-    return map;
-  }, [summary.data]);
+  const { data, isLoading } = useInboxMessages();
+  // One light query for the list labels (no text), one full query for the open conversation.
+  const summary = useInboxReplies();
+  const threadState = useMemo(() => threadStates(summary.data), [summary.data]);
   const thread = useQuery({
     queryKey: ["inbox-thread", openMsg?.id],
     enabled: !!openMsg,
@@ -99,6 +74,14 @@ function InboxPage() {
       if (error) throw error;
     },
     onMutate: (id) => optimistic((l) => l.map((m) => (m.id === id ? { ...m, read_at: m.read_at ?? new Date().toISOString() } : m))),
+  });
+  const markAllRead = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from("messages").update({ read_at: new Date().toISOString() }).eq("recipient_id", profile?.id ?? "").eq("status", "approved").is("read_at", null);
+      if (error) throw error;
+    },
+    onMutate: () => optimistic((l) => l.map((m) => (m.read_at ? m : { ...m, read_at: new Date().toISOString() }))),
+    onError: () => { toast.error(t.common.somethingWrong); qc.invalidateQueries({ queryKey: KEY }); },
   });
   const remove = useMutation({
     mutationFn: async (id: string) => {
@@ -132,7 +115,14 @@ function InboxPage() {
       <div className="flex items-end justify-between gap-4 px-1">
         <div>
           <h1 className="text-4xl font-extrabold tracking-tight">{I.title}</h1>
-          <p className="mt-1 text-sm text-muted-foreground" aria-live="polite">{data ? I.unread(unread) : "\u00a0"}</p>
+          <p className="mt-1 flex items-center gap-2 text-sm text-muted-foreground" aria-live="polite">
+            {data ? I.unread(unread) : "\u00a0"}
+            {unread > 0 && (
+              <button type="button" onClick={() => markAllRead.mutate()} disabled={markAllRead.isPending} className="inline-flex items-center gap-1 rounded-full px-2 py-1 font-semibold text-foreground hover:bg-accent">
+                <CheckCheck className="size-4" aria-hidden="true" /> {I.markAllRead}
+              </button>
+            )}
+          </p>
         </div>
         <Button variant="hero" className="h-11 px-5" onClick={() => setShareOpen(true)} disabled={!profile?.username}>
           <Share2 /> <span className="hidden sm:inline">{I.shareLink}</span><span className="sm:hidden">{t.common.share}</span>
@@ -189,7 +179,7 @@ function InboxPage() {
       </div>
 
       <Dialog open={!!openMsg} onOpenChange={(o) => { if (!o) { setOpenMsg(null); setMode("view"); } }}>
-        <DialogContent className="max-h-[85dvh] w-[calc(100%-2rem)] overflow-y-auto rounded-[28px] bg-popover sm:max-w-lg">
+        <DialogContent className={cn("max-h-[88dvh] overflow-y-auto bg-popover md:w-[calc(100%-2rem)] md:max-w-lg md:rounded-[28px]", SHEET_CLASS)}>
           <DialogHeader>
             <DialogTitle className="text-sm font-semibold text-muted-foreground">{I.anonymous} · {openMsg && formatDistanceToNow(new Date(openMsg.created_at), { addSuffix: true })}</DialogTitle>
             <DialogDescription className="sr-only">Message</DialogDescription>
@@ -203,17 +193,27 @@ function InboxPage() {
           {mode === "view" ? (
             <>
               {openMsg?.replies_closed && <p className="rounded-2xl bg-muted p-3 text-sm text-muted-foreground" role="status">{I.closedNote}</p>}
-              <DialogFooter className="grid grid-cols-2 gap-2 sm:grid-cols-2 sm:space-x-0">
-                {!openMsg?.replies_closed && <Button variant="hero" className="h-12 w-full" onClick={() => setMode("reply")}><Reply /> {I.reply}</Button>}
-                <Button variant="secondary" className={cn("h-12 w-full", openMsg?.replies_closed && "col-span-2")} onClick={() => setMode("answer")}><Globe /> {I.answer}</Button>
-                <Button variant="secondary" className="h-12 w-full" onClick={() => setConfirm("report")}><Flag /> {I.report}</Button>
-                <Button variant="destructive" className="h-12 w-full" onClick={() => setConfirm("delete")}><Trash2 /> {I.delete}</Button>
-              </DialogFooter>
-              {!!thread.data?.length && openMsg && (
-                <Button variant="ghost" className="w-full" disabled={setClosed.isPending} onClick={() => setClosed.mutate({ id: openMsg.id, closed: !openMsg.replies_closed })}>
-                  {openMsg.replies_closed ? I.reopenThread : I.closeThread}
-                </Button>
-              )}
+              <div className="grid grid-cols-[1fr_auto] gap-2">
+                {!openMsg?.replies_closed && <Button variant="hero" className="col-span-2 h-12 w-full" onClick={() => setMode("reply")}><Reply /> {I.reply}</Button>}
+                <Button variant="secondary" className="h-12 w-full" onClick={() => setMode("answer")}><Globe /> {I.answer}</Button>
+                <DropdownMenu modal={false}>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="secondary" className="size-12 rounded-2xl p-0" aria-label={I.more}><MoreHorizontal /></Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56 rounded-2xl p-1.5">
+                    {!!thread.data?.length && openMsg && (
+                      <>
+                        <DropdownMenuItem className="min-h-11 rounded-xl" disabled={setClosed.isPending} onSelect={() => setClosed.mutate({ id: openMsg.id, closed: !openMsg.replies_closed })}>
+                          {openMsg.replies_closed ? <LockOpen /> : <Lock />} {openMsg.replies_closed ? I.reopenThread : I.closeThread}
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                      </>
+                    )}
+                    <DropdownMenuItem className="min-h-11 rounded-xl" onSelect={() => setConfirm("report")}><Flag /> {I.report}</DropdownMenuItem>
+                    <DropdownMenuItem className="min-h-11 rounded-xl text-destructive focus:text-destructive" onSelect={() => setConfirm("delete")}><Trash2 /> {I.delete}</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </>
           ) : (
             <div className="space-y-3">

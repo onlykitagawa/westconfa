@@ -1,5 +1,6 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Check, Inbox, MessageSquare, Search, Share2, Shield, User } from "lucide-react";
+import { Check, Inbox, LogOut, MessageSquare, Search, Send, Settings as SettingsIcon, Share2, Shield, User } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { t } from "@/i18n";
 import { useAuth } from "@/lib/auth";
@@ -11,10 +12,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ThemeToggle } from "./theme";
 import { ShareDialog } from "./share-dialog";
+import { UserAvatar } from "./avatar";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { badgeText, useAppBadge, useBadges } from "@/lib/inbox-data";
+import { cn } from "@/lib/utils";
 
 export function Logo() {
+  const { user } = useAuth();
   return (
-    <Link to="/" className="flex items-center gap-2.5 rounded-xl font-extrabold" aria-label={`${t.brand} home`}>
+    <Link to={user ? "/inbox" : "/"} className="flex items-center gap-2.5 rounded-xl font-extrabold" aria-label={`${t.brand} home`}>
       <span
         className="grid size-9 shrink-0 place-items-center rounded-xl bg-brand text-brand-foreground shadow-soft"
         aria-hidden
@@ -49,50 +55,99 @@ export function Logo() {
   );
 }
 
-export function SiteHeader() {
-  const { user, isAdmin, loading } = useAuth();
+// A small red count on a navigation item.
+export function CountBadge({ n, className }: { n: number; className?: string }) {
+  if (n <= 0) return null;
+  return (
+    <span className={cn("grid h-5 min-w-5 place-items-center rounded-full bg-destructive px-1.5 text-[11px] font-bold leading-none text-destructive-foreground tabular-nums", className)}>
+      {badgeText(n)}
+      <span className="sr-only"> {t.nav.newItems}</span>
+    </span>
+  );
+}
+
+// The avatar button with Profile, Sent, Settings and Sign out. Used on desktop and phones.
+function AccountMenu() {
+  const { profile, isAdmin } = useAuth();
+  const qc = useQueryClient();
+  const signOut = useSignOut();
+  const navigate = useNavigate();
+  const name = profile?.display_name || profile?.username || "";
+  const item = "min-h-11 cursor-pointer rounded-xl text-[15px]";
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button type="button" aria-label={t.nav.account} className="press rounded-full outline-none focus-visible:ring-4 focus-visible:ring-ring/40">
+          <UserAvatar url={profile?.avatar_url ?? null} name={name} className="size-10 text-base" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-60 rounded-2xl p-1.5">
+        <DropdownMenuLabel className="truncate px-3 py-2 font-normal">
+          <span className="block truncate font-semibold">{name}</span>
+          {profile?.username && <span className="block truncate text-xs text-muted-foreground">@{profile.username}</span>}
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem className={item} onSelect={() => navigate({ to: "/profile" })}><User /> {t.common.profile}</DropdownMenuItem>
+        <DropdownMenuItem className={item} onSelect={() => navigate({ to: "/sent" })}><Send /> {t.common.sent}</DropdownMenuItem>
+        <DropdownMenuItem className={item} onSelect={() => navigate({ to: "/settings" })}><SettingsIcon /> {t.common.settings}</DropdownMenuItem>
+        {isAdmin && <DropdownMenuItem className={item} onSelect={() => navigate({ to: "/admin" })}><Shield /> {t.common.admin}</DropdownMenuItem>}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem className={item} onSelect={() => void signOut(qc)}><LogOut /> {t.common.signOut}</DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+function SignedInNav() {
+  const { isAdmin } = useAuth();
+  const badges = useBadges();
+  useAppBadge(badges.inbox + badges.sent);
   const navLink =
-    "rounded-xl px-3 py-2 text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-accent";
+    "inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-accent";
   const active = { className: "text-foreground bg-accent" };
+  return (
+    <>
+      <div className="hidden items-center gap-1 md:flex">
+        <Link to="/inbox" className={navLink} activeProps={active}>
+          {t.common.inbox} <CountBadge n={badges.inbox} />
+        </Link>
+        <Link to="/sent" className={navLink} activeProps={active}>
+          {t.common.sent} <CountBadge n={badges.sent} />
+        </Link>
+        <Link to="/search" className={navLink} activeProps={active}>
+          {t.common.search}
+        </Link>
+        {isAdmin && (
+          <Link to="/admin" className={navLink} activeProps={active}>
+            {t.common.admin}
+          </Link>
+        )}
+      </div>
+      <ThemeToggle />
+      <AccountMenu />
+    </>
+  );
+}
+
+export function SiteHeader() {
+  const { user, loading } = useAuth();
   return (
     <header className="sticky top-0 z-40 border-b bg-background/70 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 py-2 sm:px-5">
         <Logo />
-        <nav className="flex items-center gap-1" aria-label="Main">
+        <nav className="flex items-center gap-1.5" aria-label="Main">
           {!loading && user ? (
+            <SignedInNav />
+          ) : (
             <>
-              <Link to="/inbox" className={`${navLink} md:hidden`}>
-                {t.common.openInbox}
-              </Link>
-              <div className="hidden items-center gap-1 md:flex">
-                <Link to="/inbox" className={navLink} activeProps={active}>
-                  {t.common.inbox}
-                </Link>
-                <Link to="/sent" className={navLink} activeProps={active}>
-                  {t.common.sent}
-                </Link>
-                <Link to="/profile" className={navLink} activeProps={active}>
-                  {t.common.profile}
-                </Link>
-                <Link to="/search" className={navLink} activeProps={active}>
-                  {t.common.search}
-                </Link>
-                <Link to="/settings" className={navLink} activeProps={active}>
-                  {t.common.settings}
-                </Link>
-                {isAdmin && (
-                  <Link to="/admin" className={navLink} activeProps={active}>
-                    {t.common.admin}
-                  </Link>
-                )}
-              </div>
+              {!loading && !user && (
+                <Button asChild variant="glass" className="h-11 rounded-full px-5 text-sm font-semibold">
+                  <Link to="/auth">{t.common.signIn}</Link>
+                </Button>
+              )}
+              <ThemeToggle />
             </>
-          ) : !loading ? (
-            <Button asChild variant="glass" className="h-11 rounded-full px-5 text-sm font-semibold">
-              <Link to="/auth">{t.common.signIn}</Link>
-            </Button>
-          ) : null}
-          <ThemeToggle />
+          )}
         </nav>
       </div>
     </header>
@@ -101,10 +156,12 @@ export function SiteHeader() {
 
 export function MobileNav() {
   const { profile, isAdmin } = useAuth();
+  const badges = useBadges();
   const [open, setOpen] = useState(false);
   const item =
-    "press flex min-h-[58px] min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-[22px] px-1 text-[12px] font-semibold text-muted-foreground [&_svg]:size-5";
+    "press relative flex min-h-[58px] min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-[22px] px-1 text-[12px] font-semibold text-muted-foreground [&_svg]:size-5";
   const active = { className: "bg-brand text-brand-foreground" };
+  const dot = "absolute right-[calc(50%-1.35rem)] top-1.5";
   return (
     <>
       <nav
@@ -116,10 +173,12 @@ export function MobileNav() {
           <Link to="/inbox" className={item} activeProps={active}>
             <Inbox className="size-5" />
             {t.common.inbox}
+            <CountBadge n={badges.inbox} className={dot} />
           </Link>
-          <Link to="/search" className={item} activeProps={active}>
-            <Search className="size-5" />
-            {t.common.search}
+          <Link to="/sent" className={item} activeProps={active}>
+            <Send className="size-5" />
+            {t.common.sent}
+            <CountBadge n={badges.sent} className={dot} />
           </Link>
           <Button
             type="button"
@@ -131,16 +190,21 @@ export function MobileNav() {
             <Share2 className="size-5" />
             {t.common.share}
           </Button>
-          {isAdmin && (
+          <Link to="/search" className={item} activeProps={active}>
+            <Search className="size-5" />
+            {t.common.search}
+          </Link>
+          {isAdmin ? (
             <Link to="/admin" className={item} activeProps={active}>
               <Shield className="size-5" />
               {t.common.admin}
             </Link>
+          ) : (
+            <Link to="/profile" className={item} activeProps={active}>
+              <User className="size-5" />
+              {t.common.profile}
+            </Link>
           )}
-          <Link to="/profile" className={item} activeProps={active}>
-            <User className="size-5" />
-            {t.common.profile}
-          </Link>
         </div>
       </nav>
       {profile?.username && <ShareDialog open={open} onOpenChange={setOpen} username={profile.username} />}
