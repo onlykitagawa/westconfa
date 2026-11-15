@@ -1,10 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { Check, Copy, ExternalLink, Lock, Send } from "lucide-react";
+import { Check, Copy, ExternalLink, Flag, Lock, Send } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { t } from "@/i18n";
+import { reportAvatar } from "@/lib/avatar.functions";
 import { getPublicProfile } from "@/lib/profile.functions";
+import { UserAvatar } from "@/components/site/avatar";
 import { sendMessage } from "@/lib/messages.functions";
 import { checkMessage, MAX_MESSAGE_LENGTH } from "@/lib/moderation";
 import { Button } from "@/components/ui/button";
@@ -62,6 +64,7 @@ function SendPage() {
   const { profile } = Route.useLoaderData();
   const { username } = Route.useParams();
   const send = useServerFn(sendMessage);
+  const reportAvatarFn = useServerFn(reportAvatar);
   const { profile: me, user, loading } = useAuth();
   const [body, setBody] = useState("");
   const [website, setWebsite] = useState("");
@@ -101,16 +104,22 @@ function SendPage() {
     }
   };
 
-  const initial = profile.display_name.charAt(0).toUpperCase();
+  const reportPhoto = async () => {
+    try {
+      const res = await reportAvatarFn({ data: { username: profile.username } });
+      if (res.ok) toast.success(t.avatar.reported);
+      else toast.error(t.avatar.errors[res.code]);
+    } catch {
+      toast.error(t.avatar.errors.generic);
+    }
+  };
   const remaining = MAX_MESSAGE_LENGTH - body.length;
 
   return (
     <main className="mx-auto max-w-lg px-4 pt-6 md:pt-14">
       <div className="glass animate-rise rounded-[32px] p-6 md:p-8">
         <div className="flex items-center gap-4">
-          <div className="grid size-[60px] shrink-0 place-items-center rounded-full bg-coral text-[26px] font-extrabold text-coral-foreground" aria-hidden>
-            {initial}
-          </div>
+          <UserAvatar url={profile.avatar_url} name={profile.display_name} className="size-[60px] text-[26px]" />
           <div className="min-w-0">
             <p className="text-sm font-medium text-muted-foreground">{t.send.eyebrow}</p>
             <h1 className="break-words text-[28px] font-extrabold [overflow-wrap:anywhere]">{profile.display_name}</h1>
@@ -118,6 +127,11 @@ function SendPage() {
           </div>
         </div>
         {profile.bio && <p className="mt-4 whitespace-pre-wrap break-words text-[16px] leading-snug [overflow-wrap:anywhere]">{profile.bio}</p>}
+        {profile.avatar_url && !!user && me?.username !== profile.username && (
+          <button type="button" onClick={reportPhoto} className="mt-3 inline-flex items-center gap-1.5 rounded-sm text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline">
+            <Flag className="size-3.5" aria-hidden="true" /> {t.avatar.report}
+          </button>
+        )}
 
         {sent ? (
           <div className="py-10 text-center" role="status" aria-live="polite">

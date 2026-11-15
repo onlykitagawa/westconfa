@@ -62,6 +62,65 @@ export type Database = {
         }
         Relationships: []
       }
+      avatar_events: {
+        Row: {
+          created_at: string
+          id: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avatar_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      avatar_reports: {
+        Row: {
+          created_at: string
+          reporter_id: string
+          target_id: string
+        }
+        Insert: {
+          created_at?: string
+          reporter_id: string
+          target_id: string
+        }
+        Update: {
+          created_at?: string
+          reporter_id?: string
+          target_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avatar_reports_reporter_id_fkey"
+            columns: ["reporter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "avatar_reports_target_id_fkey"
+            columns: ["target_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contact_messages: {
         Row: {
           body: string
@@ -487,6 +546,7 @@ export type Database = {
         }
         Returns: string
       }
+      admin_clear_avatar: { Args: { _user_id: string }; Returns: string }
       admin_decide_answer: {
         Args: { _approve: boolean; _id: string }
         Returns: undefined
@@ -502,6 +562,7 @@ export type Database = {
       admin_list_users: {
         Args: { _search: string }
         Returns: {
+          avatar_url: string
           created_at: string
           display_name: string
           email: string
@@ -561,6 +622,7 @@ export type Database = {
         Args: { _username: string }
         Returns: {
           accepting: boolean
+          avatar_url: string
           bio: string
           display_name: string
           username: string
@@ -608,14 +670,23 @@ export type Database = {
       }
       purge_expired: { Args: never; Returns: undefined }
       report_answer: { Args: { _answer_id: string }; Returns: undefined }
+      report_avatar: {
+        Args: { _reporter: string; _username: string }
+        Returns: string
+      }
       report_message: { Args: { _message_id: string }; Returns: undefined }
       search_profiles: {
         Args: { _query: string }
         Returns: {
           accepting: boolean
+          avatar_url: string
           display_name: string
           username: string
         }[]
+      }
+      set_profile_avatar: {
+        Args: { _url: string; _user: string }
+        Returns: string
       }
       set_profile_bio: {
         Args: { _bio: string; _user: string }
@@ -625,6 +696,7 @@ export type Database = {
         Args: { _closed: boolean; _message_id: string }
         Returns: undefined
       }
+      start_avatar_upload: { Args: { _user: string }; Returns: undefined }
       store_screened_message: {
         Args: {
           _anonymous: boolean

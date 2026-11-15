@@ -4,6 +4,7 @@ import { Search as SearchIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { t } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
+import { UserAvatar } from "@/components/site/avatar";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -12,7 +13,7 @@ export const Route = createFileRoute("/_authenticated/search")({
   component: SearchPage,
 });
 
-type Result = { username: string; display_name: string; accepting: boolean };
+type Result = { username: string; display_name: string; accepting: boolean; avatar_url: string | null };
 
 // Signed-in students only. search_profiles() enforces the 2-character minimum, the result cap,
 // the hourly limit and each person's "Show me in search" choice; the page only debounces typing.
@@ -75,9 +76,7 @@ function SearchPage() {
                 params={{ username: p.username }}
                 className="glass press flex items-center gap-4 rounded-2xl p-4 hover:bg-accent/40"
               >
-                <span className="grid size-12 shrink-0 place-items-center rounded-full bg-coral text-lg font-extrabold text-coral-foreground" aria-hidden="true">
-                  {p.display_name.charAt(0).toUpperCase()}
-                </span>
+                <UserAvatar url={p.avatar_url} name={p.display_name} className="size-12 text-lg" />
                 <span className="min-w-0 flex-1">
                   <span className="block truncate font-semibold">{p.display_name}</span>
                   <span className="block truncate text-sm text-muted-foreground">@{p.username}</span>

@@ -1,14 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { ExternalLink, Pencil, Settings as SettingsIcon, Share2 } from "lucide-react";
+import { Camera, ExternalLink, Pencil, Settings as SettingsIcon, Share2, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { t } from "@/i18n";
 import { useAuth } from "@/lib/auth";
 import { BIO_MAX_LENGTH } from "@/lib/moderation";
+import { removeAvatar } from "@/lib/avatar.functions";
 import { updateBio } from "@/lib/profile-bio.functions";
 import { Button } from "@/components/ui/button";
 import { AnswerCards } from "@/components/site/answer-cards";
+import { AvatarEditor } from "@/components/site/avatar-editor";
+import { UserAvatar } from "@/components/site/avatar";
 import { ShareDialog } from "@/components/site/share-dialog";
 import { cn } from "@/lib/utils";
 
@@ -26,6 +29,8 @@ function ProfilePage() {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+  const [photoOpen, setPhotoOpen] = useState(false);
+  const dropPhoto = useServerFn(removeAvatar);
   const savedBio = profile?.bio ?? "";
   useEffect(() => setBio(savedBio), [savedBio]);
 
@@ -51,14 +56,33 @@ function ProfilePage() {
     }
   };
   const cancel = () => { setBio(savedBio); setError(null); setEditing(false); };
+  const removePhoto = async () => {
+    try {
+      const res = await dropPhoto();
+      if (res.ok) {
+        toast.success(t.avatar.removed);
+        refresh();
+      } else toast.error(t.avatar.errors[res.code]);
+    } catch {
+      toast.error(t.avatar.errors.generic);
+    }
+  };
 
   return (
     <main className="mx-auto max-w-2xl space-y-4 px-4 pt-4 md:pt-10">
       <section className="glass animate-rise rounded-[32px] p-6 md:p-8">
         <div className="flex items-start gap-4">
-          <div className="grid size-[72px] shrink-0 place-items-center rounded-full bg-coral text-[30px] font-extrabold text-coral-foreground" aria-hidden="true">
-            {name.charAt(0).toUpperCase()}
-          </div>
+          <button
+            type="button"
+            onClick={() => setPhotoOpen(true)}
+            aria-label={t.avatar.change}
+            className="press relative shrink-0 rounded-full outline-none focus-visible:ring-4 focus-visible:ring-ring/40"
+          >
+            <UserAvatar url={profile.avatar_url} name={name} className="size-[72px] text-[30px]" />
+            <span className="absolute -bottom-0.5 -right-0.5 grid size-7 place-items-center rounded-full bg-brand text-brand-foreground shadow ring-2 ring-background" aria-hidden="true">
+              <Camera className="size-3.5" />
+            </span>
+          </button>
           <div className="min-w-0 flex-1 pt-1">
             <h1 className="break-words text-[28px] font-extrabold leading-tight [overflow-wrap:anywhere]">{name}</h1>
             <p className="truncate text-sm text-muted-foreground">@{profile.username}</p>
@@ -100,6 +124,9 @@ function ProfilePage() {
                 <Link to="/u/$username" params={{ username: profile.username }}><ExternalLink /> {P.viewPublic}</Link>
               </Button>
             </div>
+            {profile.avatar_url && (
+              <Button type="button" variant="ghost" size="sm" className="mt-2" onClick={removePhoto}><Trash2 /> {t.avatar.remove}</Button>
+            )}
           </>
         )}
       </section>
@@ -116,6 +143,7 @@ function ProfilePage() {
         }
       />
       <ShareDialog open={shareOpen} onOpenChange={setShareOpen} username={profile.username} />
+      <AvatarEditor open={photoOpen} onOpenChange={setPhotoOpen} onDone={() => { void refresh(); }} />
     </main>
   );
 }

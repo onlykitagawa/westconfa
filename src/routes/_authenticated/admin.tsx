@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format, formatDistanceToNow } from "date-fns";
 import { useState } from "react";
@@ -7,6 +8,8 @@ import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 import { t } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { adminRemoveAvatar } from "@/lib/avatar.functions";
+import { UserAvatar } from "@/components/site/avatar";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -446,19 +449,32 @@ function Users() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin", "users"] }),
     onError: () => toast.error(t.common.somethingWrong),
   });
+  const clearPhoto = useServerFn(adminRemoveAvatar);
+  const dropPhoto = useMutation({
+    mutationFn: async (userId: string) => {
+      const res = await clearPhoto({ data: { userId } });
+      if (!res.ok) throw new Error(res.code);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin", "users"] }),
+    onError: () => toast.error(t.common.somethingWrong),
+  });
   return (
     <div className="mt-4 space-y-3">
       <Input placeholder={A.search} aria-label={A.search} className="h-12 rounded-2xl" value={search} onChange={(e) => setSearch(e.target.value)} />
       <ul className="space-y-2">
         {q.data?.map((u) => (
           <li key={u.id} className="glass flex items-center justify-between gap-3 rounded-2xl p-4">
-            <div className="min-w-0">
+            <UserAvatar url={u.avatar_url} name={u.display_name || u.username || "?"} className="size-10 text-base" />
+            <div className="min-w-0 flex-1">
               <p className="truncate font-semibold">{u.username ? `@${u.username}` : "—"} {u.display_name && <span className="font-normal text-muted-foreground">· {u.display_name}</span>}</p>
               <p className="truncate text-xs text-muted-foreground">{u.email}</p>
             </div>
-            <Button size="sm" variant={u.suspended ? "secondary" : "destructive"} onClick={() => toggle.mutate({ id: u.id, suspended: !u.suspended })}>
-              {u.suspended ? A.unsuspend : A.suspend}
-            </Button>
+            <div className="flex shrink-0 flex-col gap-1.5 sm:flex-row">
+              {u.avatar_url && <Button size="sm" variant="secondary" onClick={() => dropPhoto.mutate(u.id)}>{A.removePhoto}</Button>}
+              <Button size="sm" variant={u.suspended ? "secondary" : "destructive"} onClick={() => toggle.mutate({ id: u.id, suspended: !u.suspended })}>
+                {u.suspended ? A.unsuspend : A.suspend}
+              </Button>
+            </div>
           </li>
         ))}
       </ul>
