@@ -15,6 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { ShareDialog } from "@/components/site/share-dialog";
+import { MessageTabs } from "@/components/site/message-tabs";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/inbox")({
@@ -127,6 +128,7 @@ function InboxPage() {
 
   return (
     <main className="mx-auto max-w-2xl px-4 pt-4 md:pt-10">
+      <MessageTabs />
       <div className="flex items-end justify-between gap-4 px-1">
         <div>
           <h1 className="text-4xl font-extrabold tracking-tight">{I.title}</h1>

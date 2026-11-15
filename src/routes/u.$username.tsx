@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { Check, Copy, ExternalLink, Flag, Lock, Send } from "lucide-react";
-import { useState } from "react";
+import { Check, Copy, ExternalLink, Flag, Lock, Send, Share2 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { t } from "@/i18n";
 import { reportAvatar } from "@/lib/avatar.functions";
@@ -33,29 +33,73 @@ export const Route = createFileRoute("/u/$username")({
   component: SendPage,
 });
 
-// The sender's private status link, shown once right after sending. Only its hash is stored.
-function TrackLink({ token }: { token: string }) {
+// What the sender sees after sending. Signed-in students: the message is saved on their Sent page,
+// no link needed. Guests: the private status link is the ONLY way back (only its hash is stored), so
+// it is shown prominently and the browser warns before leaving until it has been copied or shared.
+function TrackLink({ token, signedIn }: { token: string; signedIn: boolean }) {
   const [copied, setCopied] = useState(false);
+  const [saved, setSaved] = useState(signedIn);
   const link = `${shareOrigin()}/m/${token}`;
+  const canShare = typeof navigator !== "undefined" && typeof navigator.share === "function";
+
+  useEffect(() => {
+    if (saved) return;
+    const guard = (e: BeforeUnloadEvent) => { e.preventDefault(); };
+    window.addEventListener("beforeunload", guard);
+    return () => window.removeEventListener("beforeunload", guard);
+  }, [saved]);
+
   const copy = async () => {
-    await navigator.clipboard.writeText(link);
-    setCopied(true);
-    toast.success(t.send.trackCopied);
-    setTimeout(() => setCopied(false), 1800);
+    try {
+      await navigator.clipboard.writeText(link);
+      setCopied(true);
+      setSaved(true);
+      toast.success(t.send.trackCopied);
+      setTimeout(() => setCopied(false), 1800);
+    } catch {
+      toast.error(t.common.somethingWrong);
+    }
   };
+  const share = async () => {
+    try {
+      await navigator.share({ url: link, title: t.send.trackTitle });
+      setSaved(true);
+    } catch {
+      // cancelled: nothing to do
+    }
+  };
+
+  if (signedIn)
+    return (
+      <div className="mt-8 rounded-[22px] bg-accent p-5 text-left">
+        <p className="font-semibold text-accent-foreground">{t.send.trackSavedTitle}</p>
+        <p className="mt-1 text-sm text-muted-foreground">{t.send.trackSavedBody}</p>
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <Button asChild variant="secondary"><Link to="/sent">{t.send.trackSavedCta}</Link></Button>
+          <Button type="button" variant="ghost" onClick={copy}>{copied ? <Check /> : <Copy />} {t.send.trackCopyAnyway}</Button>
+        </div>
+      </div>
+    );
+
   return (
-    <div className="mt-8 rounded-[22px] bg-accent p-5 text-left">
-      <p className="font-semibold text-accent-foreground">{t.send.trackTitle}</p>
+    <div className="mt-8 rounded-[22px] border-2 border-primary/40 bg-accent p-5 text-left" role="alert">
+      <p className="text-lg font-bold text-accent-foreground">{t.send.trackTitle}</p>
       <p className="mt-1 text-sm text-muted-foreground">{t.send.trackBody}</p>
       <div className="mt-3 truncate rounded-2xl border bg-background/60 px-4 py-3 font-mono text-sm">{link.replace(/^https?:\/\//, "")}</div>
-      <div className="mt-3 grid grid-cols-2 gap-2">
-        <Button type="button" variant="secondary" onClick={copy}>
+      <div className={cn("mt-3 grid gap-2", canShare ? "grid-cols-2" : "grid-cols-1")}>
+        <Button type="button" variant="hero" onClick={copy}>
           {copied ? <Check /> : <Copy />} {t.send.trackCopy}
         </Button>
-        <Button asChild variant="ghost">
-          <a href={`/m/${token}`} target="_blank" rel="noopener noreferrer"><ExternalLink /> {t.send.trackOpen}</a>
-        </Button>
+        {canShare && (
+          <Button type="button" variant="secondary" onClick={share}>
+            <Share2 /> {t.send.trackShare}
+          </Button>
+        )}
       </div>
+      <p className="mt-3 text-xs text-muted-foreground">{t.send.trackTip}</p>
+      <Button asChild variant="ghost" className="mt-1 w-full">
+        <a href={`/m/${token}`} target="_blank" rel="noopener noreferrer"><ExternalLink /> {t.send.trackOpen}</a>
+      </Button>
     </div>
   );
 }
@@ -140,7 +184,7 @@ function SendPage() {
             </div>
             <h2 className="animate-rise mt-6 text-3xl font-extrabold">{t.send.successTitle}</h2>
             <p className="animate-rise mx-auto mt-2 max-w-xs text-muted-foreground">{t.send.successBody}</p>
-            {tracker && <TrackLink token={tracker} />}
+            {tracker && <TrackLink token={tracker} signedIn={!!user} />}
             <div className="mt-8 grid gap-3">
               <Button asChild variant="hero" size="lg" className="w-full px-4"><Link to="/">{t.common.getYourOwn}</Link></Button>
               <Button variant="ghost" onClick={() => { setSent(false); setTracker(null); }}>{t.send.sendAnother}</Button>

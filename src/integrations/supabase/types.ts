@@ -300,18 +300,21 @@ export type Database = {
           created_at: string
           final_state: string | null
           message_id: string | null
+          sender_user_id: string | null
           token_hash: string
         }
         Insert: {
           created_at?: string
           final_state?: string | null
           message_id?: string | null
+          sender_user_id?: string | null
           token_hash: string
         }
         Update: {
           created_at?: string
           final_state?: string | null
           message_id?: string | null
+          sender_user_id?: string | null
           token_hash?: string
         }
         Relationships: [
@@ -320,6 +323,13 @@ export type Database = {
             columns: ["message_id"]
             isOneToOne: true
             referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_trackers_sender_user_id_fkey"
+            columns: ["sender_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -648,6 +658,31 @@ export type Database = {
       }
       message_thread: {
         Args: { _token: string }
+        Returns: {
+          author: string
+          body: string
+          can_reply: boolean
+          closed: boolean
+          created_at: string
+          id: string
+          status: string
+        }[]
+      }
+      my_sent_messages: {
+        Args: never
+        Returns: {
+          awaiting_you: boolean
+          body: string
+          message_id: string
+          reply_count: number
+          sent_at: string
+          state: string
+          to_name: string
+          to_username: string
+        }[]
+      }
+      my_sent_thread: {
+        Args: { _message_id: string }
         Returns: {
           author: string
           body: string

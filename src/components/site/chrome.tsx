@@ -68,6 +68,9 @@ export function SiteHeader() {
                 <Link to="/inbox" className={navLink} activeProps={active}>
                   {t.common.inbox}
                 </Link>
+                <Link to="/sent" className={navLink} activeProps={active}>
+                  {t.common.sent}
+                </Link>
                 <Link to="/profile" className={navLink} activeProps={active}>
                   {t.common.profile}
                 </Link>

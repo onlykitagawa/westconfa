@@ -42,23 +42,46 @@ export const replyToMessage = createServerFn({ method: "POST" })
     return error ? { ok: false, code: mapError(error) } : { ok: true, held: s.status === "pending" };
   });
 
+type ThreadRow = { author: string; status: string; closed: boolean; can_reply: boolean };
+
+// Shared by both ways a sender can write back (private link or signed-in account). `rows` is the
+// thread the sender is allowed to see. Cheap checks come first so closed or unopened threads never
+// cost an AI call.
+async function sendSenderReply(rows: ThreadRow[] | null, tokenHash: string, rawBody: string): Promise<ReplyResult> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const first = rows?.[0];
+  if (!first) return { ok: false, code: "notfound" };
+  if (first.closed) return { ok: false, code: "closed" };
+  if (!first.can_reply) return { ok: false, code: (rows ?? []).some((r) => r.author === "sender" && r.status === "pending") ? "pending" : "turn" };
+  const { data: setting, error: settingError } = await supabaseAdmin.from("app_settings").select("value").eq("key", "review_all_messages").maybeSingle();
+  const s = await screenText(rawBody, !!settingError || setting?.value !== false);
+  if (!s.ok) return s;
+  const { error } = await supabaseAdmin.rpc("add_sender_reply", { _token_hash: tokenHash, _body: s.body, _status: s.status, _reason: s.reason });
+  return error ? { ok: false, code: mapError(error) } : { ok: true, held: s.status === "pending" };
+}
+
 // The sender writes back using their private status link (only its hash is stored). They can
 // only answer after the recipient has replied, one message at a time.
 export const replyAsSender = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => z.object({ token: z.string().min(32).max(64), body: textSchema }).parse(input))
   .handler(async ({ data }): Promise<ReplyResult> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    // Cheap checks first so closed or unopened threads never cost an AI call.
     const { data: rows } = await supabaseAdmin.rpc("message_thread", { _token: data.token });
-    const first = rows?.[0];
-    if (!first) return { ok: false, code: "notfound" };
-    if (first.closed) return { ok: false, code: "closed" };
-    if (!first.can_reply) return { ok: false, code: (rows ?? []).some((r) => r.author === "sender" && r.status === "pending") ? "pending" : "turn" };
-    const { data: setting, error: settingError } = await supabaseAdmin.from("app_settings").select("value").eq("key", "review_all_messages").maybeSingle();
-    const s = await screenText(data.body, !!settingError || setting?.value !== false);
-    if (!s.ok) return s;
-    const { error } = await supabaseAdmin.rpc("add_sender_reply", { _token_hash: await sha256(data.token), _body: s.body, _status: s.status, _reason: s.reason });
-    return error ? { ok: false, code: mapError(error) } : { ok: true, held: s.status === "pending" };
+    return sendSenderReply(rows, await sha256(data.token), data.body);
+  });
+
+// A signed-in sender writes back from their Sent page. The thread is found through their account
+// (my_sent_thread only returns rows for trackers they own); the stored link hash is then used
+// exactly like the private-link path.
+export const replyAsMember = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ messageId: z.string().uuid(), body: textSchema }).parse(input))
+  .handler(async ({ data, context }): Promise<ReplyResult> => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: rows } = await context.supabase.rpc("my_sent_thread", { _message_id: data.messageId });
+    const { data: tracker } = await supabaseAdmin.from("message_trackers").select("token_hash").eq("message_id", data.messageId).eq("sender_user_id", context.userId).maybeSingle();
+    if (!tracker) return { ok: false, code: "notfound" };
+    return sendSenderReply(rows, tracker.token_hash, data.body);
   });
 
 // The recipient posts a message and their answer on their public profile. The question text is
