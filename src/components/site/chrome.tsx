@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Check, Inbox, MessageSquare, Search, Settings, Share2, Shield } from "lucide-react";
+import { Check, Inbox, MessageSquare, Search, Share2, Shield, User } from "lucide-react";
 import { useEffect, useState } from "react";
 import { t } from "@/i18n";
 import { useAuth } from "@/lib/auth";
@@ -68,6 +68,9 @@ export function SiteHeader() {
                 <Link to="/inbox" className={navLink} activeProps={active}>
                   {t.common.inbox}
                 </Link>
+                <Link to="/profile" className={navLink} activeProps={active}>
+                  {t.common.profile}
+                </Link>
                 <Link to="/search" className={navLink} activeProps={active}>
                   {t.common.search}
                 </Link>
@@ -131,9 +134,9 @@ export function MobileNav() {
               {t.common.admin}
             </Link>
           )}
-          <Link to="/settings" className={item} activeProps={active}>
-            <Settings className="size-5" />
-            {t.common.settings}
+          <Link to="/profile" className={item} activeProps={active}>
+            <User className="size-5" />
+            {t.common.profile}
           </Link>
         </div>
       </nav>

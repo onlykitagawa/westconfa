@@ -1,6 +1,7 @@
 // Shared, pure rules used by both the browser (friendly early feedback) and the server (enforcement).
 
 export const MAX_MESSAGE_LENGTH = 500;
+export const BIO_MAX_LENGTH = 160;
 export const LIMIT_PER_SENDER_PER_HOUR = 5;
 export const LIMIT_PER_SENDER_TO_RECIPIENT_PER_HOUR = 3;
 // Visitors who aren't signed in are keyed on a shared network address (campus Wi-Fi), so looser.

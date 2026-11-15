@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 
-export type PublicProfile = { username: string; display_name: string; accepting: boolean } | null;
+export type PublicProfile = { username: string; display_name: string; accepting: boolean; bio: string | null } | null;
 
 export const getPublicProfile = createServerFn({ method: "GET" })
   .inputValidator((input: { username: string }) => ({ username: String(input.username).toLowerCase().slice(0, 30) }))
@@ -22,5 +22,5 @@ export const getPublicProfile = createServerFn({ method: "GET" })
     });
     const { data: rows } = await client.rpc("get_public_profile", { _username: data.username });
     const row = rows?.[0];
-    return row ? { username: row.username, display_name: row.display_name, accepting: row.accepting } : null;
+    return row ? { username: row.username, display_name: row.display_name, accepting: row.accepting, bio: row.bio } : null;
   });

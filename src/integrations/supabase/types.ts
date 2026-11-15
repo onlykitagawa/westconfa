@@ -561,6 +561,7 @@ export type Database = {
         Args: { _username: string }
         Returns: {
           accepting: boolean
+          bio: string
           display_name: string
           username: string
         }[]
@@ -615,6 +616,10 @@ export type Database = {
           display_name: string
           username: string
         }[]
+      }
+      set_profile_bio: {
+        Args: { _bio: string; _user: string }
+        Returns: undefined
       }
       set_thread_closed: {
         Args: { _closed: boolean; _message_id: string }
