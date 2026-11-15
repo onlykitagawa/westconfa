@@ -34,17 +34,19 @@ describe("Settings change password", () => {
 
   async function submitNewPassword(password: string) {
     const ui = render(<SettingsPage />);
+    fireEvent.click(ui.getByRole("button", { name: t.settings.changePassword }));
     fireEvent.change(ui.getByLabelText(t.settings.changePassword), { target: { value: password } });
     fireEvent.submit(ui.getByRole("button", { name: t.settings.savePassword }).closest("form") as HTMLFormElement);
     await waitFor(() => expect(mocks.update).toHaveBeenCalledWith({ password }));
     return ui;
   }
 
-  it("updates the password, confirms, and clears the field", async () => {
+  it("updates the password, confirms, and closes the form", async () => {
     mocks.update.mockResolvedValue({ error: null });
     const ui = await submitNewPassword("new-test-password");
     await waitFor(() => expect(mocks.success).toHaveBeenCalledWith(t.settings.passwordUpdated));
-    expect((ui.getByLabelText(t.settings.changePassword) as HTMLInputElement).value).toBe("");
+    await waitFor(() => expect(ui.queryByLabelText(t.settings.changePassword)).toBeNull());
+    expect(ui.getByRole("button", { name: t.settings.changePassword })).toBeDefined();
     expect(mocks.error).not.toHaveBeenCalled();
   });
 

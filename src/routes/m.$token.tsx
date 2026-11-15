@@ -1,9 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { formatDistanceToNow } from "date-fns";
 import { Check, CheckCheck, Clock, Eye, RefreshCw, XCircle } from "lucide-react";
-import { t } from "@/i18n";
+import { t, timeAgo } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { replyAsSender } from "@/lib/replies.functions";
 import { ReplyBox, ThreadBubbles } from "@/components/site/thread";
@@ -87,7 +86,7 @@ function TrackPage() {
   return (
     <main className="mx-auto max-w-lg px-4 pt-6 md:pt-14">
       <div className="glass animate-rise rounded-[32px] p-6 md:p-8">
-        <p className="text-sm font-medium text-muted-foreground">{T.sentAgo(formatDistanceToNow(new Date(sent_at), { addSuffix: true }))}</p>
+        <p className="text-sm font-medium text-muted-foreground">{T.sentAgo(timeAgo(sent_at))}</p>
         <h1 className="mt-1 text-[28px] font-extrabold">{T.title}</h1>
 
         {body ? (

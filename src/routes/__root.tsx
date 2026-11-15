@@ -19,7 +19,7 @@ import { SiteHeader, Footer, CookieNotice } from "@/components/site/chrome";
 import { themeInitScript } from "@/components/site/theme";
 import { Toaster } from "@/components/ui/sonner";
 import { Button } from "@/components/ui/button";
-import { t } from "@/i18n";
+import { applyLang, storedLang, t } from "@/i18n";
 
 function NotFoundComponent() {
   return (
@@ -43,10 +43,10 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
 
   return (
     <main className="mx-auto flex min-h-[60vh] max-w-md flex-col items-center justify-center px-5 text-center">
-      <h1 className="text-2xl font-bold">This page didn't load</h1>
+      <h1 className="text-2xl font-bold">{t.common.pageError}</h1>
       <p className="mt-2 text-muted-foreground">{t.common.somethingWrong}</p>
       <div className="mt-6 flex gap-2">
-        <Button onClick={() => { router.invalidate(); reset(); }}>Try again</Button>
+        <Button onClick={() => { router.invalidate(); reset(); }}>{t.common.tryAgain}</Button>
         <Button asChild variant="glass"><a href="/">{t.notFound.home}</a></Button>
       </div>
     </main>
@@ -97,7 +97,7 @@ function RootShell({ children }: { children: ReactNode }) {
       </head>
       <body>
         <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded-xl focus:bg-background focus:px-4 focus:py-2">
-          Skip to content
+          {t.common.skip}
         </a>
         {children}
         <Scripts />
@@ -110,13 +110,19 @@ function RootComponent() {
   const { queryClient, authLink: loadedAuthLink, authLinkPromise } = Route.useRouteContext();
   const [authLink, setAuthLink] = useState(loadedAuthLink);
   const [linkReady, setLinkReady] = useState(false);
+  const router = useRouter();
   useEffect(() => {
+    // Switch to the saved language before the app first renders, then rebuild page titles.
+    const saved = storedLang();
+    if (saved !== "en") {
+      applyLang(saved);
+      void router.invalidate();
+    }
     void (authLinkPromise ?? Promise.resolve(null)).then((result) => {
       setAuthLink(result);
       setLinkReady(true);
     });
-  }, [authLinkPromise]);
-  const router = useRouter();
+  }, [authLinkPromise, router]);
   useEffect(() => {
     if (!authLink) return;
     if (!authLink.ok) toast.error(t.auth.errCode, { id: "auth-link" });

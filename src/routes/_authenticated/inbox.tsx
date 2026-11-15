@@ -1,11 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { formatDistanceToNow } from "date-fns";
 import { CheckCheck, Flag, Globe, Inbox as InboxIcon, Lock, LockOpen, MoreHorizontal, Reply, Share2, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { t } from "@/i18n";
+import { t, timeAgo } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { answerPublicly, replyToMessage } from "@/lib/replies.functions";
@@ -165,7 +164,7 @@ function InboxPage() {
                 <span className="block min-w-0">
                   <span className="mb-2 flex items-center gap-2 text-xs font-semibold text-muted-foreground">
                     {!m.read_at && <span className="size-2 shrink-0 rounded-full bg-coral" aria-hidden />}
-                    <span>{I.anonymous} · {formatDistanceToNow(new Date(m.created_at), { addSuffix: true })}</span>
+                    <span>{I.anonymous} · {timeAgo(m.created_at)}</span>
                     {threadState.get(m.id)?.waiting ? (
                       <span className="rounded-full bg-coral px-2 py-0.5 text-[11px] font-bold text-coral-foreground">{I.newReply}</span>
                     ) : threadState.get(m.id)?.replied ? (
@@ -183,7 +182,7 @@ function InboxPage() {
       <Dialog open={!!openMsg} onOpenChange={(o) => { if (!o) { setOpenMsg(null); setMode("view"); } }}>
         <DialogContent className={cn("max-h-[88dvh] overflow-y-auto bg-popover md:w-[calc(100%-2rem)] md:max-w-lg md:rounded-[28px]", SHEET_CLASS)}>
           <DialogHeader>
-            <DialogTitle className="text-sm font-semibold text-muted-foreground">{I.anonymous} · {openMsg && formatDistanceToNow(new Date(openMsg.created_at), { addSuffix: true })}</DialogTitle>
+            <DialogTitle className="text-sm font-semibold text-muted-foreground">{I.anonymous} · {openMsg && timeAgo(openMsg.created_at)}</DialogTitle>
             <DialogDescription className="sr-only">Message</DialogDescription>
           </DialogHeader>
           <p className="min-w-0 whitespace-pre-wrap break-words py-2 text-lg font-medium leading-relaxed [overflow-wrap:anywhere] sm:text-xl">{openMsg?.body}</p>

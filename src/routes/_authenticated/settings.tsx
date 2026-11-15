@@ -17,6 +17,7 @@ import { UsernameField, type UsernameStatus } from "@/components/site/username-f
 import { PasswordField } from "@/components/site/auth-fields";
 import { isValidPassword } from "@/lib/moderation";
 import { cn } from "@/lib/utils";
+import { LanguageButtons } from "@/components/site/language";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({ meta: [{ title: t.settings.metaTitle }, { name: "description", content: t.settings.metaDesc }, { property: "og:title", content: t.settings.metaTitle }, { property: "og:description", content: t.settings.metaDesc }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { name: "robots", content: "noindex" }] }),
@@ -164,6 +165,10 @@ function SettingsPage() {
           </div>
           <Button type="submit" disabled={!dirty || saving || status !== "ok"}>{t.common.save}</Button>
         </form>
+      </Section>
+
+      <Section title={t.common.language}>
+        <LanguageButtons />
       </Section>
 
       <Section title={S.accountSection}>

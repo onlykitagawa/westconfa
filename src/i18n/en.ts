@@ -1,5 +1,5 @@
-// All user-facing text lives here. To add Russian or Uzbek, copy this file (ru.ts / uz.ts)
-// with the same shape and switch the export in src/i18n/index.ts.
+// All user-facing text lives here. ru.ts and uz.ts have exactly the same shape (type Dict);
+// src/i18n/index.ts picks the one the visitor chose.
 export const en = {
   brand: "west confa",
   common: {
@@ -22,6 +22,25 @@ export const en = {
     lastUpdated: "Last updated: November 2026",
     somethingWrong: "Something went wrong. Please try again.",
     themeToggle: "Toggle light and dark mode",
+    language: "Language",
+    legalEnglishOnly: "",
+    skip: "Skip to content",
+    pageError: "This page didn't load",
+    tryAgain: "Try again",
+  },
+  feedback: {
+    button: "Send feedback",
+    dialogTitle: "Share your feedback",
+    dialogBody: "Tell us what's confusing, broken or missing, or what you like. Every note is read by the team.",
+    label: "Your feedback",
+    placeholder: "What should we fix, add or keep?",
+    emailLabel: "Email (optional, only if you'd like a reply)",
+    sending: "Sending…",
+    thanks: "Thank you! Your feedback reached us.",
+    another: "Send more",
+    empty: "Please write something first.",
+    badEmail: "That email doesn't look right. Leave it empty to stay anonymous.",
+    wait: "Thanks! Please wait a few seconds before sending more.",
   },
   footer: {
     disclaimer: "Independent student project. Not affiliated with or endorsed by WIUT.",
@@ -468,6 +487,9 @@ export const en = {
     name: "Your name",
     email: "Your email",
     message: "Message",
+    errName: "Please add your name",
+    errEmail: "Please enter a valid email",
+    errBody: "Please write a message",
     send: "Send message",
     sent: "Thanks! We'll get back to you soon.",
     urgent: "If you or someone else is in immediate danger, contact local emergency services (112 in Uzbekistan) right away.",

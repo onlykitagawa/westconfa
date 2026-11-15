@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeft } from "lucide-react";
@@ -28,26 +28,25 @@ export const Route = createFileRoute("/auth")({
 });
 
 type Step = "form" | "verify-signup" | "code-request" | "verify-code" | "forgot" | "reset";
-const A = t.auth;
 
 function emailError(raw: string): string | null {
   const e = raw.trim().toLowerCase();
-  if (isStaffChatEmail(e)) return A.errWiutChat;
-  if (!isAllowedEmail(e)) return A.errDomain;
+  if (isStaffChatEmail(e)) return t.auth.errWiutChat;
+  if (!isAllowedEmail(e)) return t.auth.errDomain;
   return null;
 }
 
 function mapAuthError(message: string): string {
-  if (/could not be delivered|undeliverable|bounce/i.test(message)) return A.errUndeliverable;
-  if (/rate|seconds|too many/i.test(message)) return A.errRate;
-  if (/database|wiut|allowed/i.test(message)) return A.errDomain;
+  if (/could not be delivered|undeliverable|bounce/i.test(message)) return t.auth.errUndeliverable;
+  if (/rate|seconds|too many/i.test(message)) return t.auth.errRate;
+  if (/database|wiut|allowed/i.test(message)) return t.auth.errDomain;
   return t.common.somethingWrong;
 }
 
 function AuthPage() {
   const navigate = useNavigate();
   const { user, loading, openedAuthLink } = useAuth();
-  const { mode } = Route.useSearch();
+  const { mode } = useSearch({ strict: false }) as { mode?: "signup" };
   const signInFn = useServerFn(passwordSignIn);
   const [tab, setTab] = useState<"signin" | "signup">(mode === "signup" ? "signup" : "signin");
   const [step, setStep] = useState<Step>("form");
@@ -72,8 +71,8 @@ function AuthPage() {
     e.preventDefault();
     const em = emailError(email);
     if (em) return setErr(em);
-    if (!isValidPassword(password)) return setErr(A.errPassword);
-    if (!agree) return setErr(A.errAgree);
+    if (!isValidPassword(password)) return setErr(t.auth.errPassword);
+    if (!agree) return setErr(t.auth.errAgree);
     setBusy(true);
     const { data, error } = await supabase.auth.signUp({
       email: clean(), password, options: { emailRedirectTo: `${window.location.origin}/auth` },
@@ -96,7 +95,7 @@ function AuthPage() {
   const signIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setErr(null);
-    if (!clean() || !password) return setErr(A.errInvalid);
+    if (!clean() || !password) return setErr(t.auth.errInvalid);
     setBusy(true);
     try {
       const res = await signInFn({ data: { email: clean(), password } });
@@ -113,7 +112,7 @@ function AuthPage() {
           return;
         }
         setBusy(false);
-        return setErr(res.code === "locked" ? A.errLocked : res.code === "invalid" ? A.errInvalid : t.common.somethingWrong);
+        return setErr(res.code === "locked" ? t.auth.errLocked : res.code === "invalid" ? t.auth.errInvalid : t.common.somethingWrong);
       }
       await supabase.auth.setSession({ access_token: res.access_token, refresh_token: res.refresh_token });
       navigate({ to: "/inbox", replace: true });
@@ -150,21 +149,21 @@ function AuthPage() {
 
   const verify = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (code.length !== 6) return setErr(A.errCode);
+    if (code.length !== 6) return setErr(t.auth.errCode);
     setBusy(true);
     setErr(null);
     const type = step === "verify-signup" ? "signup" : "email";
     let { error } = await supabase.auth.verifyOtp({ email: clean(), token: code, type });
     if (error && type === "signup") ({ error } = await supabase.auth.verifyOtp({ email: clean(), token: code, type: "email" }));
     setBusy(false);
-    if (error) return setErr(/rate/i.test(error.message) ? A.errRate : A.errCode);
+    if (error) return setErr(/rate/i.test(error.message) ? t.auth.errRate : t.auth.errCode);
     navigate({ to: "/inbox", replace: true });
   };
 
   const resetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (code.length !== 6) return setErr(A.errCode);
-    if (!isValidPassword(password)) return setErr(A.errPassword);
+    if (code.length !== 6) return setErr(t.auth.errCode);
+    if (!isValidPassword(password)) return setErr(t.auth.errPassword);
     setBusy(true);
     setErr(null);
     holdRedirect.current = true;
@@ -172,19 +171,19 @@ function AuthPage() {
     if (error) {
       holdRedirect.current = false;
       setBusy(false);
-      return setErr(/rate/i.test(error.message) ? A.errRate : A.errCode);
+      return setErr(/rate/i.test(error.message) ? t.auth.errRate : t.auth.errCode);
     }
     const { error: upErr } = await supabase.auth.updateUser({ password });
     holdRedirect.current = false;
     setBusy(false);
     if (upErr) return setErr(t.common.somethingWrong);
-    toast.success(A.passwordSaved);
+    toast.success(t.auth.passwordSaved);
     navigate({ to: "/inbox", replace: true });
   };
 
   const back = (
     <button type="button" onClick={() => { go("form"); setPassword(""); }} className="-ml-2 mb-4 flex min-h-12 items-center gap-1 rounded-xl px-2 text-sm font-semibold text-muted-foreground hover:text-foreground">
-      <ArrowLeft className="size-4" /> {step === "forgot" || step === "code-request" ? A.backToSignIn : A.changeEmail}
+      <ArrowLeft className="size-4" /> {step === "forgot" || step === "code-request" ? t.auth.backToSignIn : t.auth.changeEmail}
     </button>
   );
   const errorBox = err && <p role="alert" className="mt-4 rounded-2xl bg-destructive/10 px-4 py-3 text-sm text-destructive">{err}</p>;
@@ -196,12 +195,12 @@ function AuthPage() {
           <>
             <Tabs value={tab} onValueChange={(v) => { setTab(v as "signin" | "signup"); setErr(null); }}>
               <TabsList className="grid h-13 w-full grid-cols-2 rounded-2xl p-1">
-                <TabsTrigger value="signin" className="h-11 rounded-xl text-[15px] font-semibold">{A.tabSignIn}</TabsTrigger>
-                <TabsTrigger value="signup" className="h-11 rounded-xl text-[15px] font-semibold">{A.tabSignUp}</TabsTrigger>
+                <TabsTrigger value="signin" className="h-11 rounded-xl text-[15px] font-semibold">{t.auth.tabSignIn}</TabsTrigger>
+                <TabsTrigger value="signup" className="h-11 rounded-xl text-[15px] font-semibold">{t.auth.tabSignUp}</TabsTrigger>
               </TabsList>
             </Tabs>
-            <h1 className="mt-7 text-3xl font-extrabold tracking-tight">{tab === "signin" ? A.signInTitle : A.signUpTitle}</h1>
-            <p className="mt-1 text-muted-foreground">{A.subtitle}</p>
+            <h1 className="mt-7 text-3xl font-extrabold tracking-tight">{tab === "signin" ? t.auth.signInTitle : t.auth.signUpTitle}</h1>
+            <p className="mt-1 text-muted-foreground">{t.auth.subtitle}</p>
             <EmailHelp />
 
             {tab === "signin" ? (
@@ -209,11 +208,11 @@ function AuthPage() {
                 <EmailField value={email} onChange={(v) => { setEmail(v); setErr(null); }} />
                 <PasswordField value={password} onChange={(v) => { setPassword(v); setErr(null); }} />
                 <div className="-mt-2 flex justify-end">
-                  <button type="button" onClick={() => go("forgot")} className="min-h-11 rounded-lg px-1 text-sm font-semibold text-primary hover:underline">{A.forgot}</button>
+                  <button type="button" onClick={() => go("forgot")} className="min-h-11 rounded-lg px-1 text-sm font-semibold text-primary hover:underline">{t.auth.forgot}</button>
                 </div>
                 {errorBox}
-                <Button type="submit" variant="hero" className="w-full" disabled={busy}>{busy ? A.signingIn : A.signIn}</Button>
-                <Button type="button" variant="ghost" className="w-full" onClick={() => go("code-request")}>{A.codeInstead}</Button>
+                <Button type="submit" variant="hero" className="w-full" disabled={busy}>{busy ? t.auth.signingIn : t.auth.signIn}</Button>
+                <Button type="button" variant="ghost" className="w-full" onClick={() => go("code-request")}>{t.auth.codeInstead}</Button>
               </form>
             ) : (
               <form onSubmit={signUp} noValidate className="mt-7 space-y-5" key="signup">
@@ -222,12 +221,12 @@ function AuthPage() {
                 <div className="flex items-start gap-3">
                   <Checkbox id="agree" checked={agree} onCheckedChange={(v) => { setAgree(v === true); setErr(null); }} className="mt-0.5 size-5 rounded-md" />
                   <Label htmlFor="agree" className="text-sm font-normal leading-relaxed text-muted-foreground">
-                    {A.agree1}<Link to="/terms" className="font-semibold text-foreground underline underline-offset-4">{A.terms}</Link>{A.agree2}
-                    <Link to="/privacy" className="font-semibold text-foreground underline underline-offset-4">{A.privacy}</Link>.
+                    {t.auth.agree1}<Link to="/terms" className="font-semibold text-foreground underline underline-offset-4">{t.auth.terms}</Link>{t.auth.agree2}
+                    <Link to="/privacy" className="font-semibold text-foreground underline underline-offset-4">{t.auth.privacy}</Link>.
                   </Label>
                 </div>
                 {errorBox}
-                <Button type="submit" variant="hero" className="w-full" disabled={busy}>{busy ? A.creating : A.createAccount}</Button>
+                <Button type="submit" variant="hero" className="w-full" disabled={busy}>{busy ? t.auth.creating : t.auth.createAccount}</Button>
               </form>
             )}
           </>
@@ -236,27 +235,27 @@ function AuthPage() {
         {(step === "verify-signup" || step === "verify-code") && (
           <form onSubmit={verify} noValidate>
             {back}
-            <h1 className="text-3xl font-extrabold tracking-tight">{A.codeTitle}</h1>
-            {unverified && <p role="status" className="mt-2 text-sm text-muted-foreground">{A.unverifiedNote}</p>}
-            <p className="mt-2 text-muted-foreground">{A.verifySubtitle(clean())}</p>
-            {step === "verify-signup" && <p className="mt-2 text-sm text-muted-foreground">{A.existingAccountNote}</p>}
+            <h1 className="text-3xl font-extrabold tracking-tight">{t.auth.codeTitle}</h1>
+            {unverified && <p role="status" className="mt-2 text-sm text-muted-foreground">{t.auth.unverifiedNote}</p>}
+            <p className="mt-2 text-muted-foreground">{t.auth.verifySubtitle(clean())}</p>
+            {step === "verify-signup" && <p className="mt-2 text-sm text-muted-foreground">{t.auth.existingAccountNote}</p>}
             {clean().endsWith("@students.wiut.uz") && (
               <div className="mt-5">
-                <Button asChild variant="glass" className="w-full"><a href="https://outlook.office.com/mail/" target="_blank" rel="noopener">{A.openOutlook}</a></Button>
-                <p className="mt-2 text-sm text-muted-foreground">{A.junkHint}</p>
+                <Button asChild variant="glass" className="w-full"><a href="https://outlook.office.com/mail/" target="_blank" rel="noopener">{t.auth.openOutlook}</a></Button>
+                <p className="mt-2 text-sm text-muted-foreground">{t.auth.junkHint}</p>
               </div>
             )}
             <div className="mt-7 border-t border-border pt-5">
-              <p className="mb-4 text-sm text-muted-foreground">{A.codeAlternative}</p>
+              <p className="mb-4 text-sm text-muted-foreground">{t.auth.codeAlternative}</p>
               <CodeField value={code} onChange={(v) => { setCode(v); setErr(null); }} />
               {errorBox}
-              <Button type="submit" variant="hero" className="mt-6 w-full" disabled={busy || code.length !== 6}>{busy ? A.verifying : A.verify}</Button>
+              <Button type="submit" variant="hero" className="mt-6 w-full" disabled={busy || code.length !== 6}>{busy ? t.auth.verifying : t.auth.verify}</Button>
             </div>
             <div className="mt-2">
               <ResendButton onResend={async () => {
                 if (step === "verify-signup") await supabase.auth.resend({ type: "signup", email: clean(), options: { emailRedirectTo: `${window.location.origin}/auth` } });
                 else await requestCode();
-                toast.success(A.resent);
+                toast.success(t.auth.resent);
               }} />
             </div>
           </form>
@@ -265,45 +264,45 @@ function AuthPage() {
         {step === "code-request" && (
           <form onSubmit={requestCode} noValidate className="space-y-5">
             {back}
-            <h1 className="text-3xl font-extrabold tracking-tight">{A.codeInstead}</h1>
+            <h1 className="text-3xl font-extrabold tracking-tight">{t.auth.codeInstead}</h1>
             <EmailHelp />
             <EmailField value={email} onChange={(v) => { setEmail(v); setErr(null); }} autoFocus />
             {errorBox}
-            <Button type="submit" variant="hero" className="w-full" disabled={busy}>{busy ? A.sending : A.sendCode}</Button>
+            <Button type="submit" variant="hero" className="w-full" disabled={busy}>{busy ? t.auth.sending : t.auth.sendCode}</Button>
           </form>
         )}
 
         {step === "forgot" && (
           <form onSubmit={requestReset} noValidate className="space-y-5">
             {back}
-            <h1 className="text-3xl font-extrabold tracking-tight">{A.forgotTitle}</h1>
-            <p className="-mt-2 text-muted-foreground">{A.forgotSubtitle}</p>
+            <h1 className="text-3xl font-extrabold tracking-tight">{t.auth.forgotTitle}</h1>
+            <p className="-mt-2 text-muted-foreground">{t.auth.forgotSubtitle}</p>
             <EmailHelp />
             <EmailField value={email} onChange={(v) => { setEmail(v); setErr(null); }} autoFocus />
             {errorBox}
-            <Button type="submit" variant="hero" className="w-full" disabled={busy}>{busy ? A.sending : A.sendReset}</Button>
+            <Button type="submit" variant="hero" className="w-full" disabled={busy}>{busy ? t.auth.sending : t.auth.sendReset}</Button>
           </form>
         )}
 
         {step === "reset" && (
           <form onSubmit={resetPassword} noValidate>
             {back}
-            <h1 className="text-3xl font-extrabold tracking-tight">{A.codeTitle}</h1>
-            <p className="mt-2 text-muted-foreground">{A.resetSubtitle(clean())}</p>
+            <h1 className="text-3xl font-extrabold tracking-tight">{t.auth.codeTitle}</h1>
+            <p className="mt-2 text-muted-foreground">{t.auth.resetSubtitle(clean())}</p>
             {clean().endsWith("@students.wiut.uz") && (
               <div className="mt-5">
-                <Button asChild variant="glass" className="w-full"><a href="https://outlook.office.com/mail/" target="_blank" rel="noopener">{A.openOutlook}</a></Button>
-                <p className="mt-2 text-sm text-muted-foreground">{A.junkHint}</p>
+                <Button asChild variant="glass" className="w-full"><a href="https://outlook.office.com/mail/" target="_blank" rel="noopener">{t.auth.openOutlook}</a></Button>
+                <p className="mt-2 text-sm text-muted-foreground">{t.auth.junkHint}</p>
               </div>
             )}
             <div className="mt-7 space-y-5 border-t border-border pt-5">
-              <p className="text-sm text-muted-foreground">{A.resetCodeAlternative}</p>
+              <p className="text-sm text-muted-foreground">{t.auth.resetCodeAlternative}</p>
               <CodeField value={code} onChange={(v) => { setCode(v); setErr(null); }} />
-              <PasswordField value={password} onChange={(v) => { setPassword(v); setErr(null); }} isNew label={A.newPassword} id="new-password" />
+              <PasswordField value={password} onChange={(v) => { setPassword(v); setErr(null); }} isNew label={t.auth.newPassword} id="new-password" />
               {errorBox}
-              <Button type="submit" variant="hero" className="w-full" disabled={busy || code.length !== 6}>{busy ? A.verifying : A.savePassword}</Button>
+              <Button type="submit" variant="hero" className="w-full" disabled={busy || code.length !== 6}>{busy ? t.auth.verifying : t.auth.savePassword}</Button>
             </div>
-            <div className="mt-2"><ResendButton onResend={async () => { await requestReset(); toast.success(A.resent); }} /></div>
+            <div className="mt-2"><ResendButton onResend={async () => { await requestReset(); toast.success(t.auth.resent); }} /></div>
           </form>
         )}
       </div>

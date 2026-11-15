@@ -1,10 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { formatDistanceToNow } from "date-fns";
 import { Send as SendIcon, XCircle } from "lucide-react";
 import { useState } from "react";
-import { t } from "@/i18n";
+import { t, timeAgo } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { replyAsMember } from "@/lib/replies.functions";
 import { MessageTabs } from "@/components/site/message-tabs";
@@ -86,7 +85,7 @@ function SentPage() {
               >
                 <span className="block min-w-0">
                   <span className="mb-2 flex flex-wrap items-center gap-2 text-xs font-semibold text-muted-foreground">
-                    <span>{m.to_name ? S.to(m.to_name) : S.toUnknown} · {formatDistanceToNow(new Date(m.sent_at), { addSuffix: true })}</span>
+                    <span>{m.to_name ? S.to(m.to_name) : S.toUnknown} · {timeAgo(m.sent_at)}</span>
                     <span className={cn("rounded-full px-2 py-0.5 text-[11px] font-bold", m.state === "not_delivered" ? "bg-destructive/10 text-destructive" : "bg-muted text-muted-foreground")}>{label(m.state)}</span>
                     {m.awaiting_you ? (
                       <span className="rounded-full bg-coral px-2 py-0.5 text-[11px] font-bold text-coral-foreground">{S.yourTurn}</span>
@@ -106,7 +105,7 @@ function SentPage() {
         <DialogContent className={cn("max-h-[88dvh] overflow-y-auto bg-popover md:w-[calc(100%-2rem)] md:max-w-lg md:rounded-[28px]", SHEET_CLASS)}>
           <DialogHeader>
             <DialogTitle className="text-sm font-semibold text-muted-foreground">
-              {open?.to_name ? S.to(open.to_name) : S.toUnknown} · {open && formatDistanceToNow(new Date(open.sent_at), { addSuffix: true })}
+              {open?.to_name ? S.to(open.to_name) : S.toUnknown} · {open && timeAgo(open.sent_at)}
             </DialogTitle>
             <DialogDescription className="sr-only">{S.title}</DialogDescription>
           </DialogHeader>

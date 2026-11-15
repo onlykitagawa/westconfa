@@ -1,7 +1,6 @@
-import { formatDistanceToNow } from "date-fns";
 import { Send } from "lucide-react";
 import { useState } from "react";
-import { t } from "@/i18n";
+import { t, timeAgo } from "@/i18n";
 import { MAX_MESSAGE_LENGTH } from "@/lib/moderation";
 import type { ReplyResult } from "@/lib/replies.functions";
 import { Button } from "@/components/ui/button";
@@ -20,7 +19,7 @@ export function ThreadBubbles({ rows, viewer }: { rows: ThreadRow[]; viewer: "ow
         return (
           <li key={r.id} className={cn("flex flex-col", mine ? "items-end" : "items-start")}>
             <span className="mb-1 px-1 text-xs font-semibold text-muted-foreground">
-              {label} · {formatDistanceToNow(new Date(r.created_at), { addSuffix: true })}
+              {label} · {timeAgo(r.created_at)}
             </span>
             <p
               className={cn(

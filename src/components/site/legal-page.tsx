@@ -5,6 +5,7 @@ export function LegalPage({ doc }: { doc: LegalDoc }) {
   return (
     <main className="mx-auto max-w-2xl px-5 pt-8 md:pt-16">
       <article className="animate-rise">
+        {t.common.legalEnglishOnly && <p className="mb-4 rounded-2xl bg-accent p-4 text-sm text-accent-foreground">{t.common.legalEnglishOnly}</p>}
         <p className="text-sm font-semibold text-muted-foreground">{t.common.lastUpdated}</p>
         <h1 className="mt-3 text-4xl font-extrabold tracking-tight md:text-5xl">{doc.title}</h1>
         <p className="mt-6 text-lg leading-relaxed text-muted-foreground">{doc.intro}</p>

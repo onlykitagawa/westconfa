@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { ThemeToggle } from "./theme";
 import { ShareDialog } from "./share-dialog";
 import { UserAvatar } from "./avatar";
+import { LanguageSelect } from "./language";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { badgeText, useAppBadge, useBadges } from "@/lib/inbox-data";
 import { cn } from "@/lib/utils";
@@ -214,28 +215,12 @@ export function MobileNav() {
 
 // Feedback. Saved into contact_messages (the admin "Contact" tab) with the name "Feedback · /page".
 // No word filter or AI check here on purpose: only admins can read it. English-only for now.
-const F = {
-  button: "Send feedback",
-  dialogTitle: "Share your feedback",
-  dialogBody: "Tell us what's confusing, broken or missing, or what you like. Every note is read by the team.",
-  sectionTitle: "Help us make west confa better",
-  sectionBody:
-    "We're a small student project, so every bit of feedback really helps: ideas, bugs, things you love or hate. It goes straight to the people building this.",
-  label: "Your feedback",
-  placeholder: "What should we fix, add or keep?",
-  emailLabel: "Email (optional, only if you'd like a reply)",
-  sending: "Sending…",
-  thanks: "Thank you! Your feedback reached us.",
-  another: "Send more",
-  empty: "Please write something first.",
-  badEmail: "That email doesn't look right. Leave it empty to stay anonymous.",
-  wait: "Thanks! Please wait a few seconds before sending more.",
-};
 const ANON_EMAIL = "anonymous@feedback.invalid";
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 let lastFeedbackAt = 0;
 
 function FeedbackForm({ idPrefix }: { idPrefix: string }) {
+  const F = t.feedback;
   const [body, setBody] = useState("");
   const [email, setEmail] = useState("");
   const [trap, setTrap] = useState("");
@@ -335,27 +320,8 @@ function FeedbackForm({ idPrefix }: { idPrefix: string }) {
   );
 }
 
-// The bigger feedback block for the landing page.
-export function FeedbackSection() {
-  return (
-    <section className="mx-auto max-w-2xl px-5 py-16 md:py-24" aria-labelledby="feedback">
-      <div className="glass rounded-[32px] p-7 md:p-10">
-        <span className="mx-auto grid size-12 place-items-center rounded-full bg-accent text-accent-foreground">
-          <MessageSquare className="size-6" aria-hidden="true" />
-        </span>
-        <h2 id="feedback" className="mt-5 text-center text-3xl font-extrabold md:text-4xl">
-          {F.sectionTitle}
-        </h2>
-        <p className="mx-auto mt-3 max-w-md text-center leading-relaxed text-muted-foreground">{F.sectionBody}</p>
-        <div className="mt-8">
-          <FeedbackForm idPrefix="fb-section" />
-        </div>
-      </div>
-    </section>
-  );
-}
-
 function FeedbackButton() {
+  const F = t.feedback;
   const [open, setOpen] = useState(false);
   return (
     <>
@@ -407,7 +373,10 @@ export function Footer() {
             {t.footer.contact}
           </Link>
         </nav>
-        <p className="max-w-sm">{t.footer.disclaimer}</p>
+        <div className="flex flex-col gap-4 md:items-end">
+          <LanguageSelect />
+          <p className="max-w-sm">{t.footer.disclaimer}</p>
+        </div>
       </div>
     </footer>
   );

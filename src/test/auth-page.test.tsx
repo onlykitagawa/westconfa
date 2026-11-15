@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({ signUp: vi.fn(), otp: vi.fn(), resend: vi.fn()
 vi.mock("@tanstack/react-router", () => ({
   createFileRoute: () => (options: unknown) => ({ options }),
   useNavigate: () => mocks.navigate,
+  useSearch: () => ({}),
   Link: ({ children }: { children: React.ReactNode }) => <span>{children}</span>,
 }));
 vi.mock("@tanstack/react-start", () => ({ useServerFn: () => mocks.signIn }));
@@ -20,6 +21,7 @@ vi.mock("@/components/site/auth-fields", () => ({
   PasswordField: ({ value, onChange }: { value: string; onChange: (value: string) => void }) => <input aria-label="password" value={value} onChange={(e) => onChange(e.target.value)} />,
   CodeField: ({ value, onChange }: { value: string; onChange: (value: string) => void }) => <input aria-label="code" value={value} onChange={(e) => onChange(e.target.value)} />,
   ResendButton: () => null,
+  EmailHelp: () => null,
 }));
 
 import { Route } from "@/routes/auth";

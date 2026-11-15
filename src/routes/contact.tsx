@@ -20,11 +20,12 @@ export const Route = createFileRoute("/contact")({
   component: Contact,
 });
 
-const schema = z.object({
-  name: z.string().trim().min(1, "Please add your name").max(100),
-  email: z.string().trim().email("Please enter a valid email").max(255),
-  body: z.string().trim().min(1, "Please write a message").max(2000),
-});
+const makeSchema = () =>
+  z.object({
+    name: z.string().trim().min(1, t.contact.errName).max(100),
+    email: z.string().trim().email(t.contact.errEmail).max(255),
+    body: z.string().trim().min(1, t.contact.errBody).max(2000),
+  });
 
 function Contact() {
   const [form, setForm] = useState({ name: "", email: "", body: "" });
@@ -34,7 +35,7 @@ function Contact() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const parsed = schema.safeParse(form);
+    const parsed = makeSchema().safeParse(form);
     if (!parsed.success) return setErr(parsed.error.issues[0]?.message ?? t.common.somethingWrong);
     setBusy(true);
     setErr(null);
