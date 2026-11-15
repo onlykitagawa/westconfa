@@ -4,7 +4,6 @@ import { EyeOff, ShieldCheck, SlidersHorizontal } from "lucide-react";
 import { t } from "@/i18n";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { FeedbackSection } from "@/components/site/chrome";
 import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/")({
@@ -46,16 +45,14 @@ function Landing() {
         <div className="relative mx-auto mt-10 max-w-6xl md:min-h-[250px]">
           <div className="relative z-10 mx-auto flex max-w-[17rem] flex-col items-center">
             <Button asChild variant="hero" size="lg" className="h-14 px-10">
-              {user ? <Link to="/inbox">{t.common.openInbox}</Link> : <Link to="/auth" search={{ mode: "signup" }}>{t.common.getMyLink}</Link>}
+              <Link to="/auth" search={{ mode: "signup" }}>{t.common.getMyLink}</Link>
             </Button>
-            {!user && (
-              <Link
-                to="/auth"
-                className="mt-3 rounded-lg px-2 py-2 text-sm font-semibold text-muted-foreground hover:text-foreground"
-              >
-                {t.common.signIn}
-              </Link>
-            )}
+            <Link
+              to="/auth"
+              className="mt-3 rounded-lg px-2 py-2 text-sm font-semibold text-muted-foreground hover:text-foreground"
+            >
+              {t.common.signIn}
+            </Link>
             <p className="mt-4 text-sm leading-relaxed text-muted-foreground">{L.note}</p>
           </div>
           <div aria-hidden="true" className="mt-12 flex flex-col gap-7 text-left md:mt-0">
@@ -132,7 +129,15 @@ function Landing() {
         </Accordion>
       </section>
 
-      <FeedbackSection />
+      <section className="mx-auto max-w-2xl px-5 pb-8 pt-8 md:pb-12" aria-labelledby="cta">
+        <div className="glass rounded-[32px] p-8 text-center md:p-12">
+          <h2 id="cta" className="text-3xl font-extrabold md:text-4xl">{L.ctaTitle}</h2>
+          <p className="mx-auto mt-3 max-w-md leading-relaxed text-muted-foreground">{L.ctaBody}</p>
+          <Button asChild variant="hero" size="lg" className="mt-8 h-14 px-10">
+            <Link to="/auth" search={{ mode: "signup" }}>{t.common.getMyLink}</Link>
+          </Button>
+        </div>
+      </section>
     </main>
   );
 }

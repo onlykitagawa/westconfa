@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { Check, Inbox, LogOut, MessageSquare, Search, Send, Settings as SettingsIcon, Share2, Shield, User } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
@@ -382,11 +382,16 @@ function FeedbackButton() {
 
 export function Footer() {
   const l = "rounded-lg px-1 hover:text-foreground";
+  const { pathname } = useLocation();
+  // People sending a message (or checking one) are guests; keep their pages calm.
+  const guestPage = pathname.startsWith("/u/") || pathname.startsWith("/m/");
   return (
     <footer className="mx-auto mt-24 max-w-6xl px-5 pb-32 md:pb-12">
-      <div className="flex justify-center pb-8">
-        <FeedbackButton />
-      </div>
+      {!guestPage && (
+        <div className="flex justify-center pb-8">
+          <FeedbackButton />
+        </div>
+      )}
       <div className="flex flex-col gap-6 border-t pt-8 text-sm text-muted-foreground md:flex-row md:items-center md:justify-between">
         <nav className="flex flex-wrap gap-x-5 gap-y-3" aria-label="Legal">
           <Link to="/privacy" className={l}>

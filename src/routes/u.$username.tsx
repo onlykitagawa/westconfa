@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { Check, Copy, ExternalLink, Flag, Lock, Send, Share2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { t } from "@/i18n";
 import { reportAvatar } from "@/lib/avatar.functions";
@@ -116,6 +116,17 @@ function SendPage() {
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [tracker, setTracker] = useState<string | null>(null);
+  const box = useRef<HTMLTextAreaElement>(null);
+  const applyIdea = (text: string) => {
+    setBody(text);
+    setError(null);
+    requestAnimationFrame(() => {
+      const el = box.current;
+      if (!el) return;
+      el.focus();
+      el.setSelectionRange(text.length, text.length);
+    });
+  };
 
   if (!profile) {
     return (
@@ -200,16 +211,35 @@ function SendPage() {
         ) : (
           <form onSubmit={submit} className="mt-6" noValidate>
             <label htmlFor="msg" className="sr-only">{t.send.label}</label>
+            {!body && (
+              <div className="mb-3">
+                <p className="mb-2 px-1 text-xs font-semibold text-muted-foreground">{t.send.ideasLabel}</p>
+                <div className="flex flex-wrap gap-2">
+                  {t.send.ideas.map((idea) => (
+                    <button key={idea.label} type="button" onClick={() => applyIdea(idea.text)} className="press rounded-full border bg-field px-3.5 py-2 text-sm font-semibold hover:bg-accent">
+                      {idea.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
             <textarea
+              ref={box}
               id="msg"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+                  e.preventDefault();
+                  e.currentTarget.form?.requestSubmit();
+                }
+              }}
               value={body}
               onChange={(e) => { setBody(e.target.value.slice(0, MAX_MESSAGE_LENGTH)); setError(null); }}
               placeholder={t.send.placeholder}
-              rows={6}
+              rows={4}
               maxLength={MAX_MESSAGE_LENGTH}
               aria-describedby="counter msg-error"
               aria-invalid={!!error}
-               className="min-h-[220px] w-full resize-none rounded-[22px] border border-input bg-field p-[18px] text-[17px] leading-relaxed outline-none transition placeholder:text-muted-foreground focus:border-ring focus:ring-4 focus:ring-ring/30"
+              className="max-h-[45dvh] min-h-[136px] w-full [field-sizing:content] md:min-h-[180px] resize-none rounded-[22px] border border-input bg-field p-[18px] text-[17px] leading-relaxed outline-none transition placeholder:text-muted-foreground focus:border-ring focus:ring-4 focus:ring-ring/30"
             />
             {/* Honeypot: hidden from people and assistive tech */}
             <div aria-hidden className="absolute -left-[9999px] h-0 w-0 overflow-hidden">
@@ -224,13 +254,11 @@ function SendPage() {
             <Button type="submit" variant="hero" size="lg" className="mt-4 w-full" disabled={sending || !body.trim()}>
               <Send /> {sending ? t.send.sending : t.send.button}
             </Button>
-            <p className="mt-3 text-center text-xs text-muted-foreground">{t.send.publicNote}</p>
+            <p className="mt-3 flex items-start justify-center gap-2 text-center text-xs leading-relaxed text-muted-foreground">
+              <Lock className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" /> <span>{t.send.oneNote} <span className="hidden md:inline">· {t.send.shortcut}</span></span>
+            </p>
           </form>
         )}
-
-        <p className="mt-6 flex items-center justify-center gap-2 text-center text-sm text-muted-foreground">
-          <Lock className="size-4 shrink-0" /> {t.send.note}
-        </p>
       </div>
       <AnswerCards username={profile.username} isOwner={me?.username === profile.username} canReport={!!user && me?.username !== profile.username} />
       {!loading && !user && <p className="mt-5 text-center text-sm text-muted-foreground">{t.send.wantOwnLink} <Link to="/auth" search={{ mode: "signup" }} className="rounded-sm underline underline-offset-4 hover:text-foreground">{t.send.getYours}</Link></p>}
