@@ -76,13 +76,19 @@ function AnswerCards({ username, isOwner, canReport }: { username: string; isOwn
   const refresh = () => qc.invalidateQueries({ queryKey: ["answers", username] });
   const remove = async (id: string) => {
     const { error } = await supabase.from("public_answers").delete().eq("id", id);
-    if (error) return toast.error(t.common.somethingWrong);
+    if (error) {
+      toast.error(t.common.somethingWrong);
+      return;
+    }
     toast.success(t.send.qaRemoved);
     refresh();
   };
   const report = async (id: string) => {
     const { error } = await supabase.rpc("report_answer", { _answer_id: id });
-    if (error) return toast.error(t.common.somethingWrong);
+    if (error) {
+      toast.error(t.common.somethingWrong);
+      return;
+    }
     toast.success(t.send.qaReported);
   };
   if (!q.data?.length) return null;
