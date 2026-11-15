@@ -697,6 +697,10 @@ export type Database = {
         Returns: undefined
       }
       start_avatar_upload: { Args: { _user: string }; Returns: undefined }
+      store_admin_message: {
+        Args: { _body: string; _recipient_id: string; _sender_user_id: string }
+        Returns: string
+      }
       store_screened_message: {
         Args: {
           _anonymous: boolean

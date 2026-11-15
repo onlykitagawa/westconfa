@@ -65,7 +65,7 @@ function SendPage() {
   const { username } = Route.useParams();
   const send = useServerFn(sendMessage);
   const reportAvatarFn = useServerFn(reportAvatar);
-  const { profile: me, user, loading } = useAuth();
+  const { profile: me, user, loading, isAdmin } = useAuth();
   const [body, setBody] = useState("");
   const [website, setWebsite] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -88,7 +88,7 @@ function SendPage() {
     setError(null);
     const trimmed = body.trim();
     if (!trimmed) return setError(t.send.errors.empty);
-    if (checkMessage(trimmed) === "personal") return setError(t.send.errors.personal);
+    if (!isAdmin && checkMessage(trimmed) === "personal") return setError(t.send.errors.personal);
     setSending(true);
     try {
       const res = await send({ data: { username, body: trimmed, website } });

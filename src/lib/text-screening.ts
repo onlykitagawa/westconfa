@@ -6,10 +6,13 @@ export type Screened = { ok: true; body: string; status: "approved" | "pending";
 
 // Same rules as a first message: contact details are refused, the AI blocks only the worst,
 // swearing/threat words and anything the AI is unsure about are held ("pending") for a human.
-export async function screenText(raw: string, reviewAll: boolean): Promise<Screened> {
+// `trusted` is for admins: the text is accepted as written (only empty or over-long text is
+// refused, because the database has the same length limit).
+export async function screenText(raw: string, reviewAll: boolean, trusted = false): Promise<Screened> {
   const body = raw.trim();
   if (!body) return { ok: false, code: "empty" };
   if (body.length > MAX_MESSAGE_LENGTH) return { ok: false, code: "generic" };
+  if (trusted) return { ok: true, body, status: "approved", reason: "Written by an admin." };
   const filterHit = checkMessage(body);
   if (filterHit === "personal") return { ok: false, code: "personal" };
   const { callModerationAI } = await import("./ai-moderation.server");

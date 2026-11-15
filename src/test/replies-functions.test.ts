@@ -7,6 +7,7 @@ const mocks = vi.hoisted(() => ({
   rpc: vi.fn(),
   own: null as unknown,
   reviewAll: false,
+  admin: false,
   thread: [] as unknown[],
 }));
 vi.mock("@tanstack/react-start", () => {
@@ -22,7 +23,7 @@ vi.mock("@/integrations/supabase/client.server", () => ({
       const q: Query = {
         select: () => q,
         eq: () => q,
-        maybeSingle: async () => ({ data: table === "messages" ? mocks.own : { value: mocks.reviewAll }, error: null }),
+        maybeSingle: async () => ({ data: table === "messages" ? mocks.own : table === "user_roles" ? (mocks.admin ? { role: "admin" } : null) : { value: mocks.reviewAll }, error: null }),
       };
       return q;
     },
@@ -44,6 +45,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   mocks.own = { id: "m1" };
   mocks.reviewAll = false;
+  mocks.admin = false;
   setThread([{}]);
   mocks.ai.mockResolvedValue(allow);
   mocks.rpc.mockImplementation(async (name: string) => (name === "message_thread" ? { data: mocks.thread, error: null } : { data: "new-id", error: null }));
@@ -110,4 +112,18 @@ it("database refusals map to friendly codes", async () => {
   expect(await owner({ data: { messageId: id, body: "hello" }, context: { userId: "u1" } })).toEqual({ ok: false, code: "closed" });
   mocks.rpc.mockResolvedValue({ data: null, error: { message: "duplicate key", code: "23505" } });
   expect(await answer({ data: { messageId: id, answer: "hello" }, context: { userId: "u1" } })).toEqual({ ok: false, code: "duplicate" });
+});
+
+it("an admin's replies and public answers skip the checks", async () => {
+  mocks.admin = true;
+  const text = "call me +998 90 123 45 67, idiot";
+  expect(await owner({ data: { messageId: "m1", body: text }, context: { userId: "admin-1" } })).toEqual({ ok: true, held: false });
+  expect(await answer({ data: { messageId: "m1", answer: text }, context: { userId: "admin-1" } })).toEqual({ ok: true, held: false });
+  expect(mocks.ai).not.toHaveBeenCalled();
+  expect(mocks.rpc).toHaveBeenCalledWith("add_owner_reply", expect.objectContaining({ _body: text, _status: "approved" }));
+  expect(mocks.rpc).toHaveBeenCalledWith("publish_answer", expect.objectContaining({ _answer: text, _status: "approved" }));
+});
+
+it("a normal student still gets the checks", async () => {
+  expect(await owner({ data: { messageId: "m1", body: "call me +998 90 123 45 67" }, context: { userId: "user-1" } })).toEqual({ ok: false, code: "personal" });
 });

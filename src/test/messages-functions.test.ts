@@ -1,5 +1,5 @@
 import { beforeEach, expect, it, vi } from "vitest";
-const mocks = vi.hoisted(() => ({ ai: vi.fn(), store: vi.fn(), from: vi.fn(), getUser: vi.fn(), headers: {} as Record<string, string> }));
+const mocks = vi.hoisted(() => ({ ai: vi.fn(), store: vi.fn(), from: vi.fn(), getUser: vi.fn(), admin: false, headers: {} as Record<string, string> }));
 vi.mock("@tanstack/react-start", () => ({ createServerFn: () => ({ inputValidator: () => ({ handler: (fn: unknown) => fn }) }) }));
 vi.mock("@tanstack/react-start/server", () => ({ getRequest: () => new Request("http://localhost", { headers: mocks.headers }) }));
 vi.mock("@/lib/ai-moderation.server", () => ({ callModerationAI: mocks.ai }));
@@ -8,11 +8,12 @@ import { sendMessage } from "@/lib/messages.functions";
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.headers = {};
+  mocks.admin = false;
   mocks.from.mockImplementation((table: string) => {
     const q = {
       select: () => q, eq: () => q, delete: () => q,
       gte: async () => ({ count: 0 }), lt: async () => ({}),
-      maybeSingle: async () => ({ data: table === "profiles" ? { id: "recipient", inbox_paused: false, suspended: false } : { value: false }, error: null }),
+      maybeSingle: async () => ({ data: table === "profiles" ? { id: "recipient", inbox_paused: false, suspended: false } : table === "user_roles" ? (mocks.admin ? { role: "admin" } : null) : { value: false }, error: null }),
     };
     return q;
   });
@@ -68,4 +69,33 @@ it("word-filter hits are held for a moderator instead of being rejected", async 
 it("contact details are still refused before storage", async () => {
   expect(await send({ data: { username: "student", body: "call me +998 90 123 45 67" } })).toEqual({ ok: false, code: "personal" });
   expect(mocks.store).not.toHaveBeenCalled();
+});
+it("an admin's message skips every check and goes straight to the inbox", async () => {
+  mocks.admin = true;
+  mocks.headers = { authorization: "Bearer tok" };
+  mocks.getUser.mockResolvedValue({ data: { user: { id: "admin-1" } } });
+  mocks.store.mockResolvedValue({ data: "message-9", error: null });
+  const body = "call me +998 90 123 45 67 you retard";
+  expect(await send({ data: { username: "student", body } })).toMatchObject({ ok: true });
+  expect(mocks.ai).not.toHaveBeenCalled();
+  expect(mocks.store).toHaveBeenCalledWith("store_admin_message", { _recipient_id: "recipient", _body: body, _sender_user_id: "admin-1" });
+  expect(mocks.store).not.toHaveBeenCalledWith("store_screened_message", expect.anything());
+  expect(mocks.store).toHaveBeenCalledWith("attach_message_tracker", expect.objectContaining({ _message_id: "message-9" }));
+});
+it("the admin path is only for signed-in admins", async () => {
+  const contact = "call me +998 90 123 45 67";
+  mocks.admin = true; // even if the roles table said so, a guest has no account to look up
+  expect(await send({ data: { username: "student", body: contact } })).toEqual({ ok: false, code: "personal" });
+  mocks.admin = false;
+  mocks.headers = { authorization: "Bearer tok" };
+  mocks.getUser.mockResolvedValue({ data: { user: { id: "sender-1" } } });
+  expect(await send({ data: { username: "student", body: contact } })).toEqual({ ok: false, code: "personal" });
+  expect(mocks.store).not.toHaveBeenCalled();
+});
+it("a failure in the admin path is reported, not hidden", async () => {
+  mocks.admin = true;
+  mocks.headers = { authorization: "Bearer tok" };
+  mocks.getUser.mockResolvedValue({ data: { user: { id: "admin-1" } } });
+  mocks.store.mockResolvedValue({ data: null, error: { message: "boom" } });
+  expect(await send({ data: { username: "student", body: "hi" } })).toEqual({ ok: false, code: "generic" });
 });

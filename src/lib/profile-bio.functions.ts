@@ -14,12 +14,13 @@ export const updateBio = createServerFn({ method: "POST" })
   .handler(async ({ data, context }): Promise<BioResult> => {
     const bio = data.bio.trim();
     if (bio.length > BIO_MAX_LENGTH) return { ok: false, code: "generic" };
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     if (bio) {
-      const s = await screenText(bio, false);
+      const { isAdminUser } = await import("./admin-check.server");
+      const s = await screenText(bio, false, await isAdminUser(supabaseAdmin, context.userId));
       if (!s.ok) return { ok: false, code: s.code === "personal" || s.code === "blocked" ? s.code : "generic" };
       if (s.status === "pending") return { ok: false, code: "held" };
     }
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin.rpc("set_profile_bio", { _user: context.userId, _bio: bio });
     return error ? { ok: false, code: "generic" } : { ok: true };
   });

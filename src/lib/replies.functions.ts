@@ -35,7 +35,8 @@ export const replyToMessage = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: own } = await supabaseAdmin.from("messages").select("id").eq("id", data.messageId).eq("recipient_id", context.userId).eq("status", "approved").eq("hidden", false).maybeSingle();
     if (!own) return { ok: false, code: "notfound" };
-    const s = await screenText(data.body, false);
+    const { isAdminUser } = await import("./admin-check.server");
+    const s = await screenText(data.body, false, await isAdminUser(supabaseAdmin, context.userId));
     if (!s.ok) return s;
     const { error } = await supabaseAdmin.rpc("add_owner_reply", { _owner: context.userId, _message_id: data.messageId, _body: s.body, _status: s.status, _reason: s.reason });
     return error ? { ok: false, code: mapError(error) } : { ok: true, held: s.status === "pending" };
@@ -69,7 +70,8 @@ export const answerPublicly = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: own } = await supabaseAdmin.from("messages").select("id").eq("id", data.messageId).eq("recipient_id", context.userId).eq("status", "approved").eq("hidden", false).maybeSingle();
     if (!own) return { ok: false, code: "notfound" };
-    const s = await screenText(data.answer, false);
+    const { isAdminUser } = await import("./admin-check.server");
+    const s = await screenText(data.answer, false, await isAdminUser(supabaseAdmin, context.userId));
     if (!s.ok) return s;
     const { error } = await supabaseAdmin.rpc("publish_answer", { _owner: context.userId, _message_id: data.messageId, _answer: s.body, _status: s.status, _reason: s.reason });
     return error ? { ok: false, code: mapError(error) } : { ok: true, held: s.status === "pending" };

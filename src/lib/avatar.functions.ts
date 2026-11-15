@@ -32,17 +32,21 @@ export const uploadAvatar = createServerFn({ method: "POST" })
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { removeAvatarObject } = await import("./avatar-storage.server");
-    const gate = await supabaseAdmin.rpc("start_avatar_upload", { _user: context.userId });
-    if (gate.error) return { ok: false, code: mapError(gate.error) };
+    // Admins skip the hourly limit and the AI check (the file itself is still validated above).
+    const { isAdminUser } = await import("./admin-check.server");
+    if (!(await isAdminUser(supabaseAdmin, context.userId))) {
+      const gate = await supabaseAdmin.rpc("start_avatar_upload", { _user: context.userId });
+      if (gate.error) return { ok: false, code: mapError(gate.error) };
 
-    let allowed = false;
-    try {
-      const { callAvatarAI } = await import("./avatar-screening.server");
-      allowed = parseAvatarVerdict(await callAvatarAI(bytesToBase64(clean.bytes)));
-    } catch {
-      return { ok: false, code: "unavailable" };
+      let allowed = false;
+      try {
+        const { callAvatarAI } = await import("./avatar-screening.server");
+        allowed = parseAvatarVerdict(await callAvatarAI(bytesToBase64(clean.bytes)));
+      } catch {
+        return { ok: false, code: "unavailable" };
+      }
+      if (!allowed) return { ok: false, code: "refused" };
     }
-    if (!allowed) return { ok: false, code: "refused" };
 
     const path = `${context.userId}/${crypto.randomUUID()}.jpg`;
     const stored = await supabaseAdmin.storage.from(BUCKET).upload(path, clean.bytes, { contentType: "image/jpeg", cacheControl: "31536000", upsert: false });

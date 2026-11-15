@@ -1,4 +1,6 @@
 import { beforeEach, expect, it, vi } from "vitest";
+
+type Q = { select: () => Q; eq: () => Q; maybeSingle: () => Promise<{ data: unknown; error: null }> };
 import { bytesToBase64 } from "@/lib/avatar-image";
 
 const mocks = vi.hoisted(() => ({
@@ -8,6 +10,7 @@ const mocks = vi.hoisted(() => ({
   upload: vi.fn(),
   remove: vi.fn(),
   publicUrl: vi.fn(),
+  admin: false,
 }));
 vi.mock("@tanstack/react-start", () => {
   const builder = { middleware: () => builder, inputValidator: () => builder, handler: (fn: unknown) => fn };
@@ -18,6 +21,10 @@ vi.mock("@/lib/avatar-screening.server", () => ({ callAvatarAI: mocks.ai }));
 vi.mock("@/integrations/supabase/client.server", () => ({
   supabaseAdmin: {
     rpc: mocks.rpc,
+    from: () => {
+      const q: Q = { select: () => q, eq: () => q, maybeSingle: async () => ({ data: mocks.admin ? { role: "admin" } : null, error: null }) };
+      return q;
+    },
     storage: { from: () => ({ upload: mocks.upload, remove: mocks.remove, getPublicUrl: mocks.publicUrl }) },
   },
 }));
@@ -42,6 +49,7 @@ const OLD_URL = "https://x.supabase.co/storage/v1/object/public/avatars/user-1/o
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mocks.admin = false;
   mocks.ai.mockResolvedValue(verdict("allow"));
   mocks.rpc.mockImplementation(async (name: string) => ({ data: name === "set_profile_avatar" ? OLD_URL : null, error: null }));
   mocks.adminRpc.mockResolvedValue({ data: OLD_URL, error: null });
@@ -132,4 +140,12 @@ it("only admins can remove someone else's photo", async () => {
   mocks.adminRpc.mockResolvedValue({ data: null, error: { message: "Forbidden" } });
   expect(await adminRemove({ data: { userId: "user-2" }, context: ctx })).toEqual({ ok: false, code: "notfound" });
   expect(mocks.remove).not.toHaveBeenCalled();
+});
+
+it("an admin's photo skips the hourly limit and the AI check but must still be a valid JPEG", async () => {
+  mocks.admin = true;
+  expect(await upload({ data: { image: image() }, context: ctx })).toEqual({ ok: true, url: NEW_URL });
+  expect(mocks.ai).not.toHaveBeenCalled();
+  expect(mocks.rpc).not.toHaveBeenCalledWith("start_avatar_upload", expect.anything());
+  expect(await upload({ data: { image: "not base64!!" }, context: ctx })).toEqual({ ok: false, code: "invalid" });
 });
