@@ -653,6 +653,8 @@ export type Database = {
       }
       is_allowed_email: { Args: { _email: string }; Returns: boolean }
       is_username_available: { Args: { _username: string }; Returns: boolean }
+      mark_sent_seen: { Args: { _message_id: string }; Returns: undefined }
+      mark_thread_seen: { Args: { _message_id: string }; Returns: undefined }
       message_retention_days: { Args: never; Returns: number }
       message_status: {
         Args: { _token: string }
@@ -674,8 +676,6 @@ export type Database = {
           status: string
         }[]
       }
-      mark_sent_seen: { Args: { _message_id: string }; Returns: undefined }
-      mark_thread_seen: { Args: { _message_id: string }; Returns: undefined }
       my_inbox_threads: {
         Args: never
         Returns: {
