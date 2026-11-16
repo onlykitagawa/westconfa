@@ -79,16 +79,40 @@ export function threadStates(rows: ReplyRow[] | undefined, messages: InboxMsg[] 
   return map;
 }
 
-// Opening a conversation clears its "new reply" mark (saved in the database, so every device agrees).
-export function markThreadSeen(qc: QueryClient, id: string) {
-  const now = new Date().toISOString();
-  qc.setQueryData<InboxMsg[]>(INBOX_KEY, (l) => l?.map((m) => (m.id === id ? { ...m, owner_seen_at: now } : m)));
-  void supabase.rpc("mark_thread_seen", { _message_id: id });
+// Opening a conversation clears its "new reply" mark. The mark is saved in the database, so it
+// stays cleared on every page and every device.
+//
+// IMPORTANT: Supabase requests are lazy. Nothing is sent until the call is awaited, so a bare
+// `void supabase.rpc(...)` silently does nothing (that bug made cleared marks come back).
+// Order: stop any refresh that is in flight, clear the mark on screen, save it, then re-read the
+// truth from the server (which also restores the mark if saving failed).
+export async function markThreadSeen(qc: QueryClient, id: string): Promise<boolean> {
+  try {
+    await qc.cancelQueries({ queryKey: INBOX_KEY });
+    const replies = qc.getQueryData<ReplyRow[]>(REPLIES_KEY) ?? [];
+    const newest = Math.max(Date.now(), ...replies.filter((r) => r.message_id === id).map((r) => Date.parse(r.created_at)));
+    const seenAt = new Date(newest).toISOString();
+    qc.setQueryData<InboxMsg[]>(INBOX_KEY, (l) => l?.map((m) => (m.id === id ? { ...m, owner_seen_at: seenAt } : m)));
+    const { error } = await supabase.rpc("mark_thread_seen", { _message_id: id });
+    return !error;
+  } catch {
+    return false;
+  } finally {
+    void qc.invalidateQueries({ queryKey: INBOX_KEY });
+  }
 }
 
-export function markSentSeen(qc: QueryClient, id: string) {
-  qc.setQueryData<SentItem[]>(SENT_KEY, (l) => l?.map((m) => (m.message_id === id ? { ...m, new_reply: false } : m)));
-  void supabase.rpc("mark_sent_seen", { _message_id: id });
+export async function markSentSeen(qc: QueryClient, id: string): Promise<boolean> {
+  try {
+    await qc.cancelQueries({ queryKey: SENT_KEY });
+    qc.setQueryData<SentItem[]>(SENT_KEY, (l) => l?.map((m) => (m.message_id === id ? { ...m, new_reply: false } : m)));
+    const { error } = await supabase.rpc("mark_sent_seen", { _message_id: id });
+    return !error;
+  } catch {
+    return false;
+  } finally {
+    void qc.invalidateQueries({ queryKey: SENT_KEY });
+  }
 }
 
 export function useSentMessages() {
@@ -106,8 +130,8 @@ export function useSentMessages() {
   });
 }
 
-// Numbers for the navigation: unread messages plus conversations waiting for your answer, and
-// sent messages that got a reply you haven't answered yet.
+// Numbers for the red badges: unread messages plus conversations with a reply you haven't opened
+// (inbox), and sent messages with a reply you haven't opened (sent).
 export function useBadges() {
   const inbox = useInboxMessages();
   const replies = useInboxReplies();

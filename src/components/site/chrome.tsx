@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { Check, Inbox, LogOut, MessageSquare, Search, Send, Settings as SettingsIcon, Share2, Shield, User } from "lucide-react";
+import { Check, Inbox, LogOut, MessageSquare, Search, Settings as SettingsIcon, Share2, Shield, User } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useId, useState } from "react";
 import { t } from "@/i18n";
@@ -50,7 +50,7 @@ export function CountBadge({ n, className }: { n: number; className?: string }) 
   );
 }
 
-// The avatar button with Profile, Sent, Settings and Sign out. Used on desktop and phones.
+// The avatar button with Profile, Settings and Sign out. Used on desktop and phones.
 function AccountMenu() {
   const { profile, isAdmin } = useAuth();
   const qc = useQueryClient();
@@ -72,7 +72,6 @@ function AccountMenu() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem className={item} onSelect={() => navigate({ to: "/profile" })}><User /> {t.common.profile}</DropdownMenuItem>
-        <DropdownMenuItem className={item} onSelect={() => navigate({ to: "/sent" })}><Send /> {t.common.sent}</DropdownMenuItem>
         <DropdownMenuItem className={item} onSelect={() => navigate({ to: "/settings" })}><SettingsIcon /> {t.common.settings}</DropdownMenuItem>
         {isAdmin && <DropdownMenuItem className={item} onSelect={() => navigate({ to: "/admin" })}><Shield /> {t.common.admin}</DropdownMenuItem>}
         <DropdownMenuSeparator />
@@ -82,21 +81,27 @@ function AccountMenu() {
   );
 }
 
+// Sent messages live inside the Inbox page (the Inbox / Sent tabs), so there is one "Inbox" entry
+// in the navigation. It is highlighted on both pages and its badge counts both.
+function useMessagesNav() {
+  const badges = useBadges();
+  const { pathname } = useLocation();
+  const path = pathname.replace(/\/+$/, "");
+  return { total: badges.inbox + badges.sent, onMessages: path === "/inbox" || path === "/sent" };
+}
+
 function SignedInNav() {
   const { isAdmin } = useAuth();
-  const badges = useBadges();
-  useAppBadge(badges.inbox + badges.sent);
+  const { total, onMessages } = useMessagesNav();
+  useAppBadge(total);
   const navLink =
     "inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-accent";
   const active = { className: "text-foreground bg-accent" };
   return (
     <>
       <div className="hidden items-center gap-1 md:flex">
-        <Link to="/inbox" className={navLink} activeProps={active}>
-          {t.common.inbox} <CountBadge n={badges.inbox} />
-        </Link>
-        <Link to="/sent" className={navLink} activeProps={active}>
-          {t.common.sent} <CountBadge n={badges.sent} />
+        <Link to="/inbox" className={cn(navLink, onMessages && "bg-accent text-foreground")} aria-current={onMessages ? "page" : undefined}>
+          {t.common.inbox} <CountBadge n={total} />
         </Link>
         <Link to="/search" className={navLink} activeProps={active}>
           {t.common.search}
@@ -140,12 +145,11 @@ export function SiteHeader() {
 
 export function MobileNav() {
   const { profile, isAdmin } = useAuth();
-  const badges = useBadges();
+  const { total, onMessages } = useMessagesNav();
   const [open, setOpen] = useState(false);
   const item =
     "press relative flex min-h-[58px] min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-[22px] px-1 text-[12px] font-semibold text-muted-foreground [&_svg]:size-5";
   const active = { className: "bg-brand text-brand-foreground" };
-  const dot = "absolute right-[calc(50%-1.35rem)] top-1.5";
   return (
     <>
       <nav
@@ -154,15 +158,14 @@ export function MobileNav() {
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       >
         <div className="glass flex items-stretch gap-1 rounded-[30px] p-2">
-          <Link to="/inbox" className={item} activeProps={active}>
+          <Link to="/inbox" className={cn(item, onMessages && "bg-brand text-brand-foreground")} aria-current={onMessages ? "page" : undefined}>
             <Inbox className="size-5" />
             {t.common.inbox}
-            <CountBadge n={badges.inbox} className={dot} />
+            <CountBadge n={total} className="absolute right-[calc(50%-1.35rem)] top-1.5" />
           </Link>
-          <Link to="/sent" className={item} activeProps={active}>
-            <Send className="size-5" />
-            {t.common.sent}
-            <CountBadge n={badges.sent} className={dot} />
+          <Link to="/search" className={item} activeProps={active}>
+            <Search className="size-5" />
+            {t.common.search}
           </Link>
           <Button
             type="button"
@@ -174,21 +177,16 @@ export function MobileNav() {
             <Share2 className="size-5" />
             {t.common.share}
           </Button>
-          <Link to="/search" className={item} activeProps={active}>
-            <Search className="size-5" />
-            {t.common.search}
-          </Link>
-          {isAdmin ? (
+          {isAdmin && (
             <Link to="/admin" className={item} activeProps={active}>
               <Shield className="size-5" />
               {t.common.admin}
             </Link>
-          ) : (
-            <Link to="/profile" className={item} activeProps={active}>
-              <User className="size-5" />
-              {t.common.profile}
-            </Link>
           )}
+          <Link to="/profile" className={item} activeProps={active}>
+            <User className="size-5" />
+            {t.common.profile}
+          </Link>
         </div>
       </nav>
       {profile?.username && <ShareDialog open={open} onOpenChange={setOpen} username={profile.username} />}
