@@ -1,12 +1,15 @@
-import { useQuery, type QueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { queryOptions, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
+import { useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 
-// Shared queries for the inbox, the Sent page and the badges in the navigation. Using the same
-// query keys everywhere means a message marked read in the inbox updates the badge immediately.
+// Shared queries for the inbox, the Sent page and the red badges in the navigation. Using the same
+// query keys everywhere means a change on one page updates the badges immediately.
+//
+// IMPORTANT: Supabase requests are lazy. Nothing is sent until the call is awaited, so a bare
+// `void supabase.rpc(...)` silently does nothing (that bug once made cleared marks come back).
 
-export type InboxMsg = { id: string; body: string; created_at: string; read_at: string | null; replies_closed: boolean; owner_seen_at: string | null };
+export type InboxMsg = { id: string; body: string; created_at: string; read_at: string | null; replies_closed: boolean };
 export type SentItem = {
   message_id: string | null;
   state: string;
@@ -18,7 +21,8 @@ export type SentItem = {
   awaiting_you: boolean;
   new_reply: boolean;
 };
-type ReplyRow = { message_id: string; author: string; status: string; created_at: string };
+// One row per inbox conversation that has replies (from my_inbox_threads()).
+export type InboxThread = { message_id: string; replied: boolean; new_reply: boolean };
 
 export const INBOX_KEY = ["inbox"];
 export const REPLIES_KEY = ["inbox-replies"];
@@ -36,7 +40,7 @@ export function useInboxMessages() {
     queryFn: async (): Promise<InboxMsg[]> => {
       const { data, error } = await supabase
         .from("messages")
-        .select("id, body, created_at, read_at, replies_closed, owner_seen_at")
+        .select("id, body, created_at, read_at, replies_closed")
         .eq("recipient_id", id ?? "00000000-0000-0000-0000-000000000000")
         .eq("status", "approved")
         .eq("hidden", false)
@@ -48,7 +52,8 @@ export function useInboxMessages() {
   });
 }
 
-// Light rows (no text) for the "New reply" / "Replied" labels.
+// Reply state per conversation, worked out in the database and always scoped to the caller's own
+// inbox: has the recipient replied, and is there a sender reply they have not been shown yet.
 export function useInboxReplies() {
   const { profile } = useAuth();
   return useQuery({
@@ -56,49 +61,56 @@ export function useInboxReplies() {
     enabled: !!profile?.id,
     refetchOnWindowFocus: true,
     refetchInterval: REFRESH_MS,
-    queryFn: async (): Promise<ReplyRow[]> => {
-      const { data, error } = await supabase.from("message_replies").select("message_id, author, status, created_at").order("created_at", { ascending: true }).limit(1000);
+    queryFn: async (): Promise<InboxThread[]> => {
+      const { data, error } = await supabase.rpc("my_inbox_threads");
       if (error) throw error;
       return data ?? [];
     },
   });
 }
 
-// Per conversation: has the recipient replied, and is there a sender reply they haven't opened yet.
-// "New" = an approved sender reply newer than the last time the recipient opened the message.
-export function threadStates(rows: ReplyRow[] | undefined, messages: InboxMsg[] | undefined) {
-  const seen = new Map((messages ?? []).map((m) => [m.id, m.owner_seen_at ? Date.parse(m.owner_seen_at) : 0]));
+// Lookup by message for the list labels. Conversations whose message is not in the loaded list
+// are left out, so a badge can never count something the person cannot open.
+export function threadStates(rows: InboxThread[] | undefined, messages: InboxMsg[] | undefined) {
+  const visible = new Set((messages ?? []).map((m) => m.id));
   const map = new Map<string, { replied: boolean; newReply: boolean }>();
-  for (const r of rows ?? []) {
-    if (!seen.has(r.message_id)) continue;
-    const cur = map.get(r.message_id) ?? { replied: false, newReply: false };
-    if (r.author === "owner") cur.replied = true;
-    if (r.author === "sender" && r.status === "approved" && Date.parse(r.created_at) > (seen.get(r.message_id) ?? 0)) cur.newReply = true;
-    map.set(r.message_id, cur);
-  }
+  for (const r of rows ?? []) if (visible.has(r.message_id)) map.set(r.message_id, { replied: r.replied, newReply: r.new_reply });
   return map;
 }
 
-// Opening a conversation clears its "new reply" mark. The mark is saved in the database, so it
-// stays cleared on every page and every device.
-//
-// IMPORTANT: Supabase requests are lazy. Nothing is sent until the call is awaited, so a bare
-// `void supabase.rpc(...)` silently does nothing (that bug made cleared marks come back).
-// Order: stop any refresh that is in flight, clear the mark on screen, save it, then re-read the
-// truth from the server (which also restores the mark if saving failed).
+// The full conversation under one message. Shared by the open dialog and the "seen" logic below.
+export const inboxThreadQuery = (id: string) =>
+  queryOptions({
+    queryKey: ["inbox-thread", id],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("message_replies").select("id, author, body, created_at, status").eq("message_id", id).order("created_at", { ascending: true });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+export const sentThreadQuery = (id: string) =>
+  queryOptions({
+    queryKey: ["sent-thread", id],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("my_sent_thread", { _message_id: id });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+// Saves "this person has now been shown every reply in the conversation" and clears the red mark.
+// Order: stop a refresh that is in flight, clear the mark on screen, save, then re-read the truth
+// from the server (which also brings the mark back if saving failed).
 export async function markThreadSeen(qc: QueryClient, id: string): Promise<boolean> {
   try {
-    await qc.cancelQueries({ queryKey: INBOX_KEY });
-    const replies = qc.getQueryData<ReplyRow[]>(REPLIES_KEY) ?? [];
-    const newest = Math.max(Date.now(), ...replies.filter((r) => r.message_id === id).map((r) => Date.parse(r.created_at)));
-    const seenAt = new Date(newest).toISOString();
-    qc.setQueryData<InboxMsg[]>(INBOX_KEY, (l) => l?.map((m) => (m.id === id ? { ...m, owner_seen_at: seenAt } : m)));
+    await qc.cancelQueries({ queryKey: REPLIES_KEY });
+    qc.setQueryData<InboxThread[]>(REPLIES_KEY, (l) => l?.map((r) => (r.message_id === id ? { ...r, new_reply: false } : r)));
     const { error } = await supabase.rpc("mark_thread_seen", { _message_id: id });
     return !error;
   } catch {
     return false;
   } finally {
-    void qc.invalidateQueries({ queryKey: INBOX_KEY });
+    void qc.invalidateQueries({ queryKey: REPLIES_KEY });
   }
 }
 
@@ -113,6 +125,48 @@ export async function markSentSeen(qc: QueryClient, id: string): Promise<boolean
   } finally {
     void qc.invalidateQueries({ queryKey: SENT_KEY });
   }
+}
+
+// Always a new request (never one that started before we knew about the new reply).
+async function loadFreshThread(qc: QueryClient, kind: "inbox" | "sent", id: string) {
+  if (kind === "inbox") {
+    const q = inboxThreadQuery(id);
+    await qc.cancelQueries({ queryKey: q.queryKey, exact: true });
+    await qc.fetchQuery({ ...q, staleTime: 0 });
+  } else {
+    const q = sentThreadQuery(id);
+    await qc.cancelQueries({ queryKey: q.queryKey, exact: true });
+    await qc.fetchQuery({ ...q, staleTime: 0 });
+  }
+}
+
+// While a conversation is open and has a reply its viewer has not been shown: load the fresh
+// conversation first, then save it as seen. It runs again when another reply arrives while the
+// conversation is still open, so a red mark is only ever cleared for replies that are really on
+// screen. A failed save is not retried until the conversation is opened again (no request loops).
+export function useSeenWhenShown(kind: "inbox" | "sent", id: string | null, hasNew: boolean) {
+  const qc = useQueryClient();
+  const failedFor = useRef<string | null>(null);
+  useEffect(() => {
+    failedFor.current = null;
+  }, [id]);
+  useEffect(() => {
+    if (!id || !hasNew || failedFor.current === id) return;
+    let cancelled = false;
+    void (async () => {
+      try {
+        await loadFreshThread(qc, kind, id);
+      } catch {
+        return;
+      }
+      if (cancelled) return;
+      const saved = kind === "inbox" ? await markThreadSeen(qc, id) : await markSentSeen(qc, id);
+      if (!saved) failedFor.current = id;
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [qc, kind, id, hasNew]);
 }
 
 export function useSentMessages() {
@@ -138,7 +192,7 @@ export function useBadges() {
   const sent = useSentMessages();
   const unread = (inbox.data ?? []).filter((m) => !m.read_at).length;
   let newReplies = 0;
-  for (const [, st] of threadStates(replies.data, inbox.data)) if (st.newReply) newReplies += 1;
+  for (const st of threadStates(replies.data, inbox.data).values()) if (st.newReply) newReplies += 1;
   const sentReplies = (sent.data ?? []).filter((m) => m.new_reply).length;
   return { inbox: unread + newReplies, sent: sentReplies };
 }

@@ -120,6 +120,13 @@
       "when": 1794856432203,
       "tag": "0016_seen_replies",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1794858062445,
+      "tag": "0017_exact_seen_marks",
+      "breakpoints": true
     }
   ]
 }

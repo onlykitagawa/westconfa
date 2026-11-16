@@ -94,20 +94,21 @@ function SignedInNav() {
   const { isAdmin } = useAuth();
   const { total, onMessages } = useMessagesNav();
   useAppBadge(total);
+  // data-status="active" is set by the router on the current link; styling through it makes the
+  // active colors win over the base ones.
   const navLink =
-    "inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-accent";
-  const active = { className: "text-foreground bg-accent" };
+    "inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-accent data-[status=active]:bg-accent data-[status=active]:text-foreground";
   return (
     <>
       <div className="hidden items-center gap-1 md:flex">
         <Link to="/inbox" className={cn(navLink, onMessages && "bg-accent text-foreground")} aria-current={onMessages ? "page" : undefined}>
           {t.common.inbox} <CountBadge n={total} />
         </Link>
-        <Link to="/search" className={navLink} activeProps={active}>
+        <Link to="/search" className={navLink}>
           {t.common.search}
         </Link>
         {isAdmin && (
-          <Link to="/admin" className={navLink} activeProps={active}>
+          <Link to="/admin" className={navLink}>
             {t.common.admin}
           </Link>
         )}
@@ -148,8 +149,7 @@ export function MobileNav() {
   const { total, onMessages } = useMessagesNav();
   const [open, setOpen] = useState(false);
   const item =
-    "press relative flex min-h-[58px] min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-[22px] px-1 text-[12px] font-semibold text-muted-foreground [&_svg]:size-5";
-  const active = { className: "bg-brand text-brand-foreground" };
+    "press relative flex min-h-[58px] min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-[22px] px-1 text-[12px] font-semibold text-muted-foreground [&_svg]:size-5 data-[status=active]:bg-brand data-[status=active]:text-brand-foreground";
   return (
     <>
       <nav
@@ -163,7 +163,7 @@ export function MobileNav() {
             {t.common.inbox}
             <CountBadge n={total} className="absolute right-[calc(50%-1.35rem)] top-1.5" />
           </Link>
-          <Link to="/search" className={item} activeProps={active}>
+          <Link to="/search" className={item}>
             <Search className="size-5" />
             {t.common.search}
           </Link>
@@ -178,12 +178,12 @@ export function MobileNav() {
             {t.common.share}
           </Button>
           {isAdmin && (
-            <Link to="/admin" className={item} activeProps={active}>
+            <Link to="/admin" className={item}>
               <Shield className="size-5" />
               {t.common.admin}
             </Link>
           )}
-          <Link to="/profile" className={item} activeProps={active}>
+          <Link to="/profile" className={item}>
             <User className="size-5" />
             {t.common.profile}
           </Link>

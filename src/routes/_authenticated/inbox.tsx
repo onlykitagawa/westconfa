@@ -18,7 +18,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { MessageTabs } from "@/components/site/message-tabs";
 import { InstallHint } from "@/components/site/install-hint";
 import { cn } from "@/lib/utils";
-import { INBOX_KEY, markThreadSeen, REPLIES_KEY, threadStates, useInboxMessages, useInboxReplies, type InboxMsg } from "@/lib/inbox-data";
+import { INBOX_KEY, inboxThreadQuery, REPLIES_KEY, threadStates, useInboxMessages, useInboxReplies, useSeenWhenShown, type InboxMsg } from "@/lib/inbox-data";
 import { SHEET_CLASS } from "@/components/site/sheet";
 
 export const Route = createFileRoute("/_authenticated/inbox")({
@@ -44,16 +44,10 @@ function InboxPage() {
   // One light query for the list labels (no text), one full query for the open conversation.
   const summary = useInboxReplies();
   const threadState = useMemo(() => threadStates(summary.data, data), [summary.data, data]);
-  const thread = useQuery({
-    queryKey: ["inbox-thread", openMsg?.id],
-    enabled: !!openMsg,
-    refetchOnWindowFocus: true,
-    queryFn: async () => {
-      const { data, error } = await supabase.from("message_replies").select("id, author, body, created_at, status").eq("message_id", openMsg!.id).order("created_at", { ascending: true });
-      if (error) throw error;
-      return data ?? [];
-    },
-  });
+  const thread = useQuery({ ...inboxThreadQuery(openMsg?.id ?? ""), enabled: !!openMsg, refetchOnWindowFocus: true });
+  // Clears the red "new reply" mark once the fresh conversation is on screen (also when a reply
+  // arrives while it is open).
+  useSeenWhenShown("inbox", openMsg?.id ?? null, !!openMsg && !!threadState.get(openMsg.id)?.newReply);
   const setClosed = useMutation({
     mutationFn: async (v: { id: string; closed: boolean }) => {
       const { error } = await supabase.rpc("set_thread_closed", { _message_id: v.id, _closed: v.closed });
@@ -106,7 +100,6 @@ function InboxPage() {
     setOpenMsg(m);
     setMode("view");
     if (!m.read_at) markRead.mutate(m.id);
-    if (threadState.get(m.id)?.newReply) markThreadSeen(qc, m.id);
   };
   const unread = data?.filter((m) => !m.read_at).length ?? 0;
 
@@ -181,7 +174,7 @@ function InboxPage() {
         </ul>
       </div>
 
-      <Dialog open={!!openMsg} onOpenChange={(o) => { if (!o) { if (openMsg && threadState.get(openMsg.id)?.newReply) markThreadSeen(qc, openMsg.id); setOpenMsg(null); setMode("view"); } }}>
+      <Dialog open={!!openMsg} onOpenChange={(o) => { if (!o) { setOpenMsg(null); setMode("view"); } }}>
         <DialogContent className={cn("max-h-[88dvh] overflow-y-auto bg-popover md:w-[calc(100%-2rem)] md:max-w-lg md:rounded-[28px]", SHEET_CLASS)}>
           <DialogHeader>
             <DialogTitle className="text-sm font-semibold text-muted-foreground">{I.anonymous} · {openMsg && timeAgo(openMsg.created_at)}</DialogTitle>
@@ -230,7 +223,6 @@ function InboxPage() {
                 onDone={(held) => {
                   if (mode === "reply") {
                     toast.success(held ? I.replyHeld : I.replySent);
-                    if (openMsg) markThreadSeen(qc, openMsg.id);
                     qc.invalidateQueries({ queryKey: ["inbox-thread", openMsg?.id] });
                     qc.invalidateQueries({ queryKey: REPLIES_KEY });
                   } else {

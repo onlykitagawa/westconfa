@@ -676,6 +676,14 @@ export type Database = {
       }
       mark_sent_seen: { Args: { _message_id: string }; Returns: undefined }
       mark_thread_seen: { Args: { _message_id: string }; Returns: undefined }
+      my_inbox_threads: {
+        Args: never
+        Returns: {
+          message_id: string
+          new_reply: boolean
+          replied: boolean
+        }[]
+      }
       my_sent_messages: {
         Args: never
         Returns: {

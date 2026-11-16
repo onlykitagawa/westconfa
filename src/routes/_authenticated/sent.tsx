@@ -4,7 +4,6 @@ import { useServerFn } from "@tanstack/react-start";
 import { Send as SendIcon, XCircle } from "lucide-react";
 import { useState } from "react";
 import { t, timeAgo } from "@/i18n";
-import { supabase } from "@/integrations/supabase/client";
 import { replyAsMember } from "@/lib/replies.functions";
 import { MessageTabs } from "@/components/site/message-tabs";
 import { ReplyBox, ThreadBubbles } from "@/components/site/thread";
@@ -12,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import { markSentSeen, SENT_KEY, useSentMessages, type SentItem } from "@/lib/inbox-data";
+import { sentThreadQuery, SENT_KEY, useSeenWhenShown, useSentMessages, type SentItem } from "@/lib/inbox-data";
 import { SHEET_CLASS } from "@/components/site/sheet";
 
 export const Route = createFileRoute("/_authenticated/sent")({
@@ -36,16 +35,10 @@ function SentPage() {
   const list = useSentMessages();
 
   const messageId = open?.message_id ?? null;
-  const thread = useQuery({
-    queryKey: ["sent-thread", messageId],
-    enabled: !!messageId,
-    refetchOnWindowFocus: true,
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc("my_sent_thread", { _message_id: messageId ?? "" });
-      if (error) throw error;
-      return data ?? [];
-    },
-  });
+  const thread = useQuery({ ...sentThreadQuery(messageId ?? ""), enabled: !!messageId, refetchOnWindowFocus: true });
+  // Clears the red "new reply" mark once the fresh conversation is on screen (also when a reply
+  // arrives while it is open).
+  useSeenWhenShown("sent", messageId, !!messageId && !!list.data?.some((x) => x.message_id === messageId && x.new_reply));
   const rows = thread.data ?? [];
 
   const label = (s: string) => S.state[(s in S.state ? s : "waiting") as State];
@@ -80,10 +73,7 @@ function SentPage() {
               <Button
                 variant="ghost"
                 type="button"
-                onClick={() => {
-                  setOpen(m);
-                  if (m.new_reply && m.message_id) markSentSeen(qc, m.message_id);
-                }}
+                onClick={() => setOpen(m)}
                 className="glass press relative block h-auto w-full max-w-[34rem] whitespace-normal rounded-[26px_26px_8px_26px] px-5 py-4 text-left hover:bg-accent/60"
               >
                 {m.new_reply && <span className="absolute right-3 top-3 size-3 rounded-full bg-destructive" aria-hidden />}
@@ -107,8 +97,7 @@ function SentPage() {
         </ul>
       </div>
 
-      <Dialog open={!!open} onOpenChange={(o) => { if (!o) { const cur = open?.message_id ? list.data?.find((x) => x.message_id === open.message_id) : undefined;
-            if (cur?.new_reply && cur.message_id) markSentSeen(qc, cur.message_id); setOpen(null); } }}>
+      <Dialog open={!!open} onOpenChange={(o) => { if (!o) setOpen(null); }}>
         <DialogContent className={cn("max-h-[88dvh] overflow-y-auto bg-popover md:w-[calc(100%-2rem)] md:max-w-lg md:rounded-[28px]", SHEET_CLASS)}>
           <DialogHeader>
             <DialogTitle className="text-sm font-semibold text-muted-foreground">
