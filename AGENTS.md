@@ -42,7 +42,7 @@ use the editor.
 - Authentication emails use the managed SDK handler and a shared email layout, with email copy in src/i18n; include action tokens so the existing code-entry flows remain usable.
 - Capture email-link credentials when creating the router, await them before child guards and hydration render auth, clear private caches when replacing accounts, and grant reset readiness only to the verified recovery user.
 - Successful non-recovery email links navigate directly to inbox; recovery links navigate to password reset so link sign-in never needs an extra confirmation tap.
-- Keep the inline brand glyph token-colored and mirror its geometry in the SVG favicon; retain existing raster icons as fallbacks so small-icon rendering stays consistent.
+- Keep the inline brand glyph token-colored and mirror its geometry in the SVG favicon; retain existing raster icons as fallbacks so small-icon rendering stays consistent. The mark (speech bubble with a W) lives in src/components/site/brand-mark.ts; the PNG icons are rendered from public/favicon.svg.
 - Shared field surfaces and read-message glass use semantic CSS tokens so app screens inherit both themes without local color literals.
 - AI screening runs in server-only modules; a service-role-only SQL function atomically stores screened messages, private reasons and separate rate events so pending messages never reach recipient reads.
 - Recipient inbox and export queries explicitly scope to the recipient, approved status and visible rows, including for admins whose RLS read policy is wider.

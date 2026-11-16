@@ -1,7 +1,7 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { Check, Inbox, LogOut, MessageSquare, Search, Send, Settings as SettingsIcon, Share2, Shield, User } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { t } from "@/i18n";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,40 +17,23 @@ import { LanguageSelect } from "./language";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { badgeText, useAppBadge, useBadges } from "@/lib/inbox-data";
 import { cn } from "@/lib/utils";
+import { BUBBLE_PATH, W_PATH } from "./brand-mark";
 
 export function Logo() {
   const { user } = useAuth();
+  const gid = `brand-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
   return (
     <Link to={user ? "/inbox" : "/"} className="flex items-center gap-2.5 rounded-xl font-extrabold" aria-label={`${t.brand} home`}>
-      <span
-        className="grid size-9 shrink-0 place-items-center rounded-xl bg-brand text-brand-foreground shadow-soft"
-        aria-hidden
-      >
-        <svg viewBox="0 0 48 48" className="size-[22px]" aria-hidden="true">
-          <path
-            d="M22 4h18a6 6 0 0 1 6 6v9a6 6 0 0 1-6 6h-1v6l-6-6H22a6 6 0 0 1-6-6v-9a6 6 0 0 1 6-6z"
-            fill="var(--caramel)"
-          />
-          <g transform="translate(2 12) scale(0.78)">
-            <path
-              d="M10 5h28a6 6 0 0 1 6 6v18a6 6 0 0 1-6 6H22l-9 8v-8h-3a6 6 0 0 1-6-6V11a6 6 0 0 1 6-6z"
-              fill="var(--brand-foreground)"
-              stroke="var(--brand-ink)"
-              strokeWidth="3.5"
-              strokeLinejoin="round"
-              className="[paint-order:stroke]"
-            />
-            <path
-              d="M13.5 15.5l4.2 12 6.3-11.5 6.3 11.5 4.2-12"
-              fill="none"
-              stroke="var(--brand-ink)"
-              strokeWidth="3.6"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </g>
-        </svg>
-      </span>
+      <svg viewBox="0 0 64 64" className="size-9 shrink-0 drop-shadow-sm" aria-hidden="true">
+        <defs>
+          <linearGradient id={gid} x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" style={{ stopColor: "var(--brand-from)" }} />
+            <stop offset="1" style={{ stopColor: "var(--brand-to)" }} />
+          </linearGradient>
+        </defs>
+        <path d={BUBBLE_PATH} fill={`url(#${gid})`} />
+        <path d={W_PATH} fill="none" stroke="var(--brand-foreground)" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
       <span className="text-lg">{t.brand}</span>
     </Link>
   );

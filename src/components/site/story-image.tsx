@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { t } from "@/i18n";
 import { Button } from "@/components/ui/button";
+import { BUBBLE_PATH, W_PATH } from "./brand-mark";
 
 // A 1080x1920 picture for Instagram / Telegram stories: headline, QR code, @username and the link.
 // Drawn on a canvas in the browser; nothing is uploaded. Colors are fixed hex values because CSS
@@ -78,9 +79,23 @@ async function drawStory(qr: SVGSVGElement, username: string, link: string): Pro
 
   ctx.textAlign = "center";
   ctx.textBaseline = "alphabetic";
-  ctx.fillStyle = CARAMEL;
-  ctx.font = font(700, 46);
-  ctx.fillText(t.brand, W / 2, 200);
+  // Logo: white speech bubble with a navy W, then the name.
+  ctx.save();
+  ctx.translate(W / 2 - 150, 128);
+  ctx.scale(1.25, 1.25);
+  ctx.fillStyle = "#ffffff";
+  ctx.fill(new Path2D(BUBBLE_PATH));
+  ctx.strokeStyle = NAVY;
+  ctx.lineWidth = 6;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  ctx.stroke(new Path2D(W_PATH));
+  ctx.restore();
+  ctx.textAlign = "left";
+  ctx.fillStyle = "#ffffff";
+  ctx.font = font(800, 60);
+  ctx.fillText(t.brand, W / 2 - 60, 192);
+  ctx.textAlign = "center";
 
   ctx.fillStyle = "#ffffff";
   ctx.font = font(800, 110);
