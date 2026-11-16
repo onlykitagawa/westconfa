@@ -18,7 +18,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { MessageTabs } from "@/components/site/message-tabs";
 import { InstallHint } from "@/components/site/install-hint";
 import { cn } from "@/lib/utils";
-import { INBOX_KEY, REPLIES_KEY, threadStates, useInboxMessages, useInboxReplies, type InboxMsg } from "@/lib/inbox-data";
+import { INBOX_KEY, markThreadSeen, REPLIES_KEY, threadStates, useInboxMessages, useInboxReplies, type InboxMsg } from "@/lib/inbox-data";
 import { SHEET_CLASS } from "@/components/site/sheet";
 
 export const Route = createFileRoute("/_authenticated/inbox")({
@@ -43,7 +43,7 @@ function InboxPage() {
   const { data, isLoading } = useInboxMessages();
   // One light query for the list labels (no text), one full query for the open conversation.
   const summary = useInboxReplies();
-  const threadState = useMemo(() => threadStates(summary.data), [summary.data]);
+  const threadState = useMemo(() => threadStates(summary.data, data), [summary.data, data]);
   const thread = useQuery({
     queryKey: ["inbox-thread", openMsg?.id],
     enabled: !!openMsg,
@@ -106,6 +106,7 @@ function InboxPage() {
     setOpenMsg(m);
     setMode("view");
     if (!m.read_at) markRead.mutate(m.id);
+    if (threadState.get(m.id)?.newReply) markThreadSeen(qc, m.id);
   };
   const unread = data?.filter((m) => !m.read_at).length ?? 0;
 
@@ -159,14 +160,15 @@ function InboxPage() {
               <Button variant="ghost"
                 type="button"
                 onClick={() => open(m)}
-                className={cn("glass press block h-auto w-full max-w-[34rem] whitespace-normal rounded-[26px_26px_26px_8px] px-5 py-4 text-left hover:bg-accent/60", m.read_at && "glass-read")}
+                className={cn("glass press relative block h-auto w-full max-w-[34rem] whitespace-normal rounded-[26px_26px_26px_8px] px-5 py-4 text-left hover:bg-accent/60", m.read_at && "glass-read")}
               >
+                {threadState.get(m.id)?.newReply && <span className="absolute right-3 top-3 size-3 rounded-full bg-destructive" aria-hidden />}
                 <span className="block min-w-0">
                   <span className="mb-2 flex items-center gap-2 text-xs font-semibold text-muted-foreground">
                     {!m.read_at && <span className="size-2 shrink-0 rounded-full bg-coral" aria-hidden />}
                     <span>{I.anonymous} · {timeAgo(m.created_at)}</span>
-                    {threadState.get(m.id)?.waiting ? (
-                      <span className="rounded-full bg-coral px-2 py-0.5 text-[11px] font-bold text-coral-foreground">{I.newReply}</span>
+                    {threadState.get(m.id)?.newReply ? (
+                      <span className="rounded-full bg-destructive px-2 py-0.5 text-[11px] font-bold text-destructive-foreground">{I.newReply}</span>
                     ) : threadState.get(m.id)?.replied ? (
                       <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-bold text-muted-foreground">{I.replied}</span>
                     ) : null}
@@ -179,7 +181,7 @@ function InboxPage() {
         </ul>
       </div>
 
-      <Dialog open={!!openMsg} onOpenChange={(o) => { if (!o) { setOpenMsg(null); setMode("view"); } }}>
+      <Dialog open={!!openMsg} onOpenChange={(o) => { if (!o) { if (openMsg && threadState.get(openMsg.id)?.newReply) markThreadSeen(qc, openMsg.id); setOpenMsg(null); setMode("view"); } }}>
         <DialogContent className={cn("max-h-[88dvh] overflow-y-auto bg-popover md:w-[calc(100%-2rem)] md:max-w-lg md:rounded-[28px]", SHEET_CLASS)}>
           <DialogHeader>
             <DialogTitle className="text-sm font-semibold text-muted-foreground">{I.anonymous} · {openMsg && timeAgo(openMsg.created_at)}</DialogTitle>
@@ -228,6 +230,7 @@ function InboxPage() {
                 onDone={(held) => {
                   if (mode === "reply") {
                     toast.success(held ? I.replyHeld : I.replySent);
+                    if (openMsg) markThreadSeen(qc, openMsg.id);
                     qc.invalidateQueries({ queryKey: ["inbox-thread", openMsg?.id] });
                     qc.invalidateQueries({ queryKey: REPLIES_KEY });
                   } else {

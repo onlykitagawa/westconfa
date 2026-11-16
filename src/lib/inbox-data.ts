@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, type QueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/auth";
 // Shared queries for the inbox, the Sent page and the badges in the navigation. Using the same
 // query keys everywhere means a message marked read in the inbox updates the badge immediately.
 
-export type InboxMsg = { id: string; body: string; created_at: string; read_at: string | null; replies_closed: boolean };
+export type InboxMsg = { id: string; body: string; created_at: string; read_at: string | null; replies_closed: boolean; owner_seen_at: string | null };
 export type SentItem = {
   message_id: string | null;
   state: string;
@@ -16,8 +16,9 @@ export type SentItem = {
   to_name: string | null;
   reply_count: number;
   awaiting_you: boolean;
+  new_reply: boolean;
 };
-type ReplyRow = { message_id: string; author: string; status: string };
+type ReplyRow = { message_id: string; author: string; status: string; created_at: string };
 
 export const INBOX_KEY = ["inbox"];
 export const REPLIES_KEY = ["inbox-replies"];
@@ -35,7 +36,7 @@ export function useInboxMessages() {
     queryFn: async (): Promise<InboxMsg[]> => {
       const { data, error } = await supabase
         .from("messages")
-        .select("id, body, created_at, read_at, replies_closed")
+        .select("id, body, created_at, read_at, replies_closed, owner_seen_at")
         .eq("recipient_id", id ?? "00000000-0000-0000-0000-000000000000")
         .eq("status", "approved")
         .eq("hidden", false)
@@ -56,22 +57,38 @@ export function useInboxReplies() {
     refetchOnWindowFocus: true,
     refetchInterval: REFRESH_MS,
     queryFn: async (): Promise<ReplyRow[]> => {
-      const { data, error } = await supabase.from("message_replies").select("message_id, author, status").order("created_at", { ascending: true }).limit(1000);
+      const { data, error } = await supabase.from("message_replies").select("message_id, author, status, created_at").order("created_at", { ascending: true }).limit(1000);
       if (error) throw error;
       return data ?? [];
     },
   });
 }
 
-export function threadStates(rows: ReplyRow[] | undefined) {
-  const map = new Map<string, { replied: boolean; waiting: boolean }>();
+// Per conversation: has the recipient replied, and is there a sender reply they haven't opened yet.
+// "New" = an approved sender reply newer than the last time the recipient opened the message.
+export function threadStates(rows: ReplyRow[] | undefined, messages: InboxMsg[] | undefined) {
+  const seen = new Map((messages ?? []).map((m) => [m.id, m.owner_seen_at ? Date.parse(m.owner_seen_at) : 0]));
+  const map = new Map<string, { replied: boolean; newReply: boolean }>();
   for (const r of rows ?? []) {
-    const cur = map.get(r.message_id) ?? { replied: false, waiting: false };
+    if (!seen.has(r.message_id)) continue;
+    const cur = map.get(r.message_id) ?? { replied: false, newReply: false };
     if (r.author === "owner") cur.replied = true;
-    if (r.status === "approved") cur.waiting = r.author === "sender";
+    if (r.author === "sender" && r.status === "approved" && Date.parse(r.created_at) > (seen.get(r.message_id) ?? 0)) cur.newReply = true;
     map.set(r.message_id, cur);
   }
   return map;
+}
+
+// Opening a conversation clears its "new reply" mark (saved in the database, so every device agrees).
+export function markThreadSeen(qc: QueryClient, id: string) {
+  const now = new Date().toISOString();
+  qc.setQueryData<InboxMsg[]>(INBOX_KEY, (l) => l?.map((m) => (m.id === id ? { ...m, owner_seen_at: now } : m)));
+  void supabase.rpc("mark_thread_seen", { _message_id: id });
+}
+
+export function markSentSeen(qc: QueryClient, id: string) {
+  qc.setQueryData<SentItem[]>(SENT_KEY, (l) => l?.map((m) => (m.message_id === id ? { ...m, new_reply: false } : m)));
+  void supabase.rpc("mark_sent_seen", { _message_id: id });
 }
 
 export function useSentMessages() {
@@ -95,12 +112,11 @@ export function useBadges() {
   const inbox = useInboxMessages();
   const replies = useInboxReplies();
   const sent = useSentMessages();
-  const visible = new Set((inbox.data ?? []).map((m) => m.id));
   const unread = (inbox.data ?? []).filter((m) => !m.read_at).length;
-  let waiting = 0;
-  for (const [id, s] of threadStates(replies.data)) if (s.waiting && visible.has(id)) waiting += 1;
-  const sentReplies = (sent.data ?? []).filter((m) => m.awaiting_you).length;
-  return { inbox: unread + waiting, sent: sentReplies };
+  let newReplies = 0;
+  for (const [, st] of threadStates(replies.data, inbox.data)) if (st.newReply) newReplies += 1;
+  const sentReplies = (sent.data ?? []).filter((m) => m.new_reply).length;
+  return { inbox: unread + newReplies, sent: sentReplies };
 }
 
 // The red number on the home-screen icon when the site is installed as an app (where supported).

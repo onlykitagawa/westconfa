@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import { SENT_KEY, useSentMessages, type SentItem } from "@/lib/inbox-data";
+import { markSentSeen, SENT_KEY, useSentMessages, type SentItem } from "@/lib/inbox-data";
 import { SHEET_CLASS } from "@/components/site/sheet";
 
 export const Route = createFileRoute("/_authenticated/sent")({
@@ -80,15 +80,21 @@ function SentPage() {
               <Button
                 variant="ghost"
                 type="button"
-                onClick={() => setOpen(m)}
-                className="glass press block h-auto w-full max-w-[34rem] whitespace-normal rounded-[26px_26px_8px_26px] px-5 py-4 text-left hover:bg-accent/60"
+                onClick={() => {
+                  setOpen(m);
+                  if (m.new_reply && m.message_id) markSentSeen(qc, m.message_id);
+                }}
+                className="glass press relative block h-auto w-full max-w-[34rem] whitespace-normal rounded-[26px_26px_8px_26px] px-5 py-4 text-left hover:bg-accent/60"
               >
+                {m.new_reply && <span className="absolute right-3 top-3 size-3 rounded-full bg-destructive" aria-hidden />}
                 <span className="block min-w-0">
                   <span className="mb-2 flex flex-wrap items-center gap-2 text-xs font-semibold text-muted-foreground">
                     <span>{m.to_name ? S.to(m.to_name) : S.toUnknown} · {timeAgo(m.sent_at)}</span>
                     <span className={cn("rounded-full px-2 py-0.5 text-[11px] font-bold", m.state === "not_delivered" ? "bg-destructive/10 text-destructive" : "bg-muted text-muted-foreground")}>{label(m.state)}</span>
-                    {m.awaiting_you ? (
-                      <span className="rounded-full bg-coral px-2 py-0.5 text-[11px] font-bold text-coral-foreground">{S.yourTurn}</span>
+                    {m.new_reply ? (
+                      <span className="rounded-full bg-destructive px-2 py-0.5 text-[11px] font-bold text-destructive-foreground">{S.newReply}</span>
+                    ) : m.awaiting_you ? (
+                      <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-bold text-muted-foreground">{S.yourTurn}</span>
                     ) : m.reply_count > 0 ? (
                       <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-bold text-muted-foreground">{S.replies(m.reply_count)}</span>
                     ) : null}
@@ -101,7 +107,8 @@ function SentPage() {
         </ul>
       </div>
 
-      <Dialog open={!!open} onOpenChange={(o) => { if (!o) setOpen(null); }}>
+      <Dialog open={!!open} onOpenChange={(o) => { if (!o) { const cur = open?.message_id ? list.data?.find((x) => x.message_id === open.message_id) : undefined;
+            if (cur?.new_reply && cur.message_id) markSentSeen(qc, cur.message_id); setOpen(null); } }}>
         <DialogContent className={cn("max-h-[88dvh] overflow-y-auto bg-popover md:w-[calc(100%-2rem)] md:max-w-lg md:rounded-[28px]", SHEET_CLASS)}>
           <DialogHeader>
             <DialogTitle className="text-sm font-semibold text-muted-foreground">

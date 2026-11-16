@@ -300,6 +300,7 @@ export type Database = {
           created_at: string
           final_state: string | null
           message_id: string | null
+          sender_seen_at: string | null
           sender_user_id: string | null
           token_hash: string
         }
@@ -307,6 +308,7 @@ export type Database = {
           created_at?: string
           final_state?: string | null
           message_id?: string | null
+          sender_seen_at?: string | null
           sender_user_id?: string | null
           token_hash: string
         }
@@ -314,6 +316,7 @@ export type Database = {
           created_at?: string
           final_state?: string | null
           message_id?: string | null
+          sender_seen_at?: string | null
           sender_user_id?: string | null
           token_hash?: string
         }
@@ -340,6 +343,7 @@ export type Database = {
           created_at: string
           hidden: boolean
           id: string
+          owner_seen_at: string | null
           read_at: string | null
           recipient_id: string
           replies_closed: boolean
@@ -352,6 +356,7 @@ export type Database = {
           created_at?: string
           hidden?: boolean
           id?: string
+          owner_seen_at?: string | null
           read_at?: string | null
           recipient_id: string
           replies_closed?: boolean
@@ -364,6 +369,7 @@ export type Database = {
           created_at?: string
           hidden?: boolean
           id?: string
+          owner_seen_at?: string | null
           read_at?: string | null
           recipient_id?: string
           replies_closed?: boolean
@@ -668,12 +674,15 @@ export type Database = {
           status: string
         }[]
       }
+      mark_sent_seen: { Args: { _message_id: string }; Returns: undefined }
+      mark_thread_seen: { Args: { _message_id: string }; Returns: undefined }
       my_sent_messages: {
         Args: never
         Returns: {
           awaiting_you: boolean
           body: string
           message_id: string
+          new_reply: boolean
           reply_count: number
           sent_at: string
           state: string
