@@ -50,6 +50,8 @@ const sentItem = (id: string, new_reply: boolean): SentItem => ({
   reply_count: 1,
   awaiting_you: true,
   new_reply,
+  answer: null,
+  answered_at: null,
 });
 const thread = (id: string, new_reply: boolean): InboxThread => ({ message_id: id, replied: true, new_reply });
 const inboxMsg = (id: string): InboxMsg => ({ id, body: "hi", created_at: "2026-11-16T10:00:00Z", read_at: "2026-11-16T10:01:00Z", replies_closed: false });

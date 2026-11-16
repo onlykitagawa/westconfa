@@ -6,6 +6,7 @@ import { useState } from "react";
 import { t, timeAgo } from "@/i18n";
 import { replyAsMember } from "@/lib/replies.functions";
 import { MessageTabs } from "@/components/site/message-tabs";
+import { AnswerNotice } from "@/components/site/answer-notice";
 import { ReplyBox, ThreadBubbles } from "@/components/site/thread";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -35,6 +36,8 @@ function SentPage() {
   const list = useSentMessages();
 
   const messageId = open?.message_id ?? null;
+  // The latest version of the open item (the list refreshes every 30 s), e.g. a new public answer.
+  const current = (messageId && list.data?.find((x) => x.message_id === messageId)) || open;
   const thread = useQuery({ ...sentThreadQuery(messageId ?? ""), enabled: !!messageId, refetchOnWindowFocus: true });
   // Clears the red "new reply" mark once the fresh conversation is on screen (also when a reply
   // arrives while it is open).
@@ -88,6 +91,7 @@ function SentPage() {
                     ) : m.reply_count > 0 ? (
                       <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-bold text-muted-foreground">{S.replies(m.reply_count)}</span>
                     ) : null}
+                    {m.answer && <span className="rounded-full bg-accent px-2 py-0.5 text-[11px] font-bold text-accent-foreground">{t.answerNotice.chip}</span>}
                   </span>
                   <span className="line-clamp-2 break-words text-[17px] font-medium leading-snug [overflow-wrap:anywhere]">{m.body ?? S.gone}</span>
                 </span>
@@ -119,6 +123,7 @@ function SentPage() {
                   <p>{S.notDeliveredBody}</p>
                 </div>
               )}
+              {current?.answer && <AnswerNotice answer={current.answer} answeredAt={current.answered_at} username={current.to_username} />}
               {messageId && (open.state === "delivered" || open.state === "seen") && (
                 <section aria-label={TH.title}>
                   {thread.isLoading ? (

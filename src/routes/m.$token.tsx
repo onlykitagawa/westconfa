@@ -6,6 +6,7 @@ import { t, timeAgo } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { replyAsSender } from "@/lib/replies.functions";
 import { ReplyBox, ThreadBubbles } from "@/components/site/thread";
+import { AnswerNotice } from "@/components/site/answer-notice";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
@@ -21,7 +22,7 @@ export const Route = createFileRoute("/m/$token")({
 });
 
 type State = "waiting" | "delivered" | "seen" | "not_delivered";
-type Status = { state: State; sent_at: string; body: string | null };
+type Status = { state: State; sent_at: string; body: string | null; to_username: string | null; answer: string | null; answered_at: string | null };
 
 // The private status page a sender gets after sending. The token is never stored;
 // message_status() matches its hash and returns only the state, time and the sender's own text.
@@ -72,7 +73,7 @@ function TrackPage() {
       </main>
     );
 
-  const { state, sent_at, body } = q.data;
+  const { state, sent_at, body, to_username, answer, answered_at } = q.data;
   const reached = state === "delivered" || state === "seen";
   const rows = thread.data ?? [];
   const steps = [
@@ -125,6 +126,12 @@ function TrackPage() {
               {line}
             </p>
           </>
+        )}
+
+        {reached && answer && (
+          <div className="mt-6">
+            <AnswerNotice answer={answer} answeredAt={answered_at} username={to_username} />
+          </div>
         )}
 
         {reached && (

@@ -235,6 +235,11 @@ export const en = {
     close: "Close",
     notDeliveredBody: "It didn't pass our review, so it never reached them.",
   },
+  answerNotice: {
+    title: "They answered on their profile",
+    link: (u: string) => `See it on @${u}'s profile`,
+    chip: "Answered publicly",
+  },
   thread: {
     title: "Conversation",
     you: "You",

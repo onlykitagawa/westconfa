@@ -236,6 +236,11 @@ export const uz: Dict = {
     close: "Yopish",
     notDeliveredBody: "U tekshiruvdan oʻtmadi, shuning uchun qabul qiluvchiga yetib bormadi.",
   },
+  answerNotice: {
+    title: "Profilida javob berishdi",
+    link: (u: string) => `@${u} profilida koʻrish`,
+    chip: "Profilda javob",
+  },
   thread: {
     title: "Suhbat",
     you: "Siz",

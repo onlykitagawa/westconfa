@@ -20,6 +20,8 @@ export type SentItem = {
   reply_count: number;
   awaiting_you: boolean;
   new_reply: boolean;
+  answer: string | null; // the recipient's public answer on their profile, if any
+  answered_at: string | null;
 };
 // One row per inbox conversation that has replies (from my_inbox_threads()).
 export type InboxThread = { message_id: string; replied: boolean; new_reply: boolean };

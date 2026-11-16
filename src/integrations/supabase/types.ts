@@ -432,6 +432,7 @@ export type Database = {
           created_at: string
           hidden: boolean
           id: string
+          message_id: string | null
           owner_id: string
           question: string
           reason: string | null
@@ -443,6 +444,7 @@ export type Database = {
           created_at?: string
           hidden?: boolean
           id?: string
+          message_id?: string | null
           owner_id: string
           question: string
           reason?: string | null
@@ -454,6 +456,7 @@ export type Database = {
           created_at?: string
           hidden?: boolean
           id?: string
+          message_id?: string | null
           owner_id?: string
           question?: string
           reason?: string | null
@@ -659,9 +662,12 @@ export type Database = {
       message_status: {
         Args: { _token: string }
         Returns: {
+          answer: string | null
+          answered_at: string | null
           body: string
           sent_at: string
           state: string
+          to_username: string | null
         }[]
       }
       message_thread: {
@@ -687,6 +693,8 @@ export type Database = {
       my_sent_messages: {
         Args: never
         Returns: {
+          answer: string | null
+          answered_at: string | null
           awaiting_you: boolean
           body: string
           message_id: string

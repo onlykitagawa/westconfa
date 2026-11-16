@@ -244,6 +244,11 @@ export const ru: Dict = {
     close: "Закрыть",
     notDeliveredBody: "Оно не прошло проверку, поэтому не дошло до получателя.",
   },
+  answerNotice: {
+    title: "Тебе ответили в профиле",
+    link: (u: string) => `Посмотреть в профиле @${u}`,
+    chip: "Ответ в профиле",
+  },
   thread: {
     title: "Переписка",
     you: "Ты",

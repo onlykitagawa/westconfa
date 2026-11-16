@@ -17,3 +17,4 @@ address of the local site.
 - `reply-marks.cjs`: the red "new reply" marks on Inbox and Sent, including "open it, visit another
   page, come back" and a reply arriving while the conversation is open.
 - `search-fresh.cjs`: search never shows an old username after someone renames their profile.
+- `answer-notice.cjs`: the sender sees a public answer to their message (Sent page and status link).
