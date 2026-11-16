@@ -29,7 +29,10 @@ function SearchPage() {
   const q = useQuery({
     queryKey: ["search", query.toLowerCase()],
     enabled: query.length >= 2,
-    staleTime: 60_000,
+    // Always ask the server: people change their username, name, photo or "show me in search",
+    // and an old cached result would show a profile that no longer exists under that name.
+    staleTime: 0,
+    gcTime: 0,
     retry: false,
     queryFn: async (): Promise<Result[]> => {
       const { data, error } = await supabase.rpc("search_profiles", { _query: query });

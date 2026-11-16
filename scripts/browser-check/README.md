@@ -16,3 +16,4 @@ address of the local site.
 - `harness.cjs`: fake sign-in and fake backend (`open()` returns the page and the backend state).
 - `reply-marks.cjs`: the red "new reply" marks on Inbox and Sent, including "open it, visit another
   page, come back" and a reply arriving while the conversation is open.
+- `search-fresh.cjs`: search never shows an old username after someone renames their profile.
