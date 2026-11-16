@@ -2,7 +2,7 @@ import type { Dict } from "./en";
 
 // Uzbek (Latin script). Same shape as en.ts. Polite "siz".
 export const uz: Dict = {
-  brand: "west confa",
+  brand: "Wconfa",
   common: {
     signIn: "Kirish",
     signOut: "Chiqish",
@@ -55,7 +55,7 @@ export const uz: Dict = {
     newItems: "yangi",
   },
   install: {
-    title: "west confa’ni bosh ekranga qoʻshing",
+    title: "Wconfa’ni bosh ekranga qoʻshing",
     ios: "U ilova kabi ochiladi. Safari’da «Ulashish» tugmasini, soʻng «Bosh ekranga» (Add to Home Screen) ni bosing.",
     android: "U ilova kabi ochiladi. Chrome’da ⋮ menyusini, soʻng «Bosh ekranga qoʻshish» yoki «Ilovani oʻrnatish» ni bosing.",
     install: "Oʻrnatish",
@@ -66,7 +66,7 @@ export const uz: Dict = {
     ok: "Tushunarli",
   },
   landing: {
-    metaTitle: "west confa — WIUT talabalari uchun anonim xabarlar",
+    metaTitle: "Wconfa — WIUT talabalari uchun anonim xabarlar",
     metaDesc: "WIUT talabalari shaxsiy havola yaratib, istalgan odamdan samimiy, mehribon anonim xabarlar oladi. Xabar yuborish uchun hisob kerak emas.",
     title1: "Mehr bilan ayting.",
     title2: "Anonim ayting.",
@@ -98,7 +98,7 @@ export const uz: Dict = {
     ],
   },
   send: {
-    metaTitle: (name: string) => `${name} uchun anonim xabar · west confa`,
+    metaTitle: (name: string) => `${name} uchun anonim xabar · Wconfa`,
     metaDesc: (name: string) => `${name} uchun samimiy, mehribon anonim xabar yuboring.`,
     eyebrow: "Anonim xabar:",
     placeholder: "Mehribon, samimiy yoki ruhlantiruvchi biror narsa yozing…",
@@ -157,7 +157,7 @@ export const uz: Dict = {
     },
   },
   track: {
-    metaTitle: "Xabaringiz · west confa",
+    metaTitle: "Xabaringiz · Wconfa",
     metaDesc: "Anonim xabaringiz yetkazilgani va oʻqilganini tekshiring.",
     title: "Xabaringiz",
     sentAgo: (when: string) => `Yuborildi: ${when}`,
@@ -176,8 +176,8 @@ export const uz: Dict = {
     notFoundBody: "Bu havola hech qanday xabarga mos kelmaydi. Holat havolalari yuborilganidan 90 kun oʻtgach ishlamay qoladi.",
   },
   profile: {
-    metaTitle: "Profilingiz · west confa",
-    metaDesc: "west confa’dagi ochiq profilingiz.",
+    metaTitle: "Profilingiz · Wconfa",
+    metaDesc: "Wconfa’dagi ochiq profilingiz.",
     noBio: "Hali bio yoʻq. Oʻzingiz haqingizda bir qator yozing.",
     edit: "Bioni tahrirlash",
     share: "Havolamni ulashish",
@@ -221,7 +221,7 @@ export const uz: Dict = {
     },
   },
   sent: {
-    metaTitle: "Yuborilgan · west confa",
+    metaTitle: "Yuborilgan · Wconfa",
     metaDesc: "Siz yuborgan xabarlar va ularga kelgan javoblar.",
     title: "Yuborilgan",
     to: (name: string) => `Kimga: ${name}`,
@@ -264,8 +264,8 @@ export const uz: Dict = {
     },
   },
   auth: {
-    metaTitle: "Kirish · west confa",
-    metaDesc: "WIUT talabalik emailingiz bilan west confa’ga kiring.",
+    metaTitle: "Kirish · Wconfa",
+    metaDesc: "WIUT talabalik emailingiz bilan Wconfa’ga kiring.",
     tabSignIn: "Kirish",
     tabSignUp: "Roʻyxatdan oʻtish",
     signInTitle: "Xush kelibsiz",
@@ -331,8 +331,8 @@ export const uz: Dict = {
     errUndeliverable: "Bu manzilga xat yetkazib boʻlmadi — u mavjud boʻlmasligi mumkin. Tekshirib, qaytadan urinib koʻring.",
   },
   onboarding: {
-    metaTitle: "Foydalanuvchi nomini tanlang · west confa",
-    metaDesc: "Foydalanuvchi nomini tanlang va shaxsiy west confa havolangizni oling.",
+    metaTitle: "Foydalanuvchi nomini tanlang · Wconfa",
+    metaDesc: "Foydalanuvchi nomini tanlang va shaxsiy Wconfa havolangizni oling.",
     title: "Havolangizni oling",
     subtitle: "Foydalanuvchi nomini tanlang. Keyinroq sozlamalarda oʻzgartirishingiz mumkin. Boshqa talabalar sizni qidiruvda ismingiz orqali topa oladi; buni sozlamalarda oʻchirib qoʻyish mumkin.",
     username: "Foydalanuvchi nomi",
@@ -351,8 +351,8 @@ export const uz: Dict = {
     readyInbox: "Xabarlarimga oʻtish",
   },
   inbox: {
-    metaTitle: "Xabarlar · west confa",
-    metaDesc: "west confa’dagi shaxsiy anonim xabarlaringizni oʻqing va boshqaring.",
+    metaTitle: "Xabarlar · Wconfa",
+    metaDesc: "Wconfa’dagi shaxsiy anonim xabarlaringizni oʻqing va boshqaring.",
     title: "Xabarlar",
     unread: (n: number) => `${n} ta oʻqilmagan`,
     shareLink: "Havolamni ulashish",
@@ -392,8 +392,8 @@ export const uz: Dict = {
     back: "Orqaga",
   },
   search: {
-    metaTitle: "Qidiruv · west confa",
-    metaDesc: "west confa’da WIUT talabalarini toping va ularga anonim xabar yuboring.",
+    metaTitle: "Qidiruv · Wconfa",
+    metaDesc: "Wconfa’da WIUT talabalarini toping va ularga anonim xabar yuboring.",
     title: "Odam topish",
     placeholder: "Ism yoki @username",
     hint: "Kamida 2 ta harf yozing.",
@@ -419,8 +419,8 @@ export const uz: Dict = {
     storyFooter: "Kodni skanerlang yoki storisimdagi havolani bosing",
   },
   settings: {
-    metaTitle: "Sozlamalar · west confa",
-    metaDesc: "west confa hisobingiz, shaxsiy havolangiz va xabarlar sozlamalarini boshqaring.",
+    metaTitle: "Sozlamalar · Wconfa",
+    metaDesc: "Wconfa hisobingiz, shaxsiy havolangiz va xabarlar sozlamalarini boshqaring.",
     title: "Sozlamalar",
     inboxSection: "Xabarlar",
     pauseLabel: "Yangi xabarlarni qabul qilish",
@@ -449,8 +449,8 @@ export const uz: Dict = {
     theme: "Koʻrinish",
   },
   admin: {
-    metaTitle: "Admin · west confa",
-    metaDesc: "west confa’da shikoyatlarni koʻrib chiqish va xavfsizlikni boshqarish.",
+    metaTitle: "Admin · Wconfa",
+    metaDesc: "Wconfa’da shikoyatlarni koʻrib chiqish va xavfsizlikni boshqarish.",
     title: "Admin",
     stats: "Umumiy",
     users: "Foydalanuvchilar",
@@ -481,8 +481,8 @@ export const uz: Dict = {
     reportsCount: (n: number) => `${n} ta shikoyat`,
   },
   contact: {
-    metaTitle: "Aloqa · west confa",
-    metaDesc: "west confa jamoasi bilan bogʻlaning.",
+    metaTitle: "Aloqa · Wconfa",
+    metaDesc: "Wconfa jamoasi bilan bogʻlaning.",
     title: "Biz bilan bogʻlaning",
     subtitle: "Savol, fikr yoki xavfsizlik muammosi bormi? Bizga yozing, email orqali javob beramiz.",
     name: "Ismingiz",

@@ -1,6 +1,6 @@
 {
-  "name": "west confa",
-  "short_name": "west confa",
+  "name": "Wconfa",
+  "short_name": "Wconfa",
   "description": "Anonymous messages for WIUT students.",
   "start_url": "/inbox",
   "scope": "/",

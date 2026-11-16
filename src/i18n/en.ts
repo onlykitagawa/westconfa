@@ -1,7 +1,7 @@
 // All user-facing text lives here. ru.ts and uz.ts have exactly the same shape (type Dict);
 // src/i18n/index.ts picks the one the visitor chose.
 export const en = {
-  brand: "west confa",
+  brand: "Wconfa",
   common: {
     signIn: "Sign in",
     signOut: "Sign out",
@@ -54,7 +54,7 @@ export const en = {
     newItems: "new",
   },
   install: {
-    title: "Add west confa to your home screen",
+    title: "Add Wconfa to your home screen",
     ios: "It opens like an app. In Safari, tap the Share button, then \"Add to Home Screen\".",
     android: "It opens like an app. In Chrome, tap the ⋮ menu, then \"Add to Home screen\" or \"Install app\".",
     install: "Install",
@@ -65,7 +65,7 @@ export const en = {
     ok: "Got it",
   },
   landing: {
-    metaTitle: "west confa — anonymous messages for WIUT students",
+    metaTitle: "Wconfa — anonymous messages for WIUT students",
     metaDesc: "WIUT students can create a personal link and receive honest, kind, anonymous messages from anyone. Sending needs no account.",
     title1: "Say it kindly.",
     title2: "Say it anonymously.",
@@ -97,7 +97,7 @@ export const en = {
     ],
   },
   send: {
-    metaTitle: (name: string) => `Send ${name} an anonymous message · west confa`,
+    metaTitle: (name: string) => `Send ${name} an anonymous message · Wconfa`,
     metaDesc: (name: string) => `Send ${name} an honest, kind, anonymous message.`,
     eyebrow: "Anonymous message to",
     placeholder: "Write something kind, honest or encouraging…",
@@ -156,7 +156,7 @@ export const en = {
     },
   },
   track: {
-    metaTitle: "Your message · west confa",
+    metaTitle: "Your message · Wconfa",
     metaDesc: "Check whether your anonymous message was delivered and seen.",
     title: "Your message",
     sentAgo: (when: string) => `Sent ${when}`,
@@ -175,8 +175,8 @@ export const en = {
     notFoundBody: "This link doesn't match any message. Status links stop working 90 days after sending.",
   },
   profile: {
-    metaTitle: "Your profile · west confa",
-    metaDesc: "Your public profile on west confa.",
+    metaTitle: "Your profile · Wconfa",
+    metaDesc: "Your public profile on Wconfa.",
     noBio: "No bio yet. Add a line about yourself.",
     edit: "Edit bio",
     share: "Share my link",
@@ -220,7 +220,7 @@ export const en = {
     },
   },
   sent: {
-    metaTitle: "Sent · west confa",
+    metaTitle: "Sent · Wconfa",
     metaDesc: "Messages you sent and the replies you got.",
     title: "Sent",
     to: (name: string) => `To ${name}`,
@@ -263,8 +263,8 @@ export const en = {
     },
   },
   auth: {
-    metaTitle: "Sign in · west confa",
-    metaDesc: "Sign in to west confa with your WIUT student email.",
+    metaTitle: "Sign in · Wconfa",
+    metaDesc: "Sign in to Wconfa with your WIUT student email.",
     tabSignIn: "Sign in",
     tabSignUp: "Create account",
     signInTitle: "Welcome back",
@@ -330,8 +330,8 @@ export const en = {
     errUndeliverable: "We couldn't deliver email to this address — it may not exist. Double-check it and try again.",
   },
   onboarding: {
-    metaTitle: "Choose your username · west confa",
-    metaDesc: "Choose your username and claim your personal west confa link.",
+    metaTitle: "Choose your username · Wconfa",
+    metaDesc: "Choose your username and claim your personal Wconfa link.",
     title: "Claim your link",
     subtitle: "Pick a username. You can change it later in settings. Other students can find you by name in search; you can turn that off in Settings.",
     username: "Username",
@@ -350,8 +350,8 @@ export const en = {
     readyInbox: "Go to my inbox",
   },
   inbox: {
-    metaTitle: "Inbox · west confa",
-    metaDesc: "Read and manage your private anonymous messages on west confa.",
+    metaTitle: "Inbox · Wconfa",
+    metaDesc: "Read and manage your private anonymous messages on Wconfa.",
     title: "Inbox",
     unread: (n: number) => (n === 1 ? "1 unread" : `${n} unread`),
     shareLink: "Share my link",
@@ -391,8 +391,8 @@ export const en = {
     back: "Back",
   },
   search: {
-    metaTitle: "Search · west confa",
-    metaDesc: "Find WIUT students on west confa and send them an anonymous message.",
+    metaTitle: "Search · Wconfa",
+    metaDesc: "Find WIUT students on Wconfa and send them an anonymous message.",
     title: "Find someone",
     placeholder: "Name or @username",
     hint: "Type at least 2 letters.",
@@ -418,8 +418,8 @@ export const en = {
     storyFooter: "Scan the code or tap the link in my story",
   },
   settings: {
-    metaTitle: "Settings · west confa",
-    metaDesc: "Manage your west confa account, personal link and inbox preferences.",
+    metaTitle: "Settings · Wconfa",
+    metaDesc: "Manage your Wconfa account, personal link and inbox preferences.",
     title: "Settings",
     inboxSection: "Inbox",
     pauseLabel: "Accept new messages",
@@ -448,8 +448,8 @@ export const en = {
     theme: "Appearance",
   },
   admin: {
-    metaTitle: "Admin · west confa",
-    metaDesc: "Review reports and manage safety on west confa.",
+    metaTitle: "Admin · Wconfa",
+    metaDesc: "Review reports and manage safety on Wconfa.",
     title: "Admin",
     stats: "Overview",
     users: "Users",
@@ -480,8 +480,8 @@ export const en = {
     reportsCount: (n: number) => `${n} report${n === 1 ? "" : "s"}`,
   },
   contact: {
-    metaTitle: "Contact · west confa",
-    metaDesc: "Get in touch with the west confa team.",
+    metaTitle: "Contact · Wconfa",
+    metaDesc: "Get in touch with the Wconfa team.",
     title: "Contact us",
     subtitle: "Questions, feedback, or a safety concern? Send us a note and we'll reply by email.",
     name: "Your name",

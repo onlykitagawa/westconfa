@@ -119,7 +119,7 @@ export function StoryButton({ username, link }: { username: string; link: string
     try {
       const blob = await drawStory(svg, username, link);
       if (!blob) throw new Error("no image");
-      const file = new File([blob], `west-confa-${username}.png`, { type: "image/png" });
+      const file = new File([blob], `wconfa-${username}.png`, { type: "image/png" });
       if (typeof navigator.canShare === "function" && navigator.canShare({ files: [file] })) {
         try {
           await navigator.share({ files: [file], title: t.brand, text: t.shareDialog.shareText });

@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { t } from "@/i18n";
 import { Button } from "@/components/ui/button";
 
-// A dismissible tip on phones: add west confa to the home screen so it opens like an app.
+// A dismissible tip on phones: add Wconfa to the home screen so it opens like an app.
 // Android Chrome may offer its own install prompt; iPhone needs the Share > Add to Home Screen steps.
 type InstallEvent = Event & { prompt: () => Promise<void> };
 const KEY = "wc_install_hint_closed";

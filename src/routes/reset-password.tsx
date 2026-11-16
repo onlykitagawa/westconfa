@@ -13,9 +13,9 @@ import { useAuth } from "@/lib/auth";
 export const Route = createFileRoute("/reset-password")({
   head: () => ({
     meta: [
-      { title: `${t.auth.resetTitle} · west confa` },
+      { title: `${t.auth.resetTitle} · Wconfa` },
       { name: "description", content: t.auth.forgotSubtitle },
-      { property: "og:title", content: `${t.auth.resetTitle} · west confa` },
+      { property: "og:title", content: `${t.auth.resetTitle} · Wconfa` },
       { property: "og:description", content: t.auth.forgotSubtitle },
       { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex" },

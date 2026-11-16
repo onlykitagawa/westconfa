@@ -10,7 +10,7 @@ const plural = (n: number, one: string, few: string, many: string) => {
 };
 
 export const ru: Dict = {
-  brand: "west confa",
+  brand: "Wconfa",
   common: {
     signIn: "Войти",
     signOut: "Выйти",
@@ -63,7 +63,7 @@ export const ru: Dict = {
     newItems: "новых",
   },
   install: {
-    title: "Добавь west confa на главный экран",
+    title: "Добавь Wconfa на главный экран",
     ios: "Он будет открываться как приложение. В Safari нажми «Поделиться», затем «На экран „Домой“».",
     android: "Он будет открываться как приложение. В Chrome нажми ⋮, затем «Добавить на главный экран» или «Установить приложение».",
     install: "Установить",
@@ -74,7 +74,7 @@ export const ru: Dict = {
     ok: "Понятно",
   },
   landing: {
-    metaTitle: "west confa — анонимные сообщения для студентов WIUT",
+    metaTitle: "Wconfa — анонимные сообщения для студентов WIUT",
     metaDesc: "Студенты WIUT создают личную ссылку и получают честные, добрые анонимные сообщения от кого угодно. Для отправки аккаунт не нужен.",
     title1: "Скажи по-доброму.",
     title2: "Скажи анонимно.",
@@ -106,7 +106,7 @@ export const ru: Dict = {
     ],
   },
   send: {
-    metaTitle: (name: string) => `Анонимное сообщение для ${name} · west confa`,
+    metaTitle: (name: string) => `Анонимное сообщение для ${name} · Wconfa`,
     metaDesc: (name: string) => `Отправь ${name} честное, доброе анонимное сообщение.`,
     eyebrow: "Анонимное сообщение для",
     placeholder: "Напиши что-нибудь доброе, честное или ободряющее…",
@@ -165,7 +165,7 @@ export const ru: Dict = {
     },
   },
   track: {
-    metaTitle: "Твоё сообщение · west confa",
+    metaTitle: "Твоё сообщение · Wconfa",
     metaDesc: "Проверь, доставлено ли и прочитано ли твоё анонимное сообщение.",
     title: "Твоё сообщение",
     sentAgo: (when: string) => `Отправлено ${when}`,
@@ -184,8 +184,8 @@ export const ru: Dict = {
     notFoundBody: "Эта ссылка не соответствует ни одному сообщению. Ссылки статуса перестают работать через 90 дней после отправки.",
   },
   profile: {
-    metaTitle: "Твой профиль · west confa",
-    metaDesc: "Твой публичный профиль в west confa.",
+    metaTitle: "Твой профиль · Wconfa",
+    metaDesc: "Твой публичный профиль в Wconfa.",
     noBio: "Пока нет описания. Добавь пару слов о себе.",
     edit: "Изменить описание",
     share: "Поделиться ссылкой",
@@ -229,7 +229,7 @@ export const ru: Dict = {
     },
   },
   sent: {
-    metaTitle: "Отправленные · west confa",
+    metaTitle: "Отправленные · Wconfa",
     metaDesc: "Сообщения, которые ты отправил(а), и ответы на них.",
     title: "Отправленные",
     to: (name: string) => `Для: ${name}`,
@@ -272,8 +272,8 @@ export const ru: Dict = {
     },
   },
   auth: {
-    metaTitle: "Вход · west confa",
-    metaDesc: "Войди в west confa со студенческой почтой WIUT.",
+    metaTitle: "Вход · Wconfa",
+    metaDesc: "Войди в Wconfa со студенческой почтой WIUT.",
     tabSignIn: "Вход",
     tabSignUp: "Регистрация",
     signInTitle: "С возвращением",
@@ -339,8 +339,8 @@ export const ru: Dict = {
     errUndeliverable: "Не удалось доставить письмо на этот адрес — возможно, его не существует. Проверь адрес и попробуй снова.",
   },
   onboarding: {
-    metaTitle: "Выбери имя пользователя · west confa",
-    metaDesc: "Выбери имя пользователя и получи личную ссылку west confa.",
+    metaTitle: "Выбери имя пользователя · Wconfa",
+    metaDesc: "Выбери имя пользователя и получи личную ссылку Wconfa.",
     title: "Получи свою ссылку",
     subtitle: "Выбери имя пользователя. Его можно поменять в настройках. Другие студенты смогут найти тебя по имени в поиске; это можно отключить в настройках.",
     username: "Имя пользователя",
@@ -359,8 +359,8 @@ export const ru: Dict = {
     readyInbox: "Перейти во входящие",
   },
   inbox: {
-    metaTitle: "Входящие · west confa",
-    metaDesc: "Читай и управляй своими личными анонимными сообщениями в west confa.",
+    metaTitle: "Входящие · Wconfa",
+    metaDesc: "Читай и управляй своими личными анонимными сообщениями в Wconfa.",
     title: "Входящие",
     unread: (n: number) => `${n} ${plural(n, "непрочитанное", "непрочитанных", "непрочитанных")}`,
     shareLink: "Поделиться ссылкой",
@@ -400,8 +400,8 @@ export const ru: Dict = {
     back: "Назад",
   },
   search: {
-    metaTitle: "Поиск · west confa",
-    metaDesc: "Находи студентов WIUT в west confa и отправляй им анонимные сообщения.",
+    metaTitle: "Поиск · Wconfa",
+    metaDesc: "Находи студентов WIUT в Wconfa и отправляй им анонимные сообщения.",
     title: "Найти человека",
     placeholder: "Имя или @username",
     hint: "Введи хотя бы 2 буквы.",
@@ -427,8 +427,8 @@ export const ru: Dict = {
     storyFooter: "Отсканируй код или нажми на ссылку в моей сторис",
   },
   settings: {
-    metaTitle: "Настройки · west confa",
-    metaDesc: "Управляй аккаунтом west confa, личной ссылкой и входящими.",
+    metaTitle: "Настройки · Wconfa",
+    metaDesc: "Управляй аккаунтом Wconfa, личной ссылкой и входящими.",
     title: "Настройки",
     inboxSection: "Входящие",
     pauseLabel: "Принимать новые сообщения",
@@ -457,8 +457,8 @@ export const ru: Dict = {
     theme: "Оформление",
   },
   admin: {
-    metaTitle: "Админ · west confa",
-    metaDesc: "Проверка жалоб и безопасность в west confa.",
+    metaTitle: "Админ · Wconfa",
+    metaDesc: "Проверка жалоб и безопасность в Wconfa.",
     title: "Админ",
     stats: "Обзор",
     users: "Пользователи",
@@ -489,8 +489,8 @@ export const ru: Dict = {
     reportsCount: (n: number) => `${n} ${plural(n, "жалоба", "жалобы", "жалоб")}`,
   },
   contact: {
-    metaTitle: "Контакты · west confa",
-    metaDesc: "Связаться с командой west confa.",
+    metaTitle: "Контакты · Wconfa",
+    metaDesc: "Связаться с командой Wconfa.",
     title: "Напиши нам",
     subtitle: "Вопрос, отзыв или проблема с безопасностью? Напиши нам, и мы ответим по email.",
     name: "Твоё имя",

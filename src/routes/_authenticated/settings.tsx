@@ -94,7 +94,7 @@ function SettingsPage() {
     const blob = new Blob([JSON.stringify({ exported_at: new Date().toISOString(), profile: p, messages: msgs ?? [] }, null, 2)], { type: "application/json" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = `west-confa-${profile.username ?? "data"}.json`;
+    a.download = `wconfa-${profile.username ?? "data"}.json`;
     a.click();
     URL.revokeObjectURL(a.href);
   };

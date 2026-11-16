@@ -4,13 +4,13 @@ export type LegalDoc = { title: string; intro: string; sections: LegalSection[] 
 export const privacy: LegalDoc = {
   title: "Privacy Policy",
   intro:
-    "west confa is a small, independent project made by students for WIUT students. We built it to collect as little about you as possible. This policy explains, in plain English, what we collect, why, and the choices you have.",
+    "Wconfa is a small, independent project made by students for WIUT students. We built it to collect as little about you as possible. This policy explains, in plain English, what we collect, why, and the choices you have.",
   sections: [
     {
       h: "What we collect",
       p: [
         "If you have an account: your WIUT email address, the username you choose, an optional display name, and the messages people send to you. The profile picture and bio stay empty unless you add them.",
-        "If you send a message: the text of the message, the time it was sent, and sender details that we keep privately with it. If you are signed in to west confa when you send, that is your account. If you are not, it is a scrambled, one-way code made from your network (IP) address, never the address itself. The person you message never sees any of this. We do not store your name, device or location.",
+        "If you send a message: the text of the message, the time it was sent, and sender details that we keep privately with it. If you are signed in to Wconfa when you send, that is your account. If you are not, it is a scrambled, one-way code made from your network (IP) address, never the address itself. The person you message never sees any of this. We do not store your name, device or location.",
         "Safety check: every message is sent, as text only, to an automated AI service that checks it for safety before it is delivered. Nothing about who sent it or who it is for goes with it. For messages that are held for review, we keep the AI's short reason in a private record that only moderators can see.",
         "For spam protection: when someone sends a message, we also store a separate scrambled code of their network (IP) address for 24 hours to enforce sending limits. This 24-hour code is kept apart from the message and is then deleted automatically.",
         "Search: when you search for someone, we keep a record that you searched (not what you typed) for 24 hours, only to stop people from copying the whole student list.",
@@ -84,13 +84,13 @@ export const privacy: LegalDoc = {
 export const terms: LegalDoc = {
   title: "Terms of Service",
   intro:
-    "These terms are the rules for using west confa. By creating an account or sending a message, you agree to them. We've kept them short and readable.",
+    "These terms are the rules for using Wconfa. By creating an account or sending a message, you agree to them. We've kept them short and readable.",
   sections: [
     {
-      h: "Who can use west confa",
+      h: "Who can use Wconfa",
       p: [
         "Accounts are only for current students of Westminster International University in Tashkent (WIUT) with a valid student email address ending in @students.wiut.uz (the ID@wiut.uz chat address is not accepted). You must be at least 16 years old. Anyone may send a message to a student's link without an account, but senders must follow these terms too.",
-        "west confa is an independent student project. It is not affiliated with, endorsed by, or operated by WIUT.",
+        "Wconfa is an independent student project. It is not affiliated with, endorsed by, or operated by WIUT.",
       ],
     },
     {
@@ -114,19 +114,19 @@ export const terms: LegalDoc = {
     {
       h: "Moderation, suspension and termination",
       p: [
-        "Messages, replies and answers are checked automatically. Some are blocked, and some are held for a human moderator to review before they are delivered. We also review reported messages and answers. Being anonymous to the person you message does not hide you from our moderators: they can see sender details for messages that are held or reported. We may remove any content and suspend or permanently close any account that breaks these terms or our Community Guidelines, with or without notice. You can stop using west confa and delete your account at any time.",
+        "Messages, replies and answers are checked automatically. Some are blocked, and some are held for a human moderator to review before they are delivered. We also review reported messages and answers. Being anonymous to the person you message does not hide you from our moderators: they can see sender details for messages that are held or reported. We may remove any content and suspend or permanently close any account that breaks these terms or our Community Guidelines, with or without notice. You can stop using Wconfa and delete your account at any time.",
       ],
     },
     {
       h: "Liability",
       p: [
-        "west confa is provided free of charge and \"as is\", without warranties of any kind. Messages are written by users, not by us, and we are not responsible for what others send. To the maximum extent allowed by law, the people who run west confa are not liable for any indirect or consequential loss arising from your use of the service. Nothing in these terms limits rights you have under applicable law that cannot be limited.",
+        "Wconfa is provided free of charge and \"as is\", without warranties of any kind. Messages are written by users, not by us, and we are not responsible for what others send. To the maximum extent allowed by law, the people who run Wconfa are not liable for any indirect or consequential loss arising from your use of the service. Nothing in these terms limits rights you have under applicable law that cannot be limited.",
       ],
     },
     {
       h: "Changes to these terms",
       p: [
-        "We may update these terms as the project grows. We will change the date at the top and, for important changes, tell you in the app. Continuing to use west confa after changes means you accept the updated terms.",
+        "We may update these terms as the project grows. We will change the date at the top and, for important changes, tell you in the app. Continuing to use Wconfa after changes means you accept the updated terms.",
       ],
     },
     {
@@ -139,7 +139,7 @@ export const terms: LegalDoc = {
 export const guidelines: LegalDoc = {
   title: "Community Guidelines & Help",
   intro:
-    "west confa works when people use anonymity to be honest and kind, not cruel. These guidelines explain what's not okay, what to do if something goes wrong, and where to find support.",
+    "Wconfa works when people use anonymity to be honest and kind, not cruel. These guidelines explain what's not okay, what to do if something goes wrong, and where to find support.",
   sections: [
     {
       h: "The short version",

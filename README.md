@@ -1,6 +1,6 @@
 # westconfa
 
-Build "west confa" — a real, production-quality, mobile-first website exclusively for students of WIUT (Westminster International University in Tashkent). Phase 1 is ANONYMOUS MESSAGES. It must feel like a polished modern product (think Linear or Apple), not a template. Build Phase 1 only. Don't ask me questions: make sensible decisions and list your assumptions at the end.
+Build "Wconfa" — a real, production-quality, mobile-first website exclusively for students of WIUT (Westminster International University in Tashkent). Phase 1 is ANONYMOUS MESSAGES. It must feel like a polished modern product (think Linear or Apple), not a template. Build Phase 1 only. Don't ask me questions: make sensible decisions and list your assumptions at the end.
 
 ## 1. Concept
 Every verified student gets a personal link (/u/:username). Anyone who opens it can send that student an anonymous message, with no account needed for the sender. The student reads messages in a private inbox. Expect about 3000 users, so keep it simple and fast.

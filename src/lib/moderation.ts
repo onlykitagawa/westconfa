@@ -34,7 +34,7 @@ export function isStaffChatEmail(email: string): boolean {
 export const USERNAME_RE = /^[a-z0-9_]{3,20}$/;
 export const RESERVED_USERNAMES = [
   "admin", "inbox", "settings", "auth", "u", "api", "privacy", "terms", "guidelines", "contact",
-  "support", "help", "westconfa", "west_confa", "root", "system", "moderator", "wiut",
+  "support", "help", "westconfa", "west_confa", "wconfa", "root", "system", "moderator", "wiut",
 ];
 export function isValidUsername(u: string) {
   return USERNAME_RE.test(u) && !RESERVED_USERNAMES.includes(u);
