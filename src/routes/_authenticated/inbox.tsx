@@ -1,7 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CheckCheck, Flag, Globe, Inbox as InboxIcon, Lock, LockOpen, MoreHorizontal, Reply, Share2, Trash2 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { t, timeAgo } from "@/i18n";
@@ -22,6 +22,8 @@ import { INBOX_KEY, inboxThreadQuery, REPLIES_KEY, threadStates, useInboxMessage
 import { SHEET_CLASS } from "@/components/site/sheet";
 
 export const Route = createFileRoute("/_authenticated/inbox")({
+  // /inbox?m=<message id> opens that message (used by the home page).
+  validateSearch: (search: Record<string, unknown>): { m?: string } => (typeof search["m"] === "string" && /^[0-9a-f-]{36}$/i.test(search["m"]) ? { m: search["m"] } : {}),
   head: () => ({ meta: [{ title: t.inbox.metaTitle }, { name: "description", content: t.inbox.metaDesc }, { property: "og:title", content: t.inbox.metaTitle }, { property: "og:description", content: t.inbox.metaDesc }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { name: "robots", content: "noindex" }] }),
   component: InboxPage,
 });
@@ -95,6 +97,17 @@ function InboxPage() {
     onSuccess: () => toast.success(I.reported),
     onError: () => { toast.error(t.common.somethingWrong); qc.invalidateQueries({ queryKey: KEY }); },
   });
+
+  // Opened from a link (?m=...): open that message once the list has loaded, then clean the address.
+  const { m: wanted } = Route.useSearch();
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (!wanted || !data) return;
+    const found = data.find((x) => x.id === wanted);
+    if (found) open(found);
+    void navigate({ to: "/inbox", search: {}, replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wanted, data]);
 
   const open = (m: Msg) => {
     setOpenMsg(m);

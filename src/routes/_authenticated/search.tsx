@@ -9,6 +9,9 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export const Route = createFileRoute("/_authenticated/search")({
+  // /search?q=... starts with that text (used by the search box on the home page).
+  validateSearch: (search: Record<string, unknown>): { q?: string } =>
+    typeof search["q"] === "string" && search["q"].trim() ? { q: search["q"].slice(0, 40) } : {},
   head: () => ({ meta: [{ title: t.search.metaTitle }, { name: "description", content: t.search.metaDesc }, { name: "robots", content: "noindex" }] }),
   component: SearchPage,
 });
@@ -19,8 +22,9 @@ type Result = { username: string; display_name: string; accepting: boolean; avat
 // the hourly limit and each person's "Show me in search" choice; the page only debounces typing.
 function SearchPage() {
   const S = t.search;
-  const [text, setText] = useState("");
-  const [query, setQuery] = useState("");
+  const { q: initial } = Route.useSearch();
+  const [text, setText] = useState(initial ?? "");
+  const [query, setQuery] = useState((initial ?? "").trim().replace(/^@/, ""));
   useEffect(() => {
     const id = setTimeout(() => setQuery(text.trim().replace(/^@/, "")), 300);
     return () => clearTimeout(id);

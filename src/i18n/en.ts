@@ -8,6 +8,7 @@ export const en = {
     getMyLink: "Get my link",
     openInbox: "Open inbox",
     getYourOwn: "Get your own link",
+    home: "Home",
     inbox: "Inbox",
     sent: "Sent",
     share: "Share",
@@ -354,6 +355,39 @@ export const en = {
     readyPhoto: "Add a profile photo (optional)",
     readyPhotoDone: "Change photo",
     readyInbox: "Go to my inbox",
+  },
+  home: {
+    metaTitle: "Home · Wconfa",
+    greeting: (part: "morning" | "afternoon" | "evening", name: string) => `Good ${part}, ${name}`,
+    summary: (messages: number, replies: number) => {
+      const m = messages === 1 ? "1 new message" : `${messages} new messages`;
+      const r = replies === 1 ? "1 new reply" : `${replies} new replies`;
+      if (messages && replies) return `You have ${m} and ${r}.`;
+      if (messages) return `You have ${m}.`;
+      if (replies) return `You have ${r}.`;
+      return "You're all caught up.";
+    },
+    latest: "Latest for you",
+    newLabel: "New",
+    seeAll: "See all messages",
+    emptyTitle: "No messages yet",
+    emptyBody: "Share your link. Your first anonymous message will show up here.",
+    inbox: "Inbox",
+    sent: "Sent",
+    inboxStatus: (n: number) => (n ? `${n} new` : "All read"),
+    sentStatus: (n: number) => (n === 1 ? "1 new reply" : n ? `${n} new replies` : "No new replies"),
+    linkTitle: "Your link",
+    linkBody: "Post it on your story or in a group chat to get more messages.",
+    moreWays: "QR code and more",
+    startTitle: "Get started",
+    startProgress: (done: number, total: number) => `${done} of ${total} done`,
+    stepPhoto: "Add a profile photo",
+    stepBio: "Write a short bio",
+    stepShare: "Share your link",
+    stepFirst: "Get your first message",
+    findTitle: "Find someone",
+    findPlaceholder: "Name or @username",
+    findButton: "Search",
   },
   inbox: {
     metaTitle: "Inbox · Wconfa",

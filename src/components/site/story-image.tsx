@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { t } from "@/i18n";
 import { Button } from "@/components/ui/button";
 import { BUBBLE_PATH, W_PATH } from "./brand-mark";
+import { markLinkShared } from "@/lib/link-shared";
 
 // A 1080x1920 picture for Instagram / Telegram stories: headline, QR code, @username and the link.
 // Drawn on a canvas in the browser; nothing is uploaded. Colors are fixed hex values because CSS
@@ -138,6 +139,7 @@ export function StoryButton({ username, link }: { username: string; link: string
       if (typeof navigator.canShare === "function" && navigator.canShare({ files: [file] })) {
         try {
           await navigator.share({ files: [file], title: t.brand, text: t.shareDialog.shareText });
+          markLinkShared();
           return;
         } catch (e) {
           if (e instanceof DOMException && e.name === "AbortError") return;
@@ -149,6 +151,7 @@ export function StoryButton({ username, link }: { username: string; link: string
       a.download = file.name;
       a.click();
       setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+      markLinkShared();
       toast.success(t.shareDialog.storySaved);
     } catch {
       toast.error(t.common.somethingWrong);

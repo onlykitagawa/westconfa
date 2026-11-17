@@ -17,6 +17,7 @@ export const ru: Dict = {
     getMyLink: "Получить ссылку",
     openInbox: "Открыть входящие",
     getYourOwn: "Получить свою ссылку",
+    home: "Главная",
     inbox: "Входящие",
     sent: "Отправленные",
     share: "Поделиться",
@@ -363,6 +364,40 @@ export const ru: Dict = {
     readyPhoto: "Добавить фото профиля (по желанию)",
     readyPhotoDone: "Сменить фото",
     readyInbox: "Перейти во входящие",
+  },
+  home: {
+    metaTitle: "Главная · Wconfa",
+    greeting: (part: "morning" | "afternoon" | "evening", name: string) =>
+      `${part === "morning" ? "Доброе утро" : part === "afternoon" ? "Добрый день" : "Добрый вечер"}, ${name}`,
+    summary: (messages: number, replies: number) => {
+      const m = `${messages} ${plural(messages, "новое сообщение", "новых сообщения", "новых сообщений")}`;
+      const r = `${replies} ${plural(replies, "новый ответ", "новых ответа", "новых ответов")}`;
+      if (messages && replies) return `У тебя ${m} и ${r}.`;
+      if (messages) return `У тебя ${m}.`;
+      if (replies) return `У тебя ${r}.`;
+      return "Ничего нового. Ты всё прочитал(а).";
+    },
+    latest: "Последнее для тебя",
+    newLabel: "Новое",
+    seeAll: "Все сообщения",
+    emptyTitle: "Пока нет сообщений",
+    emptyBody: "Поделись ссылкой. Первое анонимное сообщение появится здесь.",
+    inbox: "Входящие",
+    sent: "Отправленные",
+    inboxStatus: (n: number) => (n ? `${n} ${plural(n, "новое", "новых", "новых")}` : "Всё прочитано"),
+    sentStatus: (n: number) => (n ? `${n} ${plural(n, "новый ответ", "новых ответа", "новых ответов")}` : "Новых ответов нет"),
+    linkTitle: "Твоя ссылка",
+    linkBody: "Выложи её в сторис или в групповой чат, чтобы получать больше сообщений.",
+    moreWays: "QR-код и другое",
+    startTitle: "С чего начать",
+    startProgress: (done: number, total: number) => `Готово ${done} из ${total}`,
+    stepPhoto: "Добавь фото профиля",
+    stepBio: "Напиши пару слов о себе",
+    stepShare: "Поделись ссылкой",
+    stepFirst: "Получи первое сообщение",
+    findTitle: "Найти человека",
+    findPlaceholder: "Имя или @username",
+    findButton: "Найти",
   },
   inbox: {
     metaTitle: "Входящие · Wconfa",

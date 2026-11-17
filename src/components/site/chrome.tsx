@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { Check, Inbox, LogOut, MessageSquare, Search, Settings as SettingsIcon, Share2, Shield, User } from "lucide-react";
+import { Check, House, Inbox, LogOut, MessageSquare, Search, Settings as SettingsIcon, Shield, User } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useId, useState } from "react";
 import { t } from "@/i18n";
@@ -11,7 +11,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ThemeToggle } from "./theme";
-import { ShareDialog } from "./share-dialog";
 import { UserAvatar } from "./avatar";
 import { LanguageSelect } from "./language";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -23,7 +22,7 @@ export function Logo() {
   const { user } = useAuth();
   const gid = `brand-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
   return (
-    <Link to={user ? "/inbox" : "/"} className="flex items-center gap-2.5 rounded-xl font-extrabold" aria-label={`${t.brand} home`}>
+    <Link to="/" className="flex items-center gap-2.5 rounded-xl font-extrabold" aria-label={`${t.brand} home`}>
       <svg viewBox="0 0 64 64" className="size-9 shrink-0 drop-shadow-sm" aria-hidden="true">
         <defs>
           <linearGradient id={gid} x1="0" y1="0" x2="1" y2="1">
@@ -101,6 +100,9 @@ function SignedInNav() {
   return (
     <>
       <div className="hidden items-center gap-1 md:flex">
+        <Link to="/" className={navLink} activeOptions={{ exact: true }}>
+          {t.common.home}
+        </Link>
         <Link to="/inbox" className={cn(navLink, onMessages && "bg-accent text-foreground")} aria-current={onMessages ? "page" : undefined}>
           {t.common.inbox} <CountBadge n={total} />
         </Link>
@@ -145,9 +147,8 @@ export function SiteHeader() {
 }
 
 export function MobileNav() {
-  const { profile, isAdmin } = useAuth();
+  const { isAdmin } = useAuth();
   const { total, onMessages } = useMessagesNav();
-  const [open, setOpen] = useState(false);
   const item =
     "press relative flex min-h-[58px] min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-[22px] px-1 text-[12px] font-semibold text-muted-foreground [&_svg]:size-5 data-[status=active]:bg-brand data-[status=active]:text-brand-foreground";
   return (
@@ -158,6 +159,10 @@ export function MobileNav() {
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       >
         <div className="glass flex items-stretch gap-1 rounded-[30px] p-2">
+          <Link to="/" className={item} activeOptions={{ exact: true }}>
+            <House className="size-5" />
+            {t.common.home}
+          </Link>
           <Link to="/inbox" className={cn(item, onMessages && "bg-brand text-brand-foreground")} aria-current={onMessages ? "page" : undefined}>
             <Inbox className="size-5" />
             {t.common.inbox}
@@ -167,16 +172,6 @@ export function MobileNav() {
             <Search className="size-5" />
             {t.common.search}
           </Link>
-          <Button
-            type="button"
-            variant="ghost"
-            className={item}
-            onClick={() => setOpen(true)}
-            disabled={!profile?.username}
-          >
-            <Share2 className="size-5" />
-            {t.common.share}
-          </Button>
           {isAdmin && (
             <Link to="/admin" className={item}>
               <Shield className="size-5" />
@@ -189,7 +184,6 @@ export function MobileNav() {
           </Link>
         </div>
       </nav>
-      {profile?.username && <ShareDialog open={open} onOpenChange={setOpen} username={profile.username} />}
     </>
   );
 }

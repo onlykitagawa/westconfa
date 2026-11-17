@@ -31,7 +31,7 @@ function Onboarding() {
   const onStatus = useCallback((s: UsernameStatus) => setStatus(s), []);
 
   useEffect(() => {
-    if (profile?.username && !ready) navigate({ to: "/inbox", replace: true });
+    if (profile?.username && !ready) navigate({ to: "/", replace: true });
   }, [profile, navigate, ready]);
 
   const submit = async (e: React.FormEvent) => {

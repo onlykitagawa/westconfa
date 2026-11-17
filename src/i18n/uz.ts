@@ -9,6 +9,7 @@ export const uz: Dict = {
     getMyLink: "Havolamni olish",
     openInbox: "Xabarlarni ochish",
     getYourOwn: "Oʻz havolangizni oling",
+    home: "Bosh sahifa",
     inbox: "Xabarlar",
     sent: "Yuborilgan",
     share: "Ulashish",
@@ -355,6 +356,40 @@ export const uz: Dict = {
     readyPhoto: "Profil rasmini qoʻshish (ixtiyoriy)",
     readyPhotoDone: "Rasmni almashtirish",
     readyInbox: "Xabarlarimga oʻtish",
+  },
+  home: {
+    metaTitle: "Bosh sahifa · Wconfa",
+    greeting: (part: "morning" | "afternoon" | "evening", name: string) =>
+      `${part === "morning" ? "Xayrli tong" : part === "afternoon" ? "Xayrli kun" : "Xayrli kech"}, ${name}`,
+    summary: (messages: number, replies: number) => {
+      const m = `${messages} ta yangi xabar`;
+      const r = `${replies} ta yangi javob`;
+      if (messages && replies) return `Sizda ${m} va ${r} bor.`;
+      if (messages) return `Sizda ${m} bor.`;
+      if (replies) return `Sizda ${r} bor.`;
+      return "Yangi narsa yoʻq. Hammasini oʻqib boʻldingiz.";
+    },
+    latest: "Siz uchun soʻnggilari",
+    newLabel: "Yangi",
+    seeAll: "Barcha xabarlar",
+    emptyTitle: "Hali xabarlar yoʻq",
+    emptyBody: "Havolangizni ulashing. Birinchi anonim xabaringiz shu yerda chiqadi.",
+    inbox: "Xabarlar",
+    sent: "Yuborilgan",
+    inboxStatus: (n: number) => (n ? `${n} ta yangi` : "Hammasi oʻqilgan"),
+    sentStatus: (n: number) => (n ? `${n} ta yangi javob` : "Yangi javob yoʻq"),
+    linkTitle: "Havolangiz",
+    linkBody: "Koʻproq xabar olish uchun uni storis yoki guruh chatida ulashing.",
+    moreWays: "QR kod va boshqalar",
+    startTitle: "Boshlash",
+    startProgress: (done: number, total: number) => `${total} tadan ${done} tasi bajarildi`,
+    stepPhoto: "Profil rasmini qoʻshing",
+    stepBio: "Oʻzingiz haqingizda qisqa yozing",
+    stepShare: "Havolangizni ulashing",
+    stepFirst: "Birinchi xabaringizni oling",
+    findTitle: "Odam topish",
+    findPlaceholder: "Ism yoki @username",
+    findButton: "Qidirish",
   },
   inbox: {
     metaTitle: "Xabarlar · Wconfa",

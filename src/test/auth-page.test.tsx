@@ -99,6 +99,6 @@ describe("Sign-in verification transitions", () => {
     fireEvent.submit(ui.getByRole("button", { name: t.auth.savePassword }).closest("form") as HTMLFormElement);
     await waitFor(() => expect(mocks.verify).toHaveBeenCalledWith({ email, token: "123456", type: "recovery" }));
     await waitFor(() => expect(mocks.update).toHaveBeenCalledWith({ password: "new-test-password" }));
-    expect(mocks.navigate).toHaveBeenCalledWith({ to: "/inbox", replace: true });
+    expect(mocks.navigate).toHaveBeenCalledWith({ to: "/", replace: true });
   });
 });

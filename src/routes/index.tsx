@@ -5,6 +5,7 @@ import { t } from "@/i18n";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useAuth } from "@/lib/auth";
+import { Home } from "@/components/site/home";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -22,15 +23,17 @@ export const Route = createFileRoute("/")({
 
 const safeIcons = [EyeOff, ShieldCheck, SlidersHorizontal];
 
+// Signed-in students get their home page; everyone else gets the landing page.
 function Landing() {
-  const { user, loading } = useAuth();
+  const { user, profile, loading } = useAuth();
   const navigate = useNavigate();
   const L = t.landing;
-  // Signed-in students go straight to their inbox; the landing page is for newcomers.
+  const needsUsername = !loading && !!user && !!profile && !profile.username;
   useEffect(() => {
-    if (!loading && user) navigate({ to: "/inbox", replace: true });
-  }, [loading, user, navigate]);
-  if (loading || user) return null;
+    if (needsUsername) navigate({ to: "/onboarding", replace: true });
+  }, [needsUsername, navigate]);
+  if (loading || (user && !profile?.username)) return null;
+  if (user) return <Home />;
   return (
     <main>
       <section className="mx-auto max-w-7xl px-5 pb-16 pt-16 text-center md:pb-24 md:pt-24">

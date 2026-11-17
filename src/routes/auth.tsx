@@ -61,7 +61,7 @@ function AuthPage() {
   useEffect(() => setTab(mode === "signup" ? "signup" : "signin"), [mode]);
 
   useEffect(() => {
-    if (!loading && user && !openedAuthLink && !holdRedirect.current) navigate({ to: "/inbox", replace: true });
+    if (!loading && user && !openedAuthLink && !holdRedirect.current) navigate({ to: "/", replace: true });
   }, [user, loading, openedAuthLink, navigate]);
 
   const clean = () => email.trim().toLowerCase();
@@ -115,7 +115,7 @@ function AuthPage() {
         return setErr(res.code === "locked" ? t.auth.errLocked : res.code === "invalid" ? t.auth.errInvalid : t.common.somethingWrong);
       }
       await supabase.auth.setSession({ access_token: res.access_token, refresh_token: res.refresh_token });
-      navigate({ to: "/inbox", replace: true });
+      navigate({ to: "/", replace: true });
     } catch {
       setBusy(false);
       setErr(t.common.somethingWrong);
@@ -157,7 +157,7 @@ function AuthPage() {
     if (error && type === "signup") ({ error } = await supabase.auth.verifyOtp({ email: clean(), token: code, type: "email" }));
     setBusy(false);
     if (error) return setErr(/rate/i.test(error.message) ? t.auth.errRate : t.auth.errCode);
-    navigate({ to: "/inbox", replace: true });
+    navigate({ to: "/", replace: true });
   };
 
   const resetPassword = async (e: React.FormEvent) => {
@@ -178,7 +178,7 @@ function AuthPage() {
     setBusy(false);
     if (upErr) return setErr(t.common.somethingWrong);
     toast.success(t.auth.passwordSaved);
-    navigate({ to: "/inbox", replace: true });
+    navigate({ to: "/", replace: true });
   };
 
   const back = (

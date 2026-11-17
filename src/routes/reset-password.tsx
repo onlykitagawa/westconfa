@@ -41,7 +41,7 @@ function ResetPassword() {
     setBusy(false);
     if (error) return setErr(t.common.somethingWrong);
     toast.success(t.auth.passwordSaved);
-    navigate({ to: "/inbox", replace: true });
+    navigate({ to: "/", replace: true });
   };
 
   return (

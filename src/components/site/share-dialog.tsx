@@ -6,6 +6,8 @@ import { t } from "@/i18n";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { StoryButton } from "./story-image";
+import { markLinkShared } from "@/lib/link-shared";
+export { linkWasShared } from "@/lib/link-shared";
 
 // The public address people should open. Change this when a custom domain is connected.
 const PUBLIC_SITE_URL = "https://westconfa.lovable.app";
@@ -35,6 +37,7 @@ export function useCopyShare(link: string) {
     try {
       await navigator.clipboard.writeText(link);
       setCopied(true);
+      markLinkShared();
       toast.success(t.shareDialog.copied);
       setTimeout(() => setCopied(false), 1800);
     } catch {
@@ -44,6 +47,7 @@ export function useCopyShare(link: string) {
   const share = async () => {
     try {
       await navigator.share({ title: t.brand, text: t.shareDialog.shareText, url: link });
+      markLinkShared();
     } catch {
       /* user cancelled */
     }
