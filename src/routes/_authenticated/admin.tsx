@@ -6,6 +6,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 import { t } from "@/i18n";
+import { badge } from "@/lib/live";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { adminRemoveAvatar } from "@/lib/avatar.functions";
@@ -111,6 +112,7 @@ function AdminPage() {
 function useReviewQueue() {
   return useQuery({
     queryKey: ["admin", "queue"],
+    ...badge,
     queryFn: async () => {
       const { data, error } = await supabase.rpc("admin_review_queue");
       if (error) throw error;
@@ -283,6 +285,7 @@ type AskQueueItem = {
 function useAskQueue() {
   return useQuery({
     queryKey: ["admin", "ask"],
+    ...badge,
     queryFn: async (): Promise<AskQueueItem[]> => {
       const { data, error } = await supabase.rpc("admin_ask_queue");
       if (error) throw error;

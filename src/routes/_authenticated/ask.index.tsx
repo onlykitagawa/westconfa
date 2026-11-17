@@ -1,8 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
-import { MessageCircle } from "lucide-react";
+import { ArrowUp, MessageCircle } from "lucide-react";
+import { useMemo, useRef, useState } from "react";
 import { t, timeAgo } from "@/i18n";
 import { askFeedQuery, askMineQuery, type AskFeedItem, type AskMineItem } from "@/lib/ask-data";
+import { live } from "@/lib/live";
+import { arrangeFeed, feedBase, type FeedBase } from "@/lib/ask-feed";
 import { cn } from "@/lib/utils";
 import { AskComposer, PostCard } from "@/components/site/ask";
 import { CountBadge } from "@/components/site/chrome";
@@ -22,7 +25,7 @@ function AskPage() {
   const A = t.ask;
   const { tab = "hot" } = Route.useSearch();
   const navigate = Route.useNavigate();
-  const mine = useQuery(askMineQuery());
+  const mine = useQuery({ ...askMineQuery(), ...live });
   const newOnMine = (mine.data ?? []).filter((p) => p.new_answers).length;
   const tabs: { id: Tab; label: string }[] = [
     { id: "hot", label: A.hot },
@@ -61,7 +64,7 @@ function AskPage() {
       </div>
 
       <section className="mt-4" aria-live="polite">
-        {tab === "mine" ? <MineList items={mine.data} loading={mine.isLoading} /> : <Feed sort={tab} />}
+        {tab === "mine" ? <MineList items={mine.data} loading={mine.isLoading} /> : <Feed key={tab} sort={tab} />}
       </section>
     </main>
   );
@@ -70,16 +73,35 @@ function AskPage() {
 function Feed({ sort }: { sort: "hot" | "new" }) {
   const A = t.ask;
   const q = useInfiniteQuery(askFeedQuery(sort));
-  if (q.isLoading) return <ListSkeleton />;
-  if (q.isError) return <p className="glass rounded-3xl p-8 text-center text-muted-foreground">{t.common.somethingWrong}</p>;
-  const seen = new Set<string>();
-  const items: AskFeedItem[] = [];
-  for (const page of q.data?.pages ?? []) for (const p of page) if (!seen.has(p.id)) { seen.add(p.id); items.push(p); }
-  if (items.length === 0) return <Empty text={A.empty} />;
+  const top = useRef<HTMLDivElement>(null);
+  const fresh = useMemo(() => {
+    const seen = new Set<string>();
+    const out: AskFeedItem[] = [];
+    for (const page of q.data?.pages ?? []) for (const p of page) if (!seen.has(p.id)) { seen.add(p.id); out.push(p); }
+    return out;
+  }, [q.data]);
+  const [base, setBase] = useState<FeedBase<AskFeedItem> | null>(null);
+  if (base === null && q.isSuccess) setBase(feedBase(fresh));
+
+  if (q.isLoading || (base === null && q.isSuccess)) return <ListSkeleton />;
+  if (q.isError && !q.data) return <p className="glass rounded-3xl p-8 text-center text-muted-foreground">{t.common.somethingWrong}</p>;
+  const { shown, waiting } = arrangeFeed(base ?? feedBase(fresh), fresh, !q.hasNextPage);
+  const showNew = () => {
+    setBase(feedBase(fresh));
+    top.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+  if (shown.length === 0 && waiting.length === 0) return <Empty text={A.empty} />;
   return (
-    <>
+    <div ref={top} className="scroll-mt-24">
+      {waiting.length > 0 && (
+        <div className="sticky top-20 z-20 mb-3 flex justify-center">
+          <Button type="button" variant="hero" size="sm" className="shadow-soft" onClick={showNew}>
+            <ArrowUp /> {A.newQuestions(waiting.length)}
+          </Button>
+        </div>
+      )}
       <ul className="space-y-3">
-        {items.map((p) => (
+        {shown.map((p) => (
           <li key={p.id}><PostCard post={p} /></li>
         ))}
       </ul>
@@ -88,7 +110,7 @@ function Feed({ sort }: { sort: "hot" | "new" }) {
           {q.isFetchingNextPage ? t.common.loading : A.loadMore}
         </Button>
       )}
-    </>
+    </div>
   );
 }
 

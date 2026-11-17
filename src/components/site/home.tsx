@@ -6,6 +6,7 @@ import { t, timeAgo } from "@/i18n";
 import { useAuth } from "@/lib/auth";
 import { useBadges, useInboxMessages, type InboxMsg } from "@/lib/inbox-data";
 import { askTopQuery } from "@/lib/ask-data";
+import { live, LIVE_MS } from "@/lib/live";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,7 +24,7 @@ function dayPart(): "morning" | "afternoon" | "evening" {
 export function Home() {
   const H = t.home;
   const { profile } = useAuth();
-  const inbox = useInboxMessages();
+  const inbox = useInboxMessages(LIVE_MS);
   const badges = useBadges();
   const [shareOpen, setShareOpen] = useState(false);
   const [part, setPart] = useState<"morning" | "afternoon" | "evening">("evening");
@@ -250,7 +251,7 @@ function GetStarted({ hasPhoto, hasBio, hasMessage, onShare }: { hasPhoto: boole
 // The three hottest questions on Ask, and a way in.
 function AskPreview() {
   const A = t.ask;
-  const top = useQuery(askTopQuery());
+  const top = useQuery({ ...askTopQuery(), ...live });
   const items = top.data ?? [];
   return (
     <section aria-labelledby="ask-title">

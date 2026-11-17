@@ -19,3 +19,4 @@ address of the local site.
 - `search-fresh.cjs`: search never shows an old username after someone renames their profile.
 - `answer-notice.cjs`: the sender sees a public answer to their message (Sent page and status link).
 - `ask.cjs`: the Ask feed (voting, Mine tab, question page, "new answers" mark, home preview, admin tab).
+- `live.cjs`: changes appear without reloading (home, badges, Ask feed without jumping, answers), and nothing is checked while the tab is hidden.

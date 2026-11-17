@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { toast } from "sonner";
 import { t } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
+import { live } from "@/lib/live";
 import { Button } from "@/components/ui/button";
 
 type Answer = { id: string; question: string; answer: string; created_at: string };
@@ -13,7 +14,7 @@ export function AnswerCards({ username, isOwner, canReport, empty }: { username:
   const qc = useQueryClient();
   const q = useQuery({
     queryKey: ["answers", username],
-    staleTime: 30_000,
+    ...live,
     queryFn: async (): Promise<Answer[]> => {
       const { data, error } = await supabase.rpc("get_public_answers", { _username: username });
       if (error) throw error;

@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { live, LIVE_MS } from "@/lib/live";
 import { sentThreadQuery, SENT_KEY, useSeenWhenShown, useSentMessages, type SentItem } from "@/lib/inbox-data";
 import { SHEET_CLASS } from "@/components/site/sheet";
 
@@ -33,12 +34,12 @@ function SentPage() {
   const reply = useServerFn(replyAsMember);
   const [open, setOpen] = useState<Item | null>(null);
 
-  const list = useSentMessages();
+  const list = useSentMessages(LIVE_MS);
 
   const messageId = open?.message_id ?? null;
   // The latest version of the open item (the list refreshes every 30 s), e.g. a new public answer.
   const current = (messageId && list.data?.find((x) => x.message_id === messageId)) || open;
-  const thread = useQuery({ ...sentThreadQuery(messageId ?? ""), enabled: !!messageId, refetchOnWindowFocus: true });
+  const thread = useQuery({ ...sentThreadQuery(messageId ?? ""), enabled: !!messageId, ...live });
   // Clears the red "new reply" mark once the fresh conversation is on screen (also when a reply
   // arrives while it is open).
   useSeenWhenShown("sent", messageId, !!messageId && !!list.data?.some((x) => x.message_id === messageId && x.new_reply));

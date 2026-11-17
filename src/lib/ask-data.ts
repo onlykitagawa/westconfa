@@ -1,6 +1,7 @@
 import { infiniteQueryOptions, queryOptions, useQuery, type QueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { badge, live } from "@/lib/live";
 
 // Shared queries for the Ask feed, the question page, the home preview and the nav badge.
 // Every read goes through database functions that never return who wrote anything.
@@ -32,13 +33,12 @@ export type AskAnswer = { id: string; body: string; status: string; created_at: 
 
 export const ASK_KEY = ["ask"];
 export const PAGE = 20;
-const REFRESH_MS = 60_000;
 
 // Pages of PAGE questions. Votes move "hot" around between pages, so the page dedupes by id.
 export const askFeedQuery = (sort: AskSort) =>
   infiniteQueryOptions({
     queryKey: [...ASK_KEY, "feed", sort],
-    refetchOnWindowFocus: true,
+    ...live,
     initialPageParam: 0,
     getNextPageParam: (last: AskFeedItem[], all: AskFeedItem[][]) => (last.length < PAGE ? undefined : all.length * PAGE),
     queryFn: async ({ pageParam }): Promise<AskFeedItem[]> => {
@@ -52,7 +52,6 @@ export const askFeedQuery = (sort: AskSort) =>
 export const askTopQuery = () =>
   queryOptions({
     queryKey: [...ASK_KEY, "top"],
-    refetchOnWindowFocus: true,
     queryFn: async (): Promise<AskFeedItem[]> => {
       const { data, error } = await supabase.rpc("ask_feed", { _sort: "hot", _limit: 3, _offset: 0 });
       if (error) throw error;
@@ -63,8 +62,6 @@ export const askTopQuery = () =>
 export const askMineQuery = () =>
   queryOptions({
     queryKey: [...ASK_KEY, "mine"],
-    refetchOnWindowFocus: true,
-    refetchInterval: REFRESH_MS,
     queryFn: async (): Promise<AskMineItem[]> => {
       const { data, error } = await supabase.rpc("ask_mine");
       if (error) throw error;
@@ -75,6 +72,7 @@ export const askMineQuery = () =>
 export const askPostQuery = (id: string) =>
   queryOptions({
     queryKey: [...ASK_KEY, "post", id],
+    ...live,
     queryFn: async (): Promise<AskPost | null> => {
       const { data, error } = await supabase.rpc("ask_post", { _id: id });
       if (error) throw error;
@@ -85,7 +83,7 @@ export const askPostQuery = (id: string) =>
 export const askAnswersQuery = (id: string) =>
   queryOptions({
     queryKey: [...ASK_KEY, "answers", id],
-    refetchOnWindowFocus: true,
+    ...live,
     queryFn: async (): Promise<AskAnswer[]> => {
       const { data, error } = await supabase.rpc("ask_answers_of", { _post_id: id });
       if (error) throw error;
@@ -96,7 +94,7 @@ export const askAnswersQuery = (id: string) =>
 // Number of the caller's questions with answers they haven't seen yet (the red mark on "Ask").
 export function useAskBadge() {
   const { profile } = useAuth();
-  const mine = useQuery({ ...askMineQuery(), enabled: !!profile?.username });
+  const mine = useQuery({ ...askMineQuery(), ...badge, enabled: !!profile?.username });
   return (mine.data ?? []).filter((p) => p.new_answers).length;
 }
 

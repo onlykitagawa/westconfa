@@ -18,6 +18,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { MessageTabs } from "@/components/site/message-tabs";
 import { InstallHint } from "@/components/site/install-hint";
 import { cn } from "@/lib/utils";
+import { live, LIVE_MS } from "@/lib/live";
 import { INBOX_KEY, inboxThreadQuery, REPLIES_KEY, threadStates, useInboxMessages, useInboxReplies, useSeenWhenShown, type InboxMsg } from "@/lib/inbox-data";
 import { SHEET_CLASS } from "@/components/site/sheet";
 
@@ -42,11 +43,11 @@ function InboxPage() {
   const reply = useServerFn(replyToMessage);
   const answer = useServerFn(answerPublicly);
 
-  const { data, isLoading } = useInboxMessages();
+  const { data, isLoading } = useInboxMessages(LIVE_MS);
   // One light query for the list labels (no text), one full query for the open conversation.
-  const summary = useInboxReplies();
+  const summary = useInboxReplies(LIVE_MS);
   const threadState = useMemo(() => threadStates(summary.data, data), [summary.data, data]);
-  const thread = useQuery({ ...inboxThreadQuery(openMsg?.id ?? ""), enabled: !!openMsg, refetchOnWindowFocus: true });
+  const thread = useQuery({ ...inboxThreadQuery(openMsg?.id ?? ""), enabled: !!openMsg, ...live });
   // Clears the red "new reply" mark once the fresh conversation is on screen (also when a reply
   // arrives while it is open).
   useSeenWhenShown("inbox", openMsg?.id ?? null, !!openMsg && !!threadState.get(openMsg.id)?.newReply);

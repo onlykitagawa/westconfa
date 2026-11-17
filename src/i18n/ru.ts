@@ -427,6 +427,7 @@ export const ru: Dict = {
     empty: "Вопросов пока нет. Спроси первым.",
     emptyMine: "Ты ещё ничего не спрашивал(а).",
     loadMore: "Показать ещё",
+    newQuestions: (n: number) => `${n} ${plural(n, "новый вопрос", "новых вопроса", "новых вопросов")}`,
     answers: (n: number) => `${n} ${plural(n, "ответ", "ответа", "ответов")}`,
     noAnswersYet: "Ответов пока нет",
     upvote: "Поддержать",

@@ -417,6 +417,7 @@ export const en = {
     empty: "No questions yet. Be the first to ask something.",
     emptyMine: "You haven't asked anything yet.",
     loadMore: "Show more",
+    newQuestions: (n: number) => (n === 1 ? "1 new question" : `${n} new questions`),
     answers: (n: number) => (n === 1 ? "1 answer" : `${n} answers`),
     noAnswersYet: "No answers yet",
     upvote: "Upvote",

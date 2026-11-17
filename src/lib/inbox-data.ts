@@ -2,6 +2,7 @@ import { queryOptions, useQuery, useQueryClient, type QueryClient } from "@tanst
 import { useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { BADGE_MS } from "@/lib/live";
 
 // Shared queries for the inbox, the Sent page and the red badges in the navigation. Using the same
 // query keys everywhere means a change on one page updates the badges immediately.
@@ -29,16 +30,17 @@ export type InboxThread = { message_id: string; replied: boolean; new_reply: boo
 export const INBOX_KEY = ["inbox"];
 export const REPLIES_KEY = ["inbox-replies"];
 export const SENT_KEY = ["sent"];
-const REFRESH_MS = 30_000;
 
-export function useInboxMessages() {
+// `every`: how often to check. Pages that show the list pass LIVE_MS; badges use the default.
+export function useInboxMessages(every: number = BADGE_MS) {
   const { profile } = useAuth();
   const id = profile?.id;
   return useQuery({
     queryKey: INBOX_KEY,
     enabled: !!id,
     refetchOnWindowFocus: true,
-    refetchInterval: REFRESH_MS,
+    refetchOnReconnect: true,
+    refetchInterval: every,
     queryFn: async (): Promise<InboxMsg[]> => {
       const { data, error } = await supabase
         .from("messages")
@@ -56,13 +58,14 @@ export function useInboxMessages() {
 
 // Reply state per conversation, worked out in the database and always scoped to the caller's own
 // inbox: has the recipient replied, and is there a sender reply they have not been shown yet.
-export function useInboxReplies() {
+export function useInboxReplies(every: number = BADGE_MS) {
   const { profile } = useAuth();
   return useQuery({
     queryKey: REPLIES_KEY,
     enabled: !!profile?.id,
     refetchOnWindowFocus: true,
-    refetchInterval: REFRESH_MS,
+    refetchOnReconnect: true,
+    refetchInterval: every,
     queryFn: async (): Promise<InboxThread[]> => {
       const { data, error } = await supabase.rpc("my_inbox_threads");
       if (error) throw error;
@@ -171,13 +174,14 @@ export function useSeenWhenShown(kind: "inbox" | "sent", id: string | null, hasN
   }, [qc, kind, id, hasNew]);
 }
 
-export function useSentMessages() {
+export function useSentMessages(every: number = BADGE_MS) {
   const { profile } = useAuth();
   return useQuery({
     queryKey: SENT_KEY,
     enabled: !!profile?.id,
     refetchOnWindowFocus: true,
-    refetchInterval: REFRESH_MS,
+    refetchOnReconnect: true,
+    refetchInterval: every,
     queryFn: async (): Promise<SentItem[]> => {
       const { data, error } = await supabase.rpc("my_sent_messages");
       if (error) throw error;

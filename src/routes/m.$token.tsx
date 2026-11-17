@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { Check, CheckCheck, Clock, Eye, RefreshCw, XCircle } from "lucide-react";
 import { t, timeAgo } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
+import { live } from "@/lib/live";
 import { replyAsSender } from "@/lib/replies.functions";
 import { ReplyBox, ThreadBubbles } from "@/components/site/thread";
 import { AnswerNotice } from "@/components/site/answer-notice";
@@ -40,8 +41,7 @@ function TrackPage() {
       const row = (data ?? [])[0];
       return row ? (row as Status) : null;
     },
-    refetchInterval: 30000,
-    refetchOnWindowFocus: true,
+    ...live,
   });
 
   // The private conversation with the recipient, if they chose to reply. Only approved replies and the
@@ -53,8 +53,7 @@ function TrackPage() {
       if (error) throw error;
       return data ?? [];
     },
-    refetchInterval: 30000,
-    refetchOnWindowFocus: true,
+    ...live,
   });
 
   if (q.isLoading)

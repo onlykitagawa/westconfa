@@ -419,6 +419,7 @@ export const uz: Dict = {
     empty: "Hali savollar yoʻq. Birinchi boʻlib soʻrang.",
     emptyMine: "Siz hali hech narsa soʻramagansiz.",
     loadMore: "Yana koʻrsatish",
+    newQuestions: (n: number) => `${n} ta yangi savol`,
     answers: (n: number) => `${n} ta javob`,
     noAnswersYet: "Hali javob yoʻq",
     upvote: "Qoʻllab-quvvatlash",
