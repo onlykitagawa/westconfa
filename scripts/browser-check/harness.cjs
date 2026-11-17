@@ -31,6 +31,19 @@ function makeBackend({ admin = false } = {}) {
       { id: 'i1', body: 'A message I already answered', created_at: iso(300), read_at: iso(290), replies_closed: false },
     ],
     threads: [{ message_id: 'i1', replied: true, new_reply: true }],
+    // Ask feed: q1 is someone else's, q2 is mine with a new answer, q3 is mine and waiting for review.
+    ask: [
+      { id: 'a0000000-0000-4000-8000-000000000001', body: 'Where is the quietest place to study on campus during exams?', status: 'approved', created_at: iso(300), published_at: iso(290), score: 14, voted: false, mine: false, new_answers: false },
+      { id: 'a0000000-0000-4000-8000-000000000002', body: 'Which electives are actually worth it in second year?', status: 'approved', created_at: iso(900), published_at: iso(880), score: 6, voted: false, mine: true, new_answers: true },
+      { id: 'a0000000-0000-4000-8000-000000000003', body: 'Is anyone selling a used Econometrics textbook?', status: 'pending', created_at: iso(20), published_at: null, score: 0, voted: false, mine: true, new_answers: false },
+    ],
+    askAnswers: [
+      { id: 'b1', post_id: 'a0000000-0000-4000-8000-000000000001', body: 'Library 3rd floor, the silent zone. Get there before 10.', status: 'approved', created_at: iso(250), published_at: iso(240), score: 9, voted: true, mine: false, by_asker: false },
+      { id: 'b2', post_id: 'a0000000-0000-4000-8000-000000000001', body: 'Thanks! Is it open on weekends?', status: 'approved', created_at: iso(200), published_at: iso(190), score: 1, voted: false, mine: false, by_asker: true },
+      { id: 'b3', post_id: 'a0000000-0000-4000-8000-000000000001', body: 'Yes, until 6pm on Saturdays.', status: 'pending', created_at: iso(5), published_at: null, score: 0, voted: false, mine: true, by_asker: false },
+      { id: 'b4', post_id: 'a0000000-0000-4000-8000-000000000002', body: 'Business Ethics, easy and actually interesting.', status: 'approved', created_at: iso(60), published_at: iso(50), score: 3, voted: false, mine: false, by_asker: false },
+    ],
+    askReviewAll: true,
     calls: [],
   };
   const thread = (owner, other) => [
@@ -65,6 +78,29 @@ function makeBackend({ admin = false } = {}) {
     if (path === '/rest/v1/rpc/my_sent_thread') return json(route, thread('owner', null));
     if (path === '/rest/v1/rpc/mark_sent_seen') { for (const m of state.sent) if (m.message_id === body._message_id) m.new_reply = false; return json(route, null); }
     if (path === '/rest/v1/rpc/mark_thread_seen') { for (const t of state.threads) if (t.message_id === body._message_id) t.new_reply = false; return json(route, null); }
+    const askCount = (id) => state.askAnswers.filter((a) => a.post_id === id && a.status === 'approved').length;
+    const live = state.ask.filter((p) => p.status === 'approved');
+    if (path === '/rest/v1/rpc/ask_feed') {
+      const list = [...live].sort((a, b) => (body._sort === 'new' ? b.published_at.localeCompare(a.published_at) : b.score - a.score));
+      return json(route, list.slice(body._offset || 0, (body._offset || 0) + (body._limit || 30)).map((p) => ({ id: p.id, body: p.body, published_at: p.published_at, score: p.score, answer_count: askCount(p.id), voted: p.voted, mine: p.mine, new_answers: p.new_answers })));
+    }
+    if (path === '/rest/v1/rpc/ask_mine') return json(route, state.ask.filter((p) => p.mine).map((p) => ({ id: p.id, body: p.body, status: p.status, created_at: p.created_at, published_at: p.published_at, score: p.score, answer_count: askCount(p.id), new_answers: p.new_answers })));
+    if (path === '/rest/v1/rpc/ask_post') return json(route, state.ask.filter((p) => p.id === body._id && (p.status === 'approved' || p.mine)).map(({ new_answers, ...p }) => p));
+    if (path === '/rest/v1/rpc/ask_answers_of') return json(route, state.askAnswers.filter((a) => a.post_id === body._post_id).map(({ post_id, ...a }) => a));
+    if (path === '/rest/v1/rpc/ask_vote') {
+      const item = (body._kind === 'post' ? state.ask : state.askAnswers).find((x) => x.id === body._id);
+      if (item && item.voted !== body._on) { item.voted = body._on; item.score += body._on ? 1 : -1; }
+      return json(route, item ? item.score : 0);
+    }
+    if (path === '/rest/v1/rpc/ask_mark_seen') { for (const p of state.ask) if (p.id === body._post_id) p.new_answers = false; return json(route, null); }
+    if (path === '/rest/v1/rpc/ask_report' || path === '/rest/v1/rpc/ask_delete') return json(route, null);
+    if (path === '/rest/v1/rpc/admin_ask_queue') return json(route, [
+      { kind: 'post', id: 'a0000000-0000-4000-8000-000000000003', body: 'Is anyone selling a used Econometrics textbook?', post_body: null, status: 'pending', hidden: false, reports: 0, ai_says: 'allow', reason: '', author_username: 'zeo0', author_email: user.email, created_at: iso(20) },
+      { kind: 'answer', id: 'b3', body: 'Yes, until 6pm on Saturdays.', post_body: 'Where is the quietest place to study on campus during exams?', status: 'pending', hidden: false, reports: 0, ai_says: 'review', reason: 'Unclear meaning.', author_username: 'zeo0', author_email: user.email, created_at: iso(5) },
+    ]);
+    if (path === '/rest/v1/rpc/admin_ask_decide') return json(route, null);
+    if (path === '/rest/v1/app_settings') return json(route, (req.headers()['accept'] || '').includes('vnd.pgrst.object') ? { value: state.askReviewAll } : [{ key: 'ask_review_all', value: state.askReviewAll }]);
+    if (path === '/rest/v1/rpc/admin_stats') return json(route, { users: 120, active_links: 80, messages: 400, open_reports: 0, pending_review: 0, per_day: [] });
     state.calls.push({ name: `UNHANDLED ${name}` });
     return json(route, []);
   }

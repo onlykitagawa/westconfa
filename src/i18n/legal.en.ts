@@ -18,6 +18,7 @@ export const privacy: LegalDoc = {
         "Profile: if you add a short bio, it is shown to everyone who visits your public profile. It goes through the same safety check as messages.",
         "Profile picture: if you add a photo, it is public. It is shown to everyone who visits your profile and to signed-in students who find you in search. Before it goes live, the picture (and nothing about you) is sent to an automated AI service that checks it for safety. Your phone or camera's hidden details, such as location, are removed before upload, and the photo is shrunk and stored under a random file name. We keep only your current photo: when you replace or remove it, or delete your account, the old file is deleted. Signed-in students can report a photo, and two reports take it down. We also keep a record that you uploaded (not the photo) for 24 hours to enforce an hourly upload limit.",
         "Replies: if the student you messaged replies, that reply is kept with your message and shows on your private status link, where you can answer back. Replies go through the same safety check. If a student chooses to post a message on their public profile, the text of the message and their answer are shown to everyone who visits that profile, without your name or any sender details, until the student removes them. Only you, through your status link or your Sent page, are told that the answer is to your message.",
+        "Ask: if you post a question or an answer on Ask, its text is shown to signed-in WIUT students without your name or any account details (on your own question, your answers are labeled \"Asker\", nothing more). We keep privately which account wrote it, so you can see and delete your own posts and so moderators can act on posts that are waiting for review or reported. Every post goes through the same automated AI safety check, and for now a moderator also approves each post before it appears. We keep the text, the AI's short opinion and the moderator's decision in a private record, used only to check and improve the automatic checks. Your upvotes and reports are stored with your account but never shown to anyone. We also keep a record that you posted (not what) for 24 hours to enforce daily limits.",
         "If you use the contact form: the name, email and message you submit, so we can reply.",
         "Your password is stored only as a secure one-way hash by our authentication provider. Nobody, including us, can read it.",
       ],
@@ -34,6 +35,7 @@ export const privacy: LegalDoc = {
         "Messages are deleted automatically 90 days after they are sent. You can delete any message sooner. Sender details are deleted together with the message. A message that a moderator rejects after review is deleted immediately.",
         "Message status links stop working and are deleted 90 days after the message was sent.",
         "Replies are deleted together with the message they belong to. A message and answer that a student has posted on their profile stay there until that student removes them or deletes their account.",
+        "Questions and answers on Ask, and the private review records about them, are deleted automatically 90 days after they are posted. You can delete your own question or answer sooner; deleting a question also deletes its answers.",
         "Spam-protection codes, including the scrambled code used to limit failed sign-in attempts, are deleted automatically after 24 hours.",
         "When you sign in, you stay signed in on that device for up to 30 days (your session refreshes automatically). After that, you'll be asked for your password again.",
         "Your account data is kept until you delete your account. Contact form messages are kept only as long as needed to handle your request.",
@@ -61,6 +63,7 @@ export const privacy: LegalDoc = {
         "Signed-in WIUT students can find you in search by your display name or @username, and see whether your inbox is open. Nothing else from your account is shown. You can hide yourself from search in Settings → Show me in search; your link keeps working either way.",
         "If the person who sent you a message kept their status link (or sent it while signed in, in which case they see it on their own Sent page), they can see whether it was delivered and whether you have opened it, and they can read any reply you send them and answer back. They see nothing else about you or your inbox.",
         "Anyone who visits your profile can read the messages and answers you choose to post there. They are shown without any information about who sent the message.",
+        "Questions and answers on Ask are shown only to signed-in WIUT students, never with who wrote them. Our moderators can see who wrote a question or answer that is waiting for review or has been reported. If three different students report a post, it is hidden until a moderator checks it.",
         "Our moderators can read messages that are held for review and messages that are reported. For those messages only, they can also see who the message was sent to and the sender details described above. They cannot browse other messages. During some periods we may review every message before it is delivered.",
         "A signed-in sender is identified by their account. For someone without an account, the sender detail is only a scrambled network code. It can be matched against a network address we already know, but it cannot be turned back into an address.",
         "We may disclose information we hold if we are legally required to.",
@@ -114,7 +117,7 @@ export const terms: LegalDoc = {
     {
       h: "Moderation, suspension and termination",
       p: [
-        "Messages, replies and answers are checked automatically. Some are blocked, and some are held for a human moderator to review before they are delivered. We also review reported messages and answers. Being anonymous to the person you message does not hide you from our moderators: they can see sender details for messages that are held or reported. We may remove any content and suspend or permanently close any account that breaks these terms or our Community Guidelines, with or without notice. You can stop using Wconfa and delete your account at any time.",
+        "Messages, replies, answers and posts on Ask are checked automatically. Some are blocked, and some are held for a human moderator to review before they are delivered. We also review reported messages and answers. Being anonymous to the person you message does not hide you from our moderators: they can see sender details for messages that are held or reported. We may remove any content and suspend or permanently close any account that breaks these terms or our Community Guidelines, with or without notice. You can stop using Wconfa and delete your account at any time.",
       ],
     },
     {
@@ -154,6 +157,13 @@ export const guidelines: LegalDoc = {
         "Sharing personal details such as phone numbers, addresses, social media handles or photos.",
         "Rumours, lies, or 'exposing' someone.",
         "Spam, scams, advertising, or flooding someone's inbox.",
+      ],
+    },
+    {
+      h: "Ask",
+      p: [
+        "Ask is for questions any WIUT student could help with: studies, campus life, events, buying and selling, advice. The same rules apply as for messages. Don't name or describe a real person so they can be recognised, and don't use it to start rumours.",
+        "Every question and answer is checked before it appears, so it may take a little while to show up. Tap ··· on a post to report it. Posts reported by several students are hidden until a moderator looks at them.",
       ],
     },
     {

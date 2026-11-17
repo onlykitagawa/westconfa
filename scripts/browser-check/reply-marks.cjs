@@ -69,7 +69,7 @@ const num = (s) => { const m = /(\d+)/.exec(s || ''); return m ? Number(m[1]) : 
   await until(async () => (await page.getByRole('dialog').count()) === 0, 'dialog closed');
 
   console.log('C. Visit another page and come back (the bug you reported)');
-  await page.locator('nav[aria-label="Main"] a[href="/search"]').click();
+  await page.locator('nav[aria-label="Main"] a[href="/search"]:visible').click();
   await until(() => page.url().endsWith('/search'), 'on /search');
   await sleep(1200);
   assert.strictEqual(await badge(headerInbox), 2); ok('on Search: header badge still 2');
@@ -119,15 +119,15 @@ const num = (s) => { const m = /(\d+)/.exec(s || ''); return m ? Number(m[1]) : 
   await sleep(1200);
   const items = await m.page.evaluate(() => [...document.querySelectorAll('nav[aria-label="App"] a, nav[aria-label="App"] button')].map((a) => ({ t: a.textContent.replace(/\d+\s*new/, '').trim(), color: getComputedStyle(a).color, current: a.getAttribute('aria-current') })));
   console.log('     bottom bar:', JSON.stringify(items));
-  assert.deepStrictEqual(items.map((i) => i.t), ['Inbox', 'Search', 'Share', 'Profile']); ok('bottom bar: Inbox, Search, Share, Profile (no Sent)');
-  assert.strictEqual(items[0].current, 'page'); ok('Inbox is highlighted on the Sent page');
+  assert.deepStrictEqual(items.map((i) => i.t), ['Home', 'Inbox', 'Ask', 'Profile']); ok('bottom bar: Home, Inbox, Ask, Profile (no Sent)');
+  assert.strictEqual(items[1].current, 'page'); ok('Inbox is highlighted on the Sent page');
   const tabColors = await m.page.evaluate(() => [...document.querySelectorAll('nav[aria-label="Messages"] a')].map((a) => ({ t: a.textContent.trim().slice(0, 6), color: getComputedStyle(a).color, status: a.getAttribute('data-status') })));
   console.log('     tabs:', JSON.stringify(tabColors));
   await m.page.screenshot({ path: shot('flow-5-phone-sent.png') });
   await m.page.goto(`${APP}/search`, { waitUntil: 'domcontentloaded' });
   await m.page.waitForSelector('nav[aria-label="App"]');
   await sleep(800);
-  const searchItem = await m.page.evaluate(() => { const a = document.querySelector('nav[aria-label="App"] a[href="/search"]'); return { color: getComputedStyle(a).color, status: a.getAttribute('data-status') }; });
+  const searchItem = await m.page.evaluate(() => { const a = document.querySelector('nav[aria-label="Main"] a[href="/search"].md\\:hidden'); return { color: getComputedStyle(a).color, status: a.getAttribute('data-status') }; });
   console.log('     active Search item:', JSON.stringify(searchItem));
   await m.page.screenshot({ path: shot('flow-6-phone-search.png') });
   assert.deepStrictEqual(m.problems, []); ok('no errors on the phone layout');

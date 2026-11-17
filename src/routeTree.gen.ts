@@ -26,6 +26,8 @@ import { Route as AuthenticatedSentRouteImport } from './routes/_authenticated/s
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as MTokenRouteImport } from './routes/m.$token'
 import { Route as UUsernameRouteImport } from './routes/u.$username'
+import { Route as AuthenticatedAskIndexRouteImport } from './routes/_authenticated/ask.index'
+import { Route as AuthenticatedAskIdRouteImport } from './routes/_authenticated/ask.$id'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
 
@@ -113,6 +115,16 @@ const UUsernameRoute = UUsernameRouteImport.update({
   path: '/u/$username',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAskIndexRoute = AuthenticatedAskIndexRouteImport.update({
+  id: '/ask/',
+  path: '/ask/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAskIdRoute = AuthenticatedAskIdRouteImport.update({
+  id: '/ask/$id',
+  path: '/ask/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
   id: '/lovable/email/auth/preview',
   path: '/lovable/email/auth/preview',
@@ -141,6 +153,8 @@ export interface FileRoutesByFullPath {
   '/settings': typeof AuthenticatedSettingsRoute
   '/m/$token': typeof MTokenRoute
   '/u/$username': typeof UUsernameRoute
+  '/ask/$id': typeof AuthenticatedAskIdRoute
+  '/ask/': typeof AuthenticatedAskIndexRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
 }
@@ -161,6 +175,8 @@ export interface FileRoutesByTo {
   '/settings': typeof AuthenticatedSettingsRoute
   '/m/$token': typeof MTokenRoute
   '/u/$username': typeof UUsernameRoute
+  '/ask/$id': typeof AuthenticatedAskIdRoute
+  '/ask': typeof AuthenticatedAskIndexRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
 }
@@ -183,6 +199,8 @@ export interface FileRoutesById {
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/m/$token': typeof MTokenRoute
   '/u/$username': typeof UUsernameRoute
+  '/_authenticated/ask/$id': typeof AuthenticatedAskIdRoute
+  '/_authenticated/ask/': typeof AuthenticatedAskIndexRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
 }
@@ -205,6 +223,8 @@ export interface FileRouteTypes {
     | '/settings'
     | '/m/$token'
     | '/u/$username'
+    | '/ask/$id'
+    | '/ask/'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
   fileRoutesByTo: FileRoutesByTo
@@ -225,6 +245,8 @@ export interface FileRouteTypes {
     | '/settings'
     | '/m/$token'
     | '/u/$username'
+    | '/ask/$id'
+    | '/ask'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
   id:
@@ -246,6 +268,8 @@ export interface FileRouteTypes {
     | '/_authenticated/settings'
     | '/m/$token'
     | '/u/$username'
+    | '/_authenticated/ask/$id'
+    | '/_authenticated/ask/'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
   fileRoutesById: FileRoutesById
@@ -386,6 +410,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UUsernameRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/ask/': {
+      id: '/_authenticated/ask/'
+      path: '/ask'
+      fullPath: '/ask/'
+      preLoaderRoute: typeof AuthenticatedAskIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/ask/$id': {
+      id: '/_authenticated/ask/$id'
+      path: '/ask/$id'
+      fullPath: '/ask/$id'
+      preLoaderRoute: typeof AuthenticatedAskIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/lovable/email/auth/preview': {
       id: '/lovable/email/auth/preview'
       path: '/lovable/email/auth/preview'
@@ -411,6 +449,8 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSearchRoute: typeof AuthenticatedSearchRoute
   AuthenticatedSentRoute: typeof AuthenticatedSentRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
+  AuthenticatedAskIdRoute: typeof AuthenticatedAskIdRoute
+  AuthenticatedAskIndexRoute: typeof AuthenticatedAskIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -421,6 +461,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSearchRoute: AuthenticatedSearchRoute,
   AuthenticatedSentRoute: AuthenticatedSentRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
+  AuthenticatedAskIdRoute: AuthenticatedAskIdRoute,
+  AuthenticatedAskIndexRoute: AuthenticatedAskIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

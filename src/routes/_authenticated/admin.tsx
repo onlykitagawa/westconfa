@@ -183,6 +183,7 @@ function AdminInner() {
   });
   const pending = stats.data?.pending_review ?? 0;
   const queueCount = useReviewQueue().data?.length ?? 0;
+  const askCount = useAskQueue().data?.length ?? 0;
   const cards: { label: string; value: number; hot?: boolean; wide?: boolean }[] = stats.data
     ? [
         { label: A.users, value: stats.data.users },
@@ -232,16 +233,159 @@ function AdminInner() {
             {A.replies}
             {queueCount > 0 && <span className="ml-2 rounded-full bg-primary px-2 py-0.5 text-xs font-bold text-primary-foreground">{queueCount}</span>}
           </TabsTrigger>
+          <TabsTrigger value="ask" className="h-10 shrink-0 rounded-xl px-4">
+            {Q.tab}
+            {askCount > 0 && <span className="ml-2 rounded-full bg-primary px-2 py-0.5 text-xs font-bold text-primary-foreground">{askCount}</span>}
+          </TabsTrigger>
           <TabsTrigger value="users" className="h-10 shrink-0 rounded-xl px-4">{A.accounts}</TabsTrigger>
           <TabsTrigger value="contact" className="h-10 shrink-0 rounded-xl px-4">{A.contact}</TabsTrigger>
         </TabsList>
         <TabsContent value="review"><NeedsReview /></TabsContent>
         <TabsContent value="reports"><Reports /></TabsContent>
         <TabsContent value="replies"><RepliesQueue /></TabsContent>
+        <TabsContent value="ask"><AskQueue /></TabsContent>
         <TabsContent value="users"><Users /></TabsContent>
         <TabsContent value="contact"><Contact /></TabsContent>
       </Tabs>
     </main>
+  );
+}
+
+// The Ask feed: waiting and reported questions and answers, with who wrote them and what the AI
+// thought. Every decision is stored next to the AI's opinion so the AI can later learn from it.
+const Q = {
+  tab: "Ask",
+  reviewAll: "Review every post on Ask",
+  reviewAllHint: "When on, every new question and answer waits here until you approve it. When off, posts the AI is sure about go live straight away and only unsure ones wait.",
+  reviewAllOn: "Every new Ask post now waits for your review.",
+  reviewAllOff: "Ask posts the AI is sure about now go live straight away.",
+  nothing: "Nothing waiting on Ask.",
+  question: "Question",
+  answer: "Answer",
+  onQuestion: "On the question",
+  waiting: "Waiting",
+  live: "Live",
+  hidden: "Hidden",
+  ai: { allow: "AI: looks fine", review: "AI: unsure", unavailable: "AI: unavailable", admin: "Written by an admin" } as Record<string, string>,
+  by: "By",
+  approve: "Approve",
+  keep: "Keep (clear reports)",
+  reject: "Reject and delete",
+  approved: "Approved. It's live on Ask.",
+  rejected: "Rejected and deleted.",
+};
+
+type AskQueueItem = {
+  kind: string; id: string; body: string; post_body: string | null; status: string; hidden: boolean; reports: number;
+  ai_says: string | null; reason: string | null; author_username: string | null; author_email: string | null; created_at: string;
+};
+
+function useAskQueue() {
+  return useQuery({
+    queryKey: ["admin", "ask"],
+    queryFn: async (): Promise<AskQueueItem[]> => {
+      const { data, error } = await supabase.rpc("admin_ask_queue");
+      if (error) throw error;
+      return (data ?? []) as AskQueueItem[];
+    },
+  });
+}
+
+function AskSettings() {
+  const qc = useQueryClient();
+  const q = useQuery({
+    queryKey: ["admin", "ask-setting"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("app_settings").select("value").eq("key", "ask_review_all").maybeSingle();
+      if (error) throw error;
+      // The database treats anything other than an explicit false as "on".
+      return data?.value !== false;
+    },
+  });
+  const save = useMutation({
+    mutationFn: async (value: boolean) => {
+      const { error } = await supabase.from("app_settings").update({ value }).eq("key", "ask_review_all");
+      if (error) throw error;
+    },
+    onSuccess: (_d, v) => {
+      qc.invalidateQueries({ queryKey: ["admin", "ask-setting"] });
+      toast.success(v ? Q.reviewAllOn : Q.reviewAllOff);
+    },
+    onError: () => toast.error(t.common.somethingWrong),
+  });
+  if (q.isLoading) return <Skeleton className="h-24 rounded-3xl" />;
+  if (q.data === undefined) return null;
+  return (
+    <div className="glass flex items-start justify-between gap-4 rounded-3xl p-5">
+      <div className="min-w-0">
+        <label htmlFor="ask-review-all" className="font-semibold">{Q.reviewAll}</label>
+        <p className="mt-1 text-sm text-muted-foreground">{Q.reviewAllHint}</p>
+      </div>
+      <Switch id="ask-review-all" checked={q.data} disabled={save.isPending} onCheckedChange={(v: boolean) => save.mutate(v)} />
+    </div>
+  );
+}
+
+function AskQueue() {
+  const qc = useQueryClient();
+  const list = useAskQueue();
+  const decide = useMutation({
+    mutationFn: async (v: { kind: string; id: string; approve: boolean }) => {
+      const { error } = await supabase.rpc("admin_ask_decide", { _kind: v.kind, _id: v.id, _approve: v.approve });
+      if (error) throw error;
+    },
+    onMutate: (v) => {
+      qc.setQueryData<AskQueueItem[]>(["admin", "ask"], (old) => (old ?? []).filter((x) => !(x.kind === v.kind && x.id === v.id)));
+    },
+    onSuccess: (_d, v) => toast.success(v.approve ? Q.approved : Q.rejected),
+    onError: () => toast.error(t.common.somethingWrong),
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: ["admin", "ask"] });
+      qc.invalidateQueries({ queryKey: ["ask"] });
+    },
+  });
+  const items = list.data ?? [];
+  return (
+    <div className="mt-4 space-y-4">
+      <AskSettings />
+      {list.isLoading ? (
+        <Skeleton className="h-32 rounded-3xl" />
+      ) : items.length === 0 ? (
+        <p className="glass rounded-3xl p-8 text-center text-muted-foreground">{Q.nothing}</p>
+      ) : (
+        <ul className="space-y-3">
+          {items.map((it) => {
+            const live = it.status === "approved";
+            return (
+              <li key={`${it.kind}-${it.id}`} className="glass rounded-3xl p-5">
+                <div className="flex flex-wrap items-center gap-2 text-xs">
+                  <span className="rounded-full bg-accent px-2.5 py-1 font-semibold text-accent-foreground">{it.kind === "post" ? Q.question : Q.answer}</span>
+                  <span className="rounded-full bg-muted px-2.5 py-1 font-semibold">{it.hidden ? Q.hidden : live ? Q.live : Q.waiting}</span>
+                  {it.reports > 0 && <span className="rounded-full bg-destructive/15 px-2.5 py-1 font-semibold text-destructive">{t.admin.reportsCount(it.reports)}</span>}
+                  {it.ai_says && <span className="rounded-full bg-muted px-2.5 py-1 font-semibold">{Q.ai[it.ai_says] ?? it.ai_says}</span>}
+                  <span className="text-muted-foreground">{formatDistanceToNow(new Date(it.created_at), { addSuffix: true })}</span>
+                </div>
+                <p className="mt-3 whitespace-pre-wrap break-words text-[17px] [overflow-wrap:anywhere]">{it.body}</p>
+                {it.post_body && (
+                  <>
+                    <p className="mt-3 text-xs font-semibold text-muted-foreground">{Q.onQuestion}</p>
+                    <p className="mt-1 whitespace-pre-wrap break-words rounded-2xl bg-field p-3 text-sm text-muted-foreground [overflow-wrap:anywhere]">{it.post_body}</p>
+                  </>
+                )}
+                {it.reason && <p className="mt-2 text-sm text-muted-foreground [overflow-wrap:anywhere]">{it.reason}</p>}
+                <p className="mt-3 rounded-2xl bg-muted/60 p-3 text-xs [overflow-wrap:anywhere]">
+                  <span className="font-semibold">{Q.by}:</span> @{it.author_username ?? "?"}{it.author_email ? ` (${it.author_email})` : ""}
+                </p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <Button size="sm" variant="hero" disabled={decide.isPending} onClick={() => decide.mutate({ kind: it.kind, id: it.id, approve: true })}>{live ? Q.keep : Q.approve}</Button>
+                  <Button size="sm" variant="destructive" disabled={decide.isPending} onClick={() => decide.mutate({ kind: it.kind, id: it.id, approve: false })}>{Q.reject}</Button>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
   );
 }
 

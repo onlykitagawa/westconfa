@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { Check, House, Inbox, LogOut, MessageSquare, Search, Settings as SettingsIcon, Shield, User } from "lucide-react";
+import { Check, House, Inbox, LogOut, MessageSquare, MessagesSquare, Search, Settings as SettingsIcon, Shield, User } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useId, useState } from "react";
 import { t } from "@/i18n";
@@ -15,6 +15,7 @@ import { UserAvatar } from "./avatar";
 import { LanguageSelect } from "./language";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { badgeText, useAppBadge, useBadges } from "@/lib/inbox-data";
+import { useAskBadge } from "@/lib/ask-data";
 import { cn } from "@/lib/utils";
 import { BUBBLE_PATH, W_PATH } from "./brand-mark";
 
@@ -92,7 +93,8 @@ function useMessagesNav() {
 function SignedInNav() {
   const { isAdmin } = useAuth();
   const { total, onMessages } = useMessagesNav();
-  useAppBadge(total);
+  const askNew = useAskBadge();
+  useAppBadge(total + askNew);
   // data-status="active" is set by the router on the current link; styling through it makes the
   // active colors win over the base ones.
   const navLink =
@@ -106,6 +108,9 @@ function SignedInNav() {
         <Link to="/inbox" className={cn(navLink, onMessages && "bg-accent text-foreground")} aria-current={onMessages ? "page" : undefined}>
           {t.common.inbox} <CountBadge n={total} />
         </Link>
+        <Link to="/ask" className={navLink}>
+          {t.common.ask} <CountBadge n={askNew} />
+        </Link>
         <Link to="/search" className={navLink}>
           {t.common.search}
         </Link>
@@ -115,6 +120,13 @@ function SignedInNav() {
           </Link>
         )}
       </div>
+      <Link
+        to="/search"
+        aria-label={t.common.search}
+        className="grid size-11 place-items-center rounded-full text-muted-foreground hover:bg-accent hover:text-foreground data-[status=active]:bg-accent data-[status=active]:text-foreground md:hidden"
+      >
+        <Search className="size-5" aria-hidden="true" />
+      </Link>
       <ThemeToggle />
       <AccountMenu />
     </>
@@ -149,6 +161,7 @@ export function SiteHeader() {
 export function MobileNav() {
   const { isAdmin } = useAuth();
   const { total, onMessages } = useMessagesNav();
+  const askNew = useAskBadge();
   const item =
     "press relative flex min-h-[58px] min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-[22px] px-1 text-[12px] font-semibold text-muted-foreground [&_svg]:size-5 data-[status=active]:bg-brand data-[status=active]:text-brand-foreground";
   return (
@@ -168,9 +181,10 @@ export function MobileNav() {
             {t.common.inbox}
             <CountBadge n={total} className="absolute right-[calc(50%-1.35rem)] top-1.5" />
           </Link>
-          <Link to="/search" className={item}>
-            <Search className="size-5" />
-            {t.common.search}
+          <Link to="/ask" className={item}>
+            <MessagesSquare className="size-5" />
+            {t.common.ask}
+            <CountBadge n={askNew} className="absolute right-[calc(50%-1.35rem)] top-1.5" />
           </Link>
           {isAdmin && (
             <Link to="/admin" className={item}>

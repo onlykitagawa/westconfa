@@ -1,9 +1,11 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Camera, Check, Copy, Inbox, Link2, MessageCircle, PenLine, QrCode, Search, Send, Share2 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { ArrowBigUp, Camera, Check, Copy, Inbox, Link2, MessageCircle, MessagesSquare, PenLine, Plus, QrCode, Search, Send, Share2 } from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
 import { t, timeAgo } from "@/i18n";
 import { useAuth } from "@/lib/auth";
 import { useBadges, useInboxMessages, type InboxMsg } from "@/lib/inbox-data";
+import { askTopQuery } from "@/lib/ask-data";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,8 +14,7 @@ import { CountBadge, MobileNav } from "./chrome";
 import { linkWasShared, ShareDialog, shortLink, useCopyShare, useProfileLink } from "./share-dialog";
 
 // The signed-in home page. One strong element (the newest anonymous message, shown as a big
-// speech bubble) and quiet, useful navigation around it. The campus feed will slot in below the
-// messages later.
+// speech bubble) and quiet, useful navigation around it, with the top questions from Ask below.
 function dayPart(): "morning" | "afternoon" | "evening" {
   const h = new Date().getHours();
   return h < 12 ? "morning" : h < 18 ? "afternoon" : "evening";
@@ -53,10 +54,13 @@ export function Home() {
         <div className="md:col-span-5 md:col-start-8 md:row-start-2">
           <LinkCard username={profile.username} onMore={() => setShareOpen(true)} />
         </div>
+        <div className="md:col-span-7 md:col-start-1 md:row-start-3">
+          <AskPreview />
+        </div>
         <div className="md:col-span-5 md:col-start-8 md:row-start-3">
           <GetStarted hasPhoto={!!profile.avatar_url} hasBio={!!profile.bio?.trim()} hasMessage={messages.length > 0} onShare={() => setShareOpen(true)} />
         </div>
-        <div className="md:col-span-7 md:col-start-1 md:row-start-3">
+        <div className="md:col-span-7 md:col-start-1 md:row-start-4">
           <FindSomeone />
         </div>
       </div>
@@ -239,6 +243,49 @@ function GetStarted({ hasPhoto, hasBio, hasMessage, onShare }: { hasPhoto: boole
           );
         })}
       </ul>
+    </section>
+  );
+}
+
+// The three hottest questions on Ask, and a way in.
+function AskPreview() {
+  const A = t.ask;
+  const top = useQuery(askTopQuery());
+  const items = top.data ?? [];
+  return (
+    <section aria-labelledby="ask-title">
+      <div className="mb-3 flex items-end justify-between gap-3 px-1">
+        <div>
+          <h2 id="ask-title" className="flex items-center gap-2 text-lg font-bold"><MessagesSquare className="size-5 text-primary" aria-hidden="true" /> {A.homeTitle}</h2>
+          <p className="text-sm text-muted-foreground">{A.homeBody}</p>
+        </div>
+        <Button asChild variant="secondary" size="sm" className="shrink-0"><Link to="/ask"><Plus /> {A.homeCta}</Link></Button>
+      </div>
+      {top.isLoading ? (
+        <Skeleton className="h-40 rounded-[28px]" />
+      ) : items.length === 0 ? (
+        <Link to="/ask" className="press block rounded-[28px] border-2 border-dashed border-primary/20 p-6 text-muted-foreground hover:bg-accent/40">{A.empty}</Link>
+      ) : (
+        <ul className="glass divide-y divide-glass-border overflow-hidden rounded-[28px]">
+          {items.map((p) => (
+            <li key={p.id}>
+              <Link to="/ask/$id" params={{ id: p.id }} className="press flex items-start gap-4 px-5 py-4 hover:bg-accent/60 focus-visible:bg-accent">
+                <span className="flex w-9 shrink-0 flex-col items-center pt-0.5 text-sm font-bold tabular-nums text-primary" aria-label={A.votes(p.score)}>
+                  <ArrowBigUp className="size-5" aria-hidden="true" />
+                  {p.score}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="line-clamp-2 break-words font-semibold [overflow-wrap:anywhere]">{p.body}</span>
+                  <span className="mt-1 block text-xs text-muted-foreground">{p.answer_count ? A.answers(p.answer_count) : A.noAnswersYet} · {timeAgo(p.published_at)}</span>
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+      {items.length > 0 && (
+        <Link to="/ask" className="mt-3 inline-flex rounded-lg px-1 py-2 text-sm font-semibold text-primary hover:underline">{A.homeSeeAll}</Link>
+      )}
     </section>
   );
 }

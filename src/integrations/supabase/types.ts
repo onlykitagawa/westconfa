@@ -565,6 +565,27 @@ export type Database = {
         }
         Returns: string
       }
+      admin_ask_decide: {
+        Args: { _approve: boolean; _id: string; _kind: string }
+        Returns: undefined
+      }
+      admin_ask_queue: {
+        Args: never
+        Returns: {
+          ai_says: string | null
+          author_email: string | null
+          author_username: string | null
+          body: string
+          created_at: string
+          hidden: boolean
+          id: string
+          kind: string
+          post_body: string | null
+          reason: string | null
+          reports: number
+          status: string
+        }[]
+      }
       admin_clear_avatar: { Args: { _user_id: string }; Returns: string }
       admin_decide_answer: {
         Args: { _approve: boolean; _id: string }
@@ -624,6 +645,67 @@ export type Database = {
         Returns: undefined
       }
       admin_stats: { Args: never; Returns: Json }
+      ask_answers_of: {
+        Args: { _post_id: string }
+        Returns: {
+          body: string
+          by_asker: boolean
+          created_at: string
+          id: string
+          mine: boolean
+          published_at: string | null
+          score: number
+          status: string
+          voted: boolean
+        }[]
+      }
+      ask_delete: { Args: { _id: string; _kind: string }; Returns: undefined }
+      ask_feed: {
+        Args: { _limit?: number; _offset?: number; _sort: string }
+        Returns: {
+          answer_count: number
+          body: string
+          id: string
+          mine: boolean
+          new_answers: boolean
+          published_at: string
+          score: number
+          voted: boolean
+        }[]
+      }
+      ask_mark_seen: { Args: { _post_id: string }; Returns: undefined }
+      ask_member: { Args: { _user: string }; Returns: boolean }
+      ask_mine: {
+        Args: never
+        Returns: {
+          answer_count: number
+          body: string
+          created_at: string
+          id: string
+          new_answers: boolean
+          published_at: string | null
+          score: number
+          status: string
+        }[]
+      }
+      ask_post: {
+        Args: { _id: string }
+        Returns: {
+          body: string
+          created_at: string
+          id: string
+          mine: boolean
+          published_at: string | null
+          score: number
+          status: string
+          voted: boolean
+        }[]
+      }
+      ask_report: { Args: { _id: string; _kind: string }; Returns: undefined }
+      ask_vote: {
+        Args: { _id: string; _kind: string; _on: boolean }
+        Returns: number
+      }
       attach_message_tracker: {
         Args: { _message_id: string; _token_hash: string }
         Returns: undefined
@@ -760,6 +842,33 @@ export type Database = {
       store_admin_message: {
         Args: { _body: string; _recipient_id: string; _sender_user_id: string }
         Returns: string
+      }
+      store_ask_answer: {
+        Args: {
+          _ai_says: string
+          _author: string
+          _body: string
+          _post_id: string
+          _reason: string
+          _trusted: boolean
+        }
+        Returns: {
+          id: string
+          status: string
+        }[]
+      }
+      store_ask_post: {
+        Args: {
+          _ai_says: string
+          _author: string
+          _body: string
+          _reason: string
+          _trusted: boolean
+        }
+        Returns: {
+          id: string
+          status: string
+        }[]
       }
       store_screened_message: {
         Args: {

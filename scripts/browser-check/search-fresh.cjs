@@ -13,9 +13,9 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   });
   // Navigate inside the app only (page.goto would reload and wipe the cache we want to test).
   await page.goto(`${APP}/inbox`, { waitUntil: 'domcontentloaded' });
-  await page.locator('nav[aria-label="Main"] a[href="/search"]').waitFor();
+  await page.locator('nav[aria-label="Main"] a[href="/search"]:visible').waitFor();
   const search = async (text) => {
-    await page.locator('nav[aria-label="Main"] a[href="/search"]').click();
+    await page.locator('nav[aria-label="Main"] a[href="/search"]:visible').click();
     const box = page.getByRole('searchbox');
     await box.waitFor();
     await box.fill(text);
@@ -29,7 +29,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   await page.locator('nav[aria-label="Main"] a[href="/inbox"]').click();
   await sleep(800);
   // come back through the app (no reload), like a student would
-  await page.locator('nav[aria-label="Main"] a[href="/search"]').click();
+  await page.locator('nav[aria-label="Main"] a[href="/search"]:visible').click();
   const box = page.getByRole('searchbox');
   await box.waitFor();
   await box.fill('no');
