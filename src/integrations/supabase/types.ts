@@ -565,6 +565,16 @@ export type Database = {
         }
         Returns: string
       }
+      admin_approved_items: {
+        Args: never
+        Returns: {
+          approved_at: string | null
+          body: string
+          context: string | null
+          id: string
+          kind: string
+        }[]
+      }
       admin_ask_decide: {
         Args: { _approve: boolean; _id: string; _kind: string }
         Returns: undefined
@@ -597,6 +607,10 @@ export type Database = {
       }
       admin_decide_reply: {
         Args: { _approve: boolean; _id: string }
+        Returns: undefined
+      }
+      admin_delete_approved: {
+        Args: { _id: string; _kind: string }
         Returns: undefined
       }
       admin_list_users: {

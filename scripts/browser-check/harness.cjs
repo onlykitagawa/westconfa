@@ -44,6 +44,11 @@ function makeBackend({ admin = false } = {}) {
       { id: 'b4', post_id: 'a0000000-0000-4000-8000-000000000002', body: 'Business Ethics, easy and actually interesting.', status: 'approved', created_at: iso(60), published_at: iso(50), score: 3, voted: false, mine: false, by_asker: false },
     ],
     askReviewAll: true,
+    approved: [
+      { kind: 'message', id: 'c1', body: 'An approved message that turned out to be mean', context: null, approved_at: iso(120) },
+      { kind: 'reply_sender', id: 'c2', body: 'An approved reply', context: 'The message it answers', approved_at: iso(60) },
+      { kind: 'ask_post', id: 'c3', body: 'An approved Ask question', context: null, approved_at: iso(30) },
+    ],
     calls: [],
   };
   const thread = (owner, other) => [
@@ -99,6 +104,9 @@ function makeBackend({ admin = false } = {}) {
       { kind: 'answer', id: 'b3', body: 'Yes, until 6pm on Saturdays.', post_body: 'Where is the quietest place to study on campus during exams?', status: 'pending', hidden: false, reports: 0, ai_says: 'review', reason: 'Unclear meaning.', author_username: 'zeo0', author_email: user.email, created_at: iso(5) },
     ]);
     if (path === '/rest/v1/rpc/admin_ask_decide') return json(route, null);
+    if (path === '/rest/v1/rpc/admin_message_details') return json(route, (body._message_ids || []).map((id) => ({ message_id: id, recipient_username: 'zeo', recipient_display_name: 'Zeo', sender_kind: 'account', sender_username: 'sender1', sender_email: 'sender1@students.wiut.uz', sender_network_code: null, sender_other_messages: 0 })));
+    if (path === '/rest/v1/rpc/admin_approved_items') return json(route, state.approved);
+    if (path === '/rest/v1/rpc/admin_delete_approved') { state.approved = state.approved.filter((x) => x.id !== body._id); return json(route, null); }
     if (path === '/rest/v1/app_settings') return json(route, (req.headers()['accept'] || '').includes('vnd.pgrst.object') ? { value: state.askReviewAll } : [{ key: 'ask_review_all', value: state.askReviewAll }]);
     if (path === '/rest/v1/rpc/admin_stats') return json(route, { users: 120, active_links: 80, messages: 400, open_reports: 0, pending_review: 0, per_day: [] });
     state.calls.push({ name: `UNHANDLED ${name}` });

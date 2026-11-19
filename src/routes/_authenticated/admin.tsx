@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format, formatDistanceToNow } from "date-fns";
 import { useState } from "react";
 import { toast } from "sonner";
+import { Trash2 } from "lucide-react";
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 import { t } from "@/i18n";
 import { badge } from "@/lib/live";
@@ -239,6 +240,7 @@ function AdminInner() {
             {Q.tab}
             {askCount > 0 && <span className="ml-2 rounded-full bg-primary px-2 py-0.5 text-xs font-bold text-primary-foreground">{askCount}</span>}
           </TabsTrigger>
+          <TabsTrigger value="approved" className="h-10 shrink-0 rounded-xl px-4">{D.tab}</TabsTrigger>
           <TabsTrigger value="users" className="h-10 shrink-0 rounded-xl px-4">{A.accounts}</TabsTrigger>
           <TabsTrigger value="contact" className="h-10 shrink-0 rounded-xl px-4">{A.contact}</TabsTrigger>
         </TabsList>
@@ -246,6 +248,7 @@ function AdminInner() {
         <TabsContent value="reports"><Reports /></TabsContent>
         <TabsContent value="replies"><RepliesQueue /></TabsContent>
         <TabsContent value="ask"><AskQueue /></TabsContent>
+        <TabsContent value="approved"><ApprovedList /></TabsContent>
         <TabsContent value="users"><Users /></TabsContent>
         <TabsContent value="contact"><Contact /></TabsContent>
       </Tabs>
@@ -276,6 +279,126 @@ const Q = {
   approved: "Approved. It's live on Ask.",
   rejected: "Rejected and deleted.",
 };
+
+// Everything an admin approved earlier (held messages, replies, public answers and Ask posts), so it
+// can still be deleted later. Messages and replies the admin never reviewed are not listed.
+const D = {
+  tab: "Approved",
+  intro: "Things you approved earlier. Delete anything here and it disappears for everyone.",
+  nothing: "Nothing you approved is still on the site.",
+  all: "All",
+  kinds: { message: "Message", reply_owner: "Reply from the owner", reply_sender: "Reply from the sender", answer: "Public answer", ask_post: "Ask question", ask_answer: "Ask answer" } as Record<string, string>,
+  context: "Replying to",
+  approvedAgo: (ago: string) => `Approved ${ago}`,
+  delete: "Delete",
+  deleteTitle: "Delete this?",
+  deleteBody: "It will be removed for everyone. This can't be undone. Deleting a message also deletes its replies; deleting an Ask question also deletes its answers.",
+  deleted: "Deleted.",
+};
+type ApprovedItem = { kind: string; id: string; body: string; context: string | null; approved_at: string | null };
+
+function ApprovedList() {
+  const qc = useQueryClient();
+  const [filter, setFilter] = useState<string>("all");
+  const [target, setTarget] = useState<ApprovedItem | null>(null);
+  const list = useQuery({
+    queryKey: ["admin", "approved"],
+    queryFn: async (): Promise<ApprovedItem[]> => {
+      const { data, error } = await supabase.rpc("admin_approved_items");
+      if (error) throw error;
+      return (data ?? []) as ApprovedItem[];
+    },
+  });
+  const items = list.data ?? [];
+  const messageIds = items.filter((x) => x.kind === "message").map((x) => x.id);
+  const details = useDetails(messageIds);
+  const del = useMutation({
+    mutationFn: async (v: ApprovedItem) => {
+      const { error } = await supabase.rpc("admin_delete_approved", { _kind: v.kind, _id: v.id });
+      if (error) throw error;
+    },
+    onMutate: (v) => {
+      qc.setQueryData<ApprovedItem[]>(["admin", "approved"], (old) => (old ?? []).filter((x) => !(x.kind === v.kind && x.id === v.id)));
+    },
+    onSuccess: () => toast.success(D.deleted),
+    onError: () => toast.error(t.common.somethingWrong),
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: ["admin"] });
+      qc.invalidateQueries({ queryKey: ["ask"] });
+    },
+  });
+  const kinds = [...new Set(items.map((x) => x.kind))];
+  const shown = filter === "all" ? items : items.filter((x) => x.kind === filter);
+  return (
+    <div className="mt-4 space-y-4">
+      <p className="px-1 text-sm text-muted-foreground">{D.intro}</p>
+      {kinds.length > 1 && (
+        <div className="flex flex-wrap gap-2" role="group" aria-label={D.tab}>
+          {["all", ...kinds].map((k) => (
+            <button
+              key={k}
+              type="button"
+              aria-pressed={filter === k}
+              onClick={() => setFilter(k)}
+              className={cn("press h-9 rounded-full border px-3.5 text-sm font-medium", filter === k ? "bg-brand text-brand-foreground" : "bg-field hover:bg-accent")}
+            >
+              {k === "all" ? D.all : D.kinds[k] ?? k}
+            </button>
+          ))}
+        </div>
+      )}
+      {list.isLoading ? (
+        <Skeleton className="h-32 rounded-3xl" />
+      ) : shown.length === 0 ? (
+        <p className="glass rounded-3xl p-8 text-center text-muted-foreground">{D.nothing}</p>
+      ) : (
+        <ul className="space-y-3">
+          {shown.map((it) => (
+            <li key={`${it.kind}-${it.id}`} className="glass rounded-3xl p-5">
+              <div className="flex flex-wrap items-center gap-2 text-xs">
+                <span className="rounded-full bg-accent px-2.5 py-1 font-semibold text-accent-foreground">{D.kinds[it.kind] ?? it.kind}</span>
+                {it.approved_at && <span className="text-muted-foreground">{D.approvedAgo(formatDistanceToNow(new Date(it.approved_at), { addSuffix: true }))}</span>}
+              </div>
+              <p className="mt-3 whitespace-pre-wrap break-words text-[17px] [overflow-wrap:anywhere]">{it.body}</p>
+              {it.context && (
+                <>
+                  <p className="mt-3 text-xs font-semibold text-muted-foreground">{D.context}</p>
+                  <p className="mt-1 line-clamp-3 whitespace-pre-wrap break-words rounded-2xl bg-field p-3 text-sm text-muted-foreground [overflow-wrap:anywhere]">{it.context}</p>
+                </>
+              )}
+              {it.kind === "message" && <WhoLine d={details.data?.get(it.id)} />}
+              <div className="mt-4">
+                <Button size="sm" variant="destructive" disabled={del.isPending} onClick={() => setTarget(it)}>
+                  <Trash2 /> {D.delete}
+                </Button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+      <AlertDialog open={!!target} onOpenChange={(o) => { if (!o) setTarget(null); }}>
+        <AlertDialogContent className="rounded-[28px] bg-popover">
+          <AlertDialogHeader>
+            <AlertDialogTitle>{D.deleteTitle}</AlertDialogTitle>
+            <AlertDialogDescription>{D.deleteBody}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="h-12 rounded-2xl">{t.common.cancel}</AlertDialogCancel>
+            <AlertDialogAction
+              className="h-12 rounded-2xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (target) del.mutate(target);
+                setTarget(null);
+              }}
+            >
+              {D.delete}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+}
 
 type AskQueueItem = {
   kind: string; id: string; body: string; post_body: string | null; status: string; hidden: boolean; reports: number;

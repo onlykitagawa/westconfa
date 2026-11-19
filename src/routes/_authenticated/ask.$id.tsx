@@ -8,6 +8,7 @@ import { t, timeAgo } from "@/i18n";
 import { ASK_KEY, askAnswersQuery, askDelete, askMarkSeen, askPostQuery, askReport, type AskAnswer } from "@/lib/ask-data";
 import { createAskAnswer } from "@/lib/ask.functions";
 import { MAX_MESSAGE_LENGTH } from "@/lib/moderation";
+import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { VoteButton } from "@/components/site/ask";
 import { askErrorKey } from "@/lib/ask-rules";
@@ -144,8 +145,10 @@ function QuestionPage() {
   );
 }
 
+// Report for others' posts; Delete for your own (and, for admins, for anything).
 function ItemMenu({ mine, dark, onPick }: { mine: boolean; dark?: boolean | undefined; onPick: (a: "report" | "delete") => void }) {
   const A = t.ask;
+  const { isAdmin } = useAuth();
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
@@ -158,11 +161,8 @@ function ItemMenu({ mine, dark, onPick }: { mine: boolean; dark?: boolean | unde
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-48 rounded-2xl p-1.5">
-        {mine ? (
-          <DropdownMenuItem className="min-h-11 rounded-xl text-destructive focus:text-destructive" onSelect={() => onPick("delete")}><Trash2 /> {A.remove}</DropdownMenuItem>
-        ) : (
-          <DropdownMenuItem className="min-h-11 rounded-xl" onSelect={() => onPick("report")}><Flag /> {A.report}</DropdownMenuItem>
-        )}
+        {!mine && <DropdownMenuItem className="min-h-11 rounded-xl" onSelect={() => onPick("report")}><Flag /> {A.report}</DropdownMenuItem>}
+        {(mine || isAdmin) && <DropdownMenuItem className="min-h-11 rounded-xl text-destructive focus:text-destructive" onSelect={() => onPick("delete")}><Trash2 /> {A.remove}</DropdownMenuItem>}
       </DropdownMenuContent>
     </DropdownMenu>
   );
