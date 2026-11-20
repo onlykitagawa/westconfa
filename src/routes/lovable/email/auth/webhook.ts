@@ -12,10 +12,10 @@ import { emailCopy } from "@/i18n/email.en"
 
 // Configuration
 const SITE_NAME = emailCopy.brand
-const SENDER_DOMAIN = "notify.wiutconfa.com"
-const ROOT_DOMAIN = "wiutconfa.com"
-const FROM_DOMAIN = "wiutconfa.com"
-const SITE_URL = "https://westconfa.lovable.app"
+const SENDER_DOMAIN = "notify.westconfa.tech"
+const ROOT_DOMAIN = "westconfa.tech"
+const FROM_DOMAIN = "westconfa.tech"
+const SITE_URL = "https://westconfa.tech"
 
 // The SDK handler owns verification, dispatch, and retry semantics; this file
 // owns only the email decisions: subjects, templates, and per-type props.
