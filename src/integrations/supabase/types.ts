@@ -62,6 +62,218 @@ export type Database = {
         }
         Relationships: []
       }
+      ask_answers: {
+        Row: {
+          author_id: string
+          body: string
+          created_at: string
+          hidden: boolean
+          id: string
+          post_id: string
+          published_at: string | null
+          report_count: number
+          status: string
+        }
+        Insert: {
+          author_id: string
+          body: string
+          created_at?: string
+          hidden?: boolean
+          id?: string
+          post_id: string
+          published_at?: string | null
+          report_count?: number
+          status?: string
+        }
+        Update: {
+          author_id?: string
+          body?: string
+          created_at?: string
+          hidden?: boolean
+          id?: string
+          post_id?: string
+          published_at?: string | null
+          report_count?: number
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ask_answers_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ask_answers_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "ask_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ask_events: {
+        Row: {
+          created_at: string
+          kind: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          kind: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          kind?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ask_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ask_moderation: {
+        Row: {
+          ai_says: string
+          body: string
+          created_at: string
+          decided: string | null
+          decided_at: string | null
+          item_id: string
+          kind: string
+          reason: string | null
+        }
+        Insert: {
+          ai_says: string
+          body: string
+          created_at?: string
+          decided?: string | null
+          decided_at?: string | null
+          item_id: string
+          kind: string
+          reason?: string | null
+        }
+        Update: {
+          ai_says?: string
+          body?: string
+          created_at?: string
+          decided?: string | null
+          decided_at?: string | null
+          item_id?: string
+          kind?: string
+          reason?: string | null
+        }
+        Relationships: []
+      }
+      ask_posts: {
+        Row: {
+          author_id: string
+          author_seen_at: string | null
+          body: string
+          created_at: string
+          hidden: boolean
+          id: string
+          published_at: string | null
+          report_count: number
+          status: string
+        }
+        Insert: {
+          author_id: string
+          author_seen_at?: string | null
+          body: string
+          created_at?: string
+          hidden?: boolean
+          id?: string
+          published_at?: string | null
+          report_count?: number
+          status?: string
+        }
+        Update: {
+          author_id?: string
+          author_seen_at?: string | null
+          body?: string
+          created_at?: string
+          hidden?: boolean
+          id?: string
+          published_at?: string | null
+          report_count?: number
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ask_posts_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ask_reports: {
+        Row: {
+          created_at: string
+          item_id: string
+          kind: string
+          reporter_id: string
+        }
+        Insert: {
+          created_at?: string
+          item_id: string
+          kind: string
+          reporter_id: string
+        }
+        Update: {
+          created_at?: string
+          item_id?: string
+          kind?: string
+          reporter_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ask_reports_reporter_id_fkey"
+            columns: ["reporter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ask_votes: {
+        Row: {
+          created_at: string
+          item_id: string
+          kind: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          item_id: string
+          kind: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          item_id?: string
+          kind?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ask_votes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       avatar_events: {
         Row: {
           created_at: string
@@ -197,6 +409,7 @@ export type Database = {
       }
       message_replies: {
         Row: {
+          admin_approved_at: string | null
           author: string
           body: string
           created_at: string
@@ -206,6 +419,7 @@ export type Database = {
           status: string
         }
         Insert: {
+          admin_approved_at?: string | null
           author: string
           body: string
           created_at?: string
@@ -215,6 +429,7 @@ export type Database = {
           status?: string
         }
         Update: {
+          admin_approved_at?: string | null
           author?: string
           body?: string
           created_at?: string
@@ -339,6 +554,7 @@ export type Database = {
       }
       messages: {
         Row: {
+          admin_approved_at: string | null
           body: string
           created_at: string
           hidden: boolean
@@ -352,6 +568,7 @@ export type Database = {
           status: string
         }
         Insert: {
+          admin_approved_at?: string | null
           body: string
           created_at?: string
           hidden?: boolean
@@ -365,6 +582,7 @@ export type Database = {
           status?: string
         }
         Update: {
+          admin_approved_at?: string | null
           body?: string
           created_at?: string
           hidden?: boolean
@@ -428,6 +646,7 @@ export type Database = {
       }
       public_answers: {
         Row: {
+          admin_approved_at: string | null
           answer: string
           created_at: string
           hidden: boolean
@@ -440,6 +659,7 @@ export type Database = {
           status: string
         }
         Insert: {
+          admin_approved_at?: string | null
           answer: string
           created_at?: string
           hidden?: boolean
@@ -452,6 +672,7 @@ export type Database = {
           status?: string
         }
         Update: {
+          admin_approved_at?: string | null
           answer?: string
           created_at?: string
           hidden?: boolean
@@ -464,6 +685,13 @@ export type Database = {
           status?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "public_answers_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "public_answers_owner_id_fkey"
             columns: ["owner_id"]
@@ -568,9 +796,9 @@ export type Database = {
       admin_approved_items: {
         Args: never
         Returns: {
-          approved_at: string | null
+          approved_at: string
           body: string
-          context: string | null
+          context: string
           id: string
           kind: string
         }[]
@@ -582,16 +810,16 @@ export type Database = {
       admin_ask_queue: {
         Args: never
         Returns: {
-          ai_says: string | null
-          author_email: string | null
-          author_username: string | null
+          ai_says: string
+          author_email: string
+          author_username: string
           body: string
           created_at: string
           hidden: boolean
           id: string
           kind: string
-          post_body: string | null
-          reason: string | null
+          post_body: string
+          reason: string
           reports: number
           status: string
         }[]
@@ -667,7 +895,7 @@ export type Database = {
           created_at: string
           id: string
           mine: boolean
-          published_at: string | null
+          published_at: string
           score: number
           status: string
           voted: boolean
@@ -697,7 +925,7 @@ export type Database = {
           created_at: string
           id: string
           new_answers: boolean
-          published_at: string | null
+          published_at: string
           score: number
           status: string
         }[]
@@ -709,7 +937,7 @@ export type Database = {
           created_at: string
           id: string
           mine: boolean
-          published_at: string | null
+          published_at: string
           score: number
           status: string
           voted: boolean
@@ -758,12 +986,12 @@ export type Database = {
       message_status: {
         Args: { _token: string }
         Returns: {
-          answer: string | null
-          answered_at: string | null
+          answer: string
+          answered_at: string
           body: string
           sent_at: string
           state: string
-          to_username: string | null
+          to_username: string
         }[]
       }
       message_thread: {
@@ -789,8 +1017,8 @@ export type Database = {
       my_sent_messages: {
         Args: never
         Returns: {
-          answer: string | null
-          answered_at: string | null
+          answer: string
+          answered_at: string
           awaiting_you: boolean
           body: string
           message_id: string
@@ -898,6 +1126,13 @@ export type Database = {
           _status: string
         }
         Returns: string
+      }
+      visible_answer: {
+        Args: { _message_id: string }
+        Returns: {
+          answer: string
+          created_at: string
+        }[]
       }
     }
     Enums: {
