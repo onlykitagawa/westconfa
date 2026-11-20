@@ -10,7 +10,7 @@ const { open, APP, shot } = require('./harness.cjs');
   for (const [label, viewport] of [['phone', { width: 390, height: 844 }], ['laptop', { width: 1280, height: 860 }]]) {
     const { browser, page, backend, problems } = await open({ viewport });
     await page.goto(`${APP}/`);
-    await page.getByRole('heading', { name: 'On Ask' }).waitFor({ timeout: 20000 });
+    await page.getByRole('heading', { name: 'Ask the campus' }).waitFor({ timeout: 20000 });
     await settle(page);
     await page.screenshot({ path: shot(`ask-home-${label}.png`), fullPage: true });
     check(await page.getByText('Where is the quietest place to study').first().isVisible(), `${label}: home shows the top question`);

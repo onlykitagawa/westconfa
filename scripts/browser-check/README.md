@@ -21,3 +21,4 @@ address of the local site.
 - `ask.cjs`: the Ask feed (voting, Mine tab, question page, "new answers" mark, home preview, admin tab).
 - `live.cjs`: changes appear without reloading (home, badges, Ask feed without jumping, answers), and nothing is checked while the tab is hidden.
 - `admin-approved.cjs`: Admin → Approved lists what an admin approved and deletes it; admins get Delete on any Ask post.
+- `home.cjs`: the home page ("What's new" count matches the menu badges, rows open the right place, empty state).

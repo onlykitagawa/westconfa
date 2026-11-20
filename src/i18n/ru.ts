@@ -370,35 +370,25 @@ export const ru: Dict = {
     metaTitle: "Главная · Wconfa",
     greeting: (part: "morning" | "afternoon" | "evening", name: string) =>
       `${part === "morning" ? "Доброе утро" : part === "afternoon" ? "Добрый день" : "Добрый вечер"}, ${name}`,
-    summary: (messages: number, replies: number) => {
-      const m = `${messages} ${plural(messages, "новое сообщение", "новых сообщения", "новых сообщений")}`;
-      const r = `${replies} ${plural(replies, "новый ответ", "новых ответа", "новых ответов")}`;
-      if (messages && replies) return `У тебя ${m} и ${r}.`;
-      if (messages) return `У тебя ${m}.`;
-      if (replies) return `У тебя ${r}.`;
-      return "Ничего нового. Ты всё прочитал(а).";
-    },
-    latest: "Последнее для тебя",
-    newLabel: "Новое",
-    seeAll: "Все сообщения",
-    emptyTitle: "Пока нет сообщений",
-    emptyBody: "Поделись ссылкой. Первое анонимное сообщение появится здесь.",
-    inbox: "Входящие",
-    sent: "Отправленные",
-    inboxStatus: (n: number) => (n ? `${n} ${plural(n, "новое", "новых", "новых")}` : "Всё прочитано"),
-    sentStatus: (n: number) => (n ? `${n} ${plural(n, "новый ответ", "новых ответа", "новых ответов")}` : "Новых ответов нет"),
-    linkTitle: "Твоя ссылка",
-    linkBody: "Выложи её в сторис или в групповой чат, чтобы получать больше сообщений.",
-    moreWays: "QR-код и другое",
-    startTitle: "С чего начать",
-    startProgress: (done: number, total: number) => `Готово ${done} из ${total}`,
+    summary: (n: number) => (n === 0 ? "Пока ничего нового." : `У тебя ${n} ${plural(n, "новое событие", "новых события", "новых событий")}.`),
+    newTitle: "Что нового",
+    newMessage: "Новое анонимное сообщение",
+    newInboxReply: "Новый ответ под полученным сообщением",
+    newSentReply: "Тебе ответили на твоё сообщение",
+    newAskAnswers: "Новые ответы на твой вопрос",
+    toWhom: (username: string) => `Ты отправил(а) это @${username}`,
+    open: "Открыть",
+    nothingNew: "Новых сообщений пока нет.",
+    nothingNewBody: "Новые сообщения, ответы и комментарии появятся здесь.",
+    nothingNewNoMessages: "Поделись ссылкой ниже. Первое анонимное сообщение появится здесь.",
+    seeInbox: "Во входящие",
+    linkTitle: "Получай анонимные сообщения",
+    linkBody: "Любой, у кого есть эта ссылка, может написать тебе, не показывая своё имя. Выложи её в сторис или в групповой чат.",
+    moreWays: "QR-код",
+    stepsLeft: (n: number) => `Заполни профиль · ${plural(n, "остался", "осталось", "осталось")} ${n} ${plural(n, "шаг", "шага", "шагов")}`,
     stepPhoto: "Добавь фото профиля",
     stepBio: "Напиши пару слов о себе",
     stepShare: "Поделись ссылкой",
-    stepFirst: "Получи первое сообщение",
-    findTitle: "Найти человека",
-    findPlaceholder: "Имя или @username",
-    findButton: "Найти",
   },
   ask: {
     metaTitle: "Вопросы · Wconfa",
@@ -461,8 +451,8 @@ export const ru: Dict = {
     removed: "Удалено.",
     notFoundTitle: "Этого вопроса здесь нет",
     notFoundBody: "Возможно, его удалили или он ещё ждёт проверки.",
-    homeTitle: "Вопросы",
-    homeBody: "Вопросы от студентов WIUT.",
+    homeTitle: "Спроси кампус",
+    homeBody: "Популярные вопросы студентов WIUT.",
     homeCta: "Задать вопрос",
     homeSeeAll: "Все вопросы",
     errors: {

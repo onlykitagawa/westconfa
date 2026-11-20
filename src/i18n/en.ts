@@ -360,35 +360,25 @@ export const en = {
   home: {
     metaTitle: "Home · Wconfa",
     greeting: (part: "morning" | "afternoon" | "evening", name: string) => `Good ${part}, ${name}`,
-    summary: (messages: number, replies: number) => {
-      const m = messages === 1 ? "1 new message" : `${messages} new messages`;
-      const r = replies === 1 ? "1 new reply" : `${replies} new replies`;
-      if (messages && replies) return `You have ${m} and ${r}.`;
-      if (messages) return `You have ${m}.`;
-      if (replies) return `You have ${r}.`;
-      return "You're all caught up.";
-    },
-    latest: "Latest for you",
-    newLabel: "New",
-    seeAll: "See all messages",
-    emptyTitle: "No messages yet",
-    emptyBody: "Share your link. Your first anonymous message will show up here.",
-    inbox: "Inbox",
-    sent: "Sent",
-    inboxStatus: (n: number) => (n ? `${n} new` : "All read"),
-    sentStatus: (n: number) => (n === 1 ? "1 new reply" : n ? `${n} new replies` : "No new replies"),
-    linkTitle: "Your link",
-    linkBody: "Post it on your story or in a group chat to get more messages.",
-    moreWays: "QR code and more",
-    startTitle: "Get started",
-    startProgress: (done: number, total: number) => `${done} of ${total} done`,
+    summary: (n: number) => (n === 0 ? "Nothing new right now." : n === 1 ? "You have 1 new thing." : `You have ${n} new things.`),
+    newTitle: "What's new",
+    newMessage: "New anonymous message",
+    newInboxReply: "New reply under a message you got",
+    newSentReply: "Someone replied to your message",
+    newAskAnswers: "New answers to your question",
+    toWhom: (username: string) => `You sent it to @${username}`,
+    open: "Open",
+    nothingNew: "No new messages yet.",
+    nothingNewBody: "New messages, replies and answers will show up here.",
+    nothingNewNoMessages: "Share your link below. Your first anonymous message will show up here.",
+    seeInbox: "Go to Inbox",
+    linkTitle: "Get anonymous messages",
+    linkBody: "Anyone with this link can send you a message without showing their name. Share it on your story or in a group chat.",
+    moreWays: "QR code",
+    stepsLeft: (n: number) => (n === 1 ? "Finish your profile · 1 step left" : `Finish your profile · ${n} steps left`),
     stepPhoto: "Add a profile photo",
     stepBio: "Write a short bio",
     stepShare: "Share your link",
-    stepFirst: "Get your first message",
-    findTitle: "Find someone",
-    findPlaceholder: "Name or @username",
-    findButton: "Search",
   },
   ask: {
     metaTitle: "Ask · Wconfa",
@@ -451,8 +441,8 @@ export const en = {
     removed: "Deleted.",
     notFoundTitle: "This question isn't here",
     notFoundBody: "It may have been deleted, or it's still waiting for review.",
-    homeTitle: "On Ask",
-    homeBody: "Questions from WIUT students.",
+    homeTitle: "Ask the campus",
+    homeBody: "Top questions from WIUT students right now.",
     homeCta: "Ask something",
     homeSeeAll: "See all questions",
     errors: {

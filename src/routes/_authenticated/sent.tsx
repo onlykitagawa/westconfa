@@ -1,8 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Send as SendIcon, XCircle } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { t, timeAgo } from "@/i18n";
 import { replyAsMember } from "@/lib/replies.functions";
 import { MessageTabs } from "@/components/site/message-tabs";
@@ -17,6 +17,7 @@ import { sentThreadQuery, SENT_KEY, useSeenWhenShown, useSentMessages, type Sent
 import { SHEET_CLASS } from "@/components/site/sheet";
 
 export const Route = createFileRoute("/_authenticated/sent")({
+  validateSearch: (search: Record<string, unknown>): { m?: string } => (typeof search["m"] === "string" && /^[0-9a-f-]{36}$/i.test(search["m"]) ? { m: search["m"] } : {}),
   head: () => ({ meta: [{ title: t.sent.metaTitle }, { name: "description", content: t.sent.metaDesc }, { name: "robots", content: "noindex" }] }),
   component: SentPage,
 });
@@ -35,6 +36,16 @@ function SentPage() {
   const [open, setOpen] = useState<Item | null>(null);
 
   const list = useSentMessages(LIVE_MS);
+  // /sent?m=<id> (from the home page) opens that conversation, then the address is cleaned up.
+  const { m: wanted } = Route.useSearch();
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (!wanted || !list.data) return;
+    const found = list.data.find((x) => x.message_id === wanted);
+    if (found) setOpen(found);
+    void navigate({ to: "/sent", search: {}, replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wanted, list.data]);
 
   const messageId = open?.message_id ?? null;
   // The latest version of the open item (the list refreshes every 30 s), e.g. a new public answer.

@@ -11,7 +11,7 @@ const { open, APP, shot } = require('./harness.cjs');
   const S = backend.state;
 
   await page.goto(`${APP}/`);
-  await page.getByRole('heading', { name: 'On Ask' }).waitFor({ timeout: 20000 });
+  await page.getByRole('heading', { name: 'Ask the campus' }).waitFor({ timeout: 20000 });
   await page.waitForTimeout(1000);
   const inboxLink = page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: /Inbox/ });
   const before = await inboxLink.innerText();

@@ -362,35 +362,25 @@ export const uz: Dict = {
     metaTitle: "Bosh sahifa · Wconfa",
     greeting: (part: "morning" | "afternoon" | "evening", name: string) =>
       `${part === "morning" ? "Xayrli tong" : part === "afternoon" ? "Xayrli kun" : "Xayrli kech"}, ${name}`,
-    summary: (messages: number, replies: number) => {
-      const m = `${messages} ta yangi xabar`;
-      const r = `${replies} ta yangi javob`;
-      if (messages && replies) return `Sizda ${m} va ${r} bor.`;
-      if (messages) return `Sizda ${m} bor.`;
-      if (replies) return `Sizda ${r} bor.`;
-      return "Yangi narsa yoʻq. Hammasini oʻqib boʻldingiz.";
-    },
-    latest: "Siz uchun soʻnggilari",
-    newLabel: "Yangi",
-    seeAll: "Barcha xabarlar",
-    emptyTitle: "Hali xabarlar yoʻq",
-    emptyBody: "Havolangizni ulashing. Birinchi anonim xabaringiz shu yerda chiqadi.",
-    inbox: "Xabarlar",
-    sent: "Yuborilgan",
-    inboxStatus: (n: number) => (n ? `${n} ta yangi` : "Hammasi oʻqilgan"),
-    sentStatus: (n: number) => (n ? `${n} ta yangi javob` : "Yangi javob yoʻq"),
-    linkTitle: "Havolangiz",
-    linkBody: "Koʻproq xabar olish uchun uni storis yoki guruh chatida ulashing.",
-    moreWays: "QR kod va boshqalar",
-    startTitle: "Boshlash",
-    startProgress: (done: number, total: number) => `${total} tadan ${done} tasi bajarildi`,
+    summary: (n: number) => (n === 0 ? "Hozircha yangilik yoʻq." : `Sizda ${n} ta yangilik bor.`),
+    newTitle: "Yangiliklar",
+    newMessage: "Yangi anonim xabar",
+    newInboxReply: "Olgan xabaringiz ostida yangi javob",
+    newSentReply: "Xabaringizga javob berishdi",
+    newAskAnswers: "Savolingizga yangi javoblar",
+    toWhom: (username: string) => `Siz buni @${username}ga yuborgansiz`,
+    open: "Ochish",
+    nothingNew: "Hozircha yangi xabar yoʻq.",
+    nothingNewBody: "Yangi xabarlar, javoblar shu yerda chiqadi.",
+    nothingNewNoMessages: "Quyidagi havolani ulashing. Birinchi anonim xabaringiz shu yerda chiqadi.",
+    seeInbox: "Kiruvchilarga oʻtish",
+    linkTitle: "Anonim xabarlar oling",
+    linkBody: "Bu havolaga ega har kim sizga ismini koʻrsatmasdan xabar yuborishi mumkin. Uni storis yoki guruh chatiga joylang.",
+    moreWays: "QR-kod",
+    stepsLeft: (n: number) => `Profilni toʻldiring · ${n} ta qadam qoldi`,
     stepPhoto: "Profil rasmini qoʻshing",
-    stepBio: "Oʻzingiz haqingizda qisqa yozing",
+    stepBio: "Oʻzingiz haqingizda qisqacha yozing",
     stepShare: "Havolangizni ulashing",
-    stepFirst: "Birinchi xabaringizni oling",
-    findTitle: "Odam topish",
-    findPlaceholder: "Ism yoki @username",
-    findButton: "Qidirish",
   },
   ask: {
     metaTitle: "Savollar · Wconfa",
@@ -453,8 +443,8 @@ export const uz: Dict = {
     removed: "Oʻchirildi.",
     notFoundTitle: "Bu savol bu yerda yoʻq",
     notFoundBody: "U oʻchirilgan yoki hali tekshiruvni kutayotgan boʻlishi mumkin.",
-    homeTitle: "Savollar",
-    homeBody: "WIUT talabalarining savollari.",
+    homeTitle: "Kampusdan soʻrang",
+    homeBody: "WIUT talabalarining mashhur savollari.",
     homeCta: "Savol berish",
     homeSeeAll: "Barcha savollar",
     errors: {
