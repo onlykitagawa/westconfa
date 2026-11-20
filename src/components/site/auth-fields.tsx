@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { t } from "@/i18n";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { RESEND_COOLDOWN_SECONDS } from "@/lib/moderation";
 import { Button } from "@/components/ui/button";
 
@@ -87,20 +86,35 @@ export function PasswordField({ value, onChange, isNew, label, id = "password" }
   );
 }
 
+// Codes from sign-in emails. Their length is set by the sign-in service (it has been 6, and may be
+// 8), so the box takes any 6 to 10 digits instead of a fixed number of slots.
+export const CODE_MIN = 6;
+export const CODE_MAX = 10;
+export const codeReady = (code: string) => code.length >= CODE_MIN && code.length <= CODE_MAX;
+
 export function CodeField({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   return (
     <div className="space-y-2">
       <Label htmlFor="otp">{t.auth.code}</Label>
-      <InputOTP
-        id="otp" maxLength={6} value={value} onChange={(v) => onChange(v.replace(/\D/g, ""))} autoFocus
-        inputMode="numeric" autoComplete="one-time-code" pattern="^[0-9]*$" containerClassName="justify-center"
-      >
-        <InputOTPGroup className="grid w-full max-w-xs grid-cols-6 gap-1.5 sm:gap-2">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <InputOTPSlot key={i} index={i} className="h-14 w-full min-w-0 rounded-xl border border-input bg-field text-xl font-semibold first:rounded-xl last:rounded-xl" />
-          ))}
-        </InputOTPGroup>
-      </InputOTP>
+      <input
+        id="otp"
+        value={value}
+        onChange={(e) => onChange(e.target.value.replace(/\D/g, "").slice(0, CODE_MAX))}
+        onPaste={(e) => {
+          const digits = e.clipboardData.getData("text").replace(/\D/g, "");
+          if (digits) {
+            e.preventDefault();
+            onChange(digits.slice(0, CODE_MAX));
+          }
+        }}
+        autoFocus
+        inputMode="numeric"
+        autoComplete="one-time-code"
+        pattern="[0-9]*"
+        maxLength={CODE_MAX}
+        placeholder="••••••"
+        className="h-16 w-full rounded-2xl border border-input bg-field px-4 text-center font-mono text-3xl font-semibold tracking-[0.3em] outline-none transition placeholder:text-muted-foreground/50 focus:border-ring focus:ring-4 focus:ring-ring/30"
+      />
     </div>
   );
 }

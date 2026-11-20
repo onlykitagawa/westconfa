@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CodeField, EmailField, EmailHelp, PasswordField, ResendButton } from "@/components/site/auth-fields";
+import { CodeField, codeReady, EmailField, EmailHelp, PasswordField, ResendButton } from "@/components/site/auth-fields";
 
 export const Route = createFileRoute("/auth")({
   // /auth?mode=signup opens straight on "Create account" (used by every "Get my link" button).
@@ -149,7 +149,7 @@ function AuthPage() {
 
   const verify = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (code.length !== 6) return setErr(t.auth.errCode);
+    if (!codeReady(code)) return setErr(t.auth.errCode);
     setBusy(true);
     setErr(null);
     const type = step === "verify-signup" ? "signup" : "email";
@@ -162,7 +162,7 @@ function AuthPage() {
 
   const resetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (code.length !== 6) return setErr(t.auth.errCode);
+    if (!codeReady(code)) return setErr(t.auth.errCode);
     if (!isValidPassword(password)) return setErr(t.auth.errPassword);
     setBusy(true);
     setErr(null);
@@ -249,7 +249,7 @@ function AuthPage() {
               <p className="mb-4 text-sm text-muted-foreground">{t.auth.codeAlternative}</p>
               <CodeField value={code} onChange={(v) => { setCode(v); setErr(null); }} />
               {errorBox}
-              <Button type="submit" variant="hero" className="mt-6 w-full" disabled={busy || code.length !== 6}>{busy ? t.auth.verifying : t.auth.verify}</Button>
+              <Button type="submit" variant="hero" className="mt-6 w-full" disabled={busy || !codeReady(code)}>{busy ? t.auth.verifying : t.auth.verify}</Button>
             </div>
             <div className="mt-2">
               <ResendButton onResend={async () => {
@@ -300,7 +300,7 @@ function AuthPage() {
               <CodeField value={code} onChange={(v) => { setCode(v); setErr(null); }} />
               <PasswordField value={password} onChange={(v) => { setPassword(v); setErr(null); }} isNew label={t.auth.newPassword} id="new-password" />
               {errorBox}
-              <Button type="submit" variant="hero" className="w-full" disabled={busy || code.length !== 6}>{busy ? t.auth.verifying : t.auth.savePassword}</Button>
+              <Button type="submit" variant="hero" className="w-full" disabled={busy || !codeReady(code)}>{busy ? t.auth.verifying : t.auth.savePassword}</Button>
             </div>
             <div className="mt-2"><ResendButton onResend={async () => { await requestReset(); toast.success(t.auth.resent); }} /></div>
           </form>

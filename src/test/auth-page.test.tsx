@@ -22,6 +22,7 @@ vi.mock("@/components/site/auth-fields", () => ({
   CodeField: ({ value, onChange }: { value: string; onChange: (value: string) => void }) => <input aria-label="code" value={value} onChange={(e) => onChange(e.target.value)} />,
   ResendButton: () => null,
   EmailHelp: () => null,
+  codeReady: (code: string) => code.length >= 6 && code.length <= 10,
 }));
 
 import { Route } from "@/routes/auth";
@@ -56,9 +57,9 @@ describe("Sign-in verification transitions", () => {
     const ui = await signup([]);
     await waitFor(() => expect(mocks.otp).toHaveBeenCalledWith({ email, options: { shouldCreateUser: false, emailRedirectTo: `${window.location.origin}/auth` } }));
     await waitFor(() => expect(ui.getByLabelText("code")).toBeDefined());
-    fireEvent.change(ui.getByLabelText("code"), { target: { value: "123456" } });
+    fireEvent.change(ui.getByLabelText("code"), { target: { value: "12345678" } });
     fireEvent.submit(ui.getByRole("button", { name: t.auth.verify }).closest("form") as HTMLFormElement);
-    await waitFor(() => expect(mocks.verify).toHaveBeenCalledWith({ email, token: "123456", type: "signup" }));
+    await waitFor(() => expect(mocks.verify).toHaveBeenCalledWith({ email, token: "12345678", type: "signup" }));
   });
 
   it("does not request a second email for a new signup", async () => {
@@ -94,11 +95,20 @@ describe("Sign-in verification transitions", () => {
     fireEvent.submit(ui.getByRole("button", { name: t.auth.sendReset }).closest("form") as HTMLFormElement);
     await waitFor(() => expect(mocks.reset).toHaveBeenCalledWith(email, { redirectTo: `${window.location.origin}/reset-password` }));
     await waitFor(() => expect(ui.getByLabelText("code")).toBeDefined());
-    fireEvent.change(ui.getByLabelText("code"), { target: { value: "123456" } });
+    fireEvent.change(ui.getByLabelText("code"), { target: { value: "12345678" } });
     fireEvent.change(ui.getByLabelText("password"), { target: { value: "new-test-password" } });
     fireEvent.submit(ui.getByRole("button", { name: t.auth.savePassword }).closest("form") as HTMLFormElement);
-    await waitFor(() => expect(mocks.verify).toHaveBeenCalledWith({ email, token: "123456", type: "recovery" }));
+    await waitFor(() => expect(mocks.verify).toHaveBeenCalledWith({ email, token: "12345678", type: "recovery" }));
     await waitFor(() => expect(mocks.update).toHaveBeenCalledWith({ password: "new-test-password" }));
     expect(mocks.navigate).toHaveBeenCalledWith({ to: "/", replace: true });
+  });
+});
+describe("Email code box", () => {
+  it("accepts 6 to 10 digits, whatever length the email uses", async () => {
+    const real = await vi.importActual<typeof import("@/components/site/auth-fields")>("@/components/site/auth-fields");
+    expect(real.codeReady("12345")).toBe(false);
+    expect(real.codeReady("123456")).toBe(true);
+    expect(real.codeReady("12345678")).toBe(true);
+    expect(real.codeReady("12345678901")).toBe(false);
   });
 });
