@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowBigUp, Camera, Check, ChevronRight, Copy, Link2, Mail, MessagesSquare, PenLine, Plus, QrCode, Reply, Share2 } from "lucide-react";
+import { ArrowBigUp, ArrowRight, Camera, Check, ChevronRight, Copy, Mail, MessagesSquare, PenLine, Plus, QrCode, Reply, Share2 } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 import { useEffect, useState } from "react";
 import { t, timeAgo } from "@/i18n";
 import { useAuth } from "@/lib/auth";
@@ -10,13 +11,14 @@ import { live, LIVE_MS } from "@/lib/live";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CountBadge, MobileNav } from "./chrome";
+import { MobileNav } from "./chrome";
+import { BUBBLE_PATH } from "./brand-mark";
 import { linkWasShared, ShareDialog, shortLink, useCopyShare, useProfileLink } from "./share-dialog";
 
-// The signed-in home page, kept simple on purpose: one column that answers three plain questions.
-// What's new for me? (one list whose count matches the red badges), how do I get messages? (the
-// link), and what is the campus asking? (top questions on Ask). New students also see one
-// "next step" line until their profile is set up.
+// The signed-in home page. One bold piece, the hero: a deep brand panel where the newest thing waiting
+// for you sits as a white speech bubble (the same bubbles as the front page). Everything else stays
+// quiet: the rest of what's new, your link as a pass with its QR code, and the campus questions.
+// The "new" count always matches the red badges in the menu.
 function dayPart(): "morning" | "afternoon" | "evening" {
   const h = new Date().getHours();
   return h < 12 ? "morning" : h < 18 ? "afternoon" : "evening";
@@ -31,8 +33,11 @@ type NewItem = {
   link: { to: "/inbox"; search: { m: string } } | { to: "/sent"; search: { m: string } } | { to: "/ask/$id"; params: { id: string } };
 };
 
+const kindTitle = (k: NewItem["kind"]) => ({ message: t.home.newMessage, inboxReply: t.home.newInboxReply, sentReply: t.home.newSentReply, askAnswers: t.home.newAskAnswers })[k];
+const KIND_ICON = { message: Mail, inboxReply: Reply, sentReply: Reply, askAnswers: MessagesSquare } as const;
+const MAX_MORE = 5;
+
 export function Home() {
-  const H = t.home;
   const { profile } = useAuth();
   const inbox = useInboxMessages(LIVE_MS);
   const replies = useInboxReplies(LIVE_MS);
@@ -52,23 +57,36 @@ export function Home() {
   for (const m of messages) if (threads.get(m.id)?.newReply) items.push({ key: `r-${m.id}`, kind: "inboxReply", text: m.body, link: { to: "/inbox", search: { m: m.id } } });
   for (const x of sent.data ?? [])
     if (x.new_reply && x.message_id)
-      items.push({ key: `s-${x.message_id}`, kind: "sentReply", text: x.body ?? "", note: x.to_username ? H.toWhom(x.to_username) : undefined, link: { to: "/sent", search: { m: x.message_id } } });
+      items.push({ key: `s-${x.message_id}`, kind: "sentReply", text: x.body ?? "", note: x.to_username ? t.home.toWhom(x.to_username) : undefined, link: { to: "/sent", search: { m: x.message_id } } });
   for (const q of mine.data ?? []) if (q.new_answers) items.push({ key: `a-${q.id}`, kind: "askAnswers", text: q.body, link: { to: "/ask/$id", params: { id: q.id } } });
   const loading = inbox.isLoading || sent.isLoading;
 
+  // Phone: one column in reading order. Laptop: the hero and what's new on the left, the pass,
+  // next step and campus questions on the right (the wrappers only exist from md up).
   return (
-    <main className="mx-auto max-w-2xl px-4 pb-6 pt-6 md:pt-12">
-      <header className="px-1">
-        <h1 className="text-[2rem] font-extrabold leading-tight tracking-tight md:text-5xl">{H.greeting(part, name)}</h1>
-        <p className="mt-2 text-base text-muted-foreground md:text-lg" aria-live="polite">{loading ? " " : H.summary(items.length)}</p>
-      </header>
-
-      <NextStep hasPhoto={!!profile.avatar_url} hasBio={!!profile.bio?.trim()} onShare={() => setShareOpen(true)} />
-
-      <div className="mt-8 space-y-10">
-        <WhatsNew items={items} loading={loading} hasMessages={messages.length > 0} />
-        <LinkCard username={profile.username} onMore={() => setShareOpen(true)} />
-        <AskPreview />
+    <main className="mx-auto max-w-6xl px-4 pb-6 pt-5 md:px-6 md:pt-10">
+      <div className="flex flex-col gap-8 md:grid md:grid-cols-12 md:items-start md:gap-8">
+        <div className="contents md:col-span-7 md:flex md:flex-col md:gap-8">
+          <div className="order-1 md:order-none">
+            <Hero name={name} part={part} items={items} loading={loading} hasMessages={messages.length > 0} onShare={() => setShareOpen(true)} />
+          </div>
+          {items.length > 1 && (
+            <div className="order-3 md:order-none">
+              <MoreNew items={items.slice(1)} />
+            </div>
+          )}
+        </div>
+        <div className="contents md:col-span-5 md:flex md:flex-col md:gap-8">
+          <div className="order-2 empty:hidden md:order-none">
+            <NextStep hasPhoto={!!profile.avatar_url} hasBio={!!profile.bio?.trim()} onShare={() => setShareOpen(true)} />
+          </div>
+          <div className="order-4 md:order-none">
+            <LinkPass username={profile.username} onMore={() => setShareOpen(true)} />
+          </div>
+          <div className="order-5 md:order-none">
+            <AskPreview />
+          </div>
+        </div>
       </div>
       <ShareDialog open={shareOpen} onOpenChange={setShareOpen} username={profile.username} />
       <MobileNav />
@@ -76,71 +94,113 @@ export function Home() {
   );
 }
 
-const KIND_ICON = { message: Mail, inboxReply: Reply, sentReply: Reply, askAnswers: MessagesSquare } as const;
-const MAX_NEW = 6;
-
-function WhatsNew({ items, loading, hasMessages }: { items: NewItem[]; loading: boolean; hasMessages: boolean }) {
+function Hero({ name, part, items, loading, hasMessages, onShare }: { name: string; part: "morning" | "afternoon" | "evening"; items: NewItem[]; loading: boolean; hasMessages: boolean; onShare: () => void }) {
   const H = t.home;
-  const title: Record<NewItem["kind"], string> = { message: H.newMessage, inboxReply: H.newInboxReply, sentReply: H.newSentReply, askAnswers: H.newAskAnswers };
+  const first = items[0];
   return (
-    <section aria-labelledby="new-title">
-      <h2 id="new-title" className="mb-3 flex items-center gap-2 px-1 text-lg font-bold">
-        {H.newTitle}
-        {items.length > 0 && <CountBadge n={items.length} />}
-      </h2>
-      {loading ? (
-        <Skeleton className="h-36 rounded-[28px]" />
-      ) : items.length === 0 ? (
-        <div className="rounded-[28px] border-2 border-dashed border-primary/20 p-6">
-          <p className="font-semibold">{H.nothingNew}</p>
-          <p className="mt-1 text-sm text-muted-foreground">{hasMessages ? H.nothingNewBody : H.nothingNewNoMessages}</p>
-        </div>
-      ) : (
-        <>
-          <ul className="glass divide-y divide-glass-border overflow-hidden rounded-[28px]">
-            {items.slice(0, MAX_NEW).map((it) => {
-              const Icon = KIND_ICON[it.kind];
-              return (
-                <li key={it.key}>
-                  <Link {...it.link} className="press flex items-center gap-4 px-5 py-4 outline-none hover:bg-accent/60 focus-visible:bg-accent">
-                    <span className={cn("grid size-11 shrink-0 place-items-center rounded-full", it.kind === "message" ? "bg-brand text-brand-foreground" : "bg-accent text-primary")}>
-                      <Icon className="size-5" aria-hidden="true" />
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block font-bold leading-snug">{title[it.kind]}</span>
-                      <span className="mt-0.5 block truncate text-sm text-muted-foreground">“{it.text}”</span>
-                      {(it.at || it.note) && <span className="mt-0.5 block truncate text-xs text-muted-foreground">{it.at ? timeAgo(it.at) : it.note}</span>}
-                    </span>
-                    <span className="sr-only">{H.open}</span>
-                    <ChevronRight className="size-5 shrink-0 text-muted-foreground" aria-hidden="true" />
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-          {items.length > MAX_NEW && (
-            <Link to="/inbox" className="mt-3 inline-flex rounded-lg px-1 py-2 text-sm font-semibold text-primary hover:underline">{H.seeInbox}</Link>
-          )}
-        </>
+    <section aria-labelledby="hello" className="relative isolate overflow-hidden rounded-[36px] bg-brand px-6 pb-7 pt-7 text-brand-foreground shadow-[0_34px_70px_-34px_oklch(0.29_0.1_264/0.75)] md:px-10 md:pb-10 md:pt-10">
+      <div aria-hidden="true" className="pointer-events-none absolute -right-24 -top-32 -z-10 size-96 rounded-full bg-[oklch(0.68_0.15_265/0.45)] blur-3xl" />
+      <div aria-hidden="true" className="pointer-events-none absolute -bottom-24 -left-16 -z-10 size-64 rounded-full bg-caramel/25 blur-3xl" />
+      <svg aria-hidden="true" viewBox="0 0 64 64" className="pointer-events-none absolute -bottom-14 -right-10 -z-10 w-64 -rotate-12 text-white/[0.07] md:w-80">
+        <path d={BUBBLE_PATH} fill="currentColor" />
+      </svg>
+
+      <h1 id="hello" className="text-[2rem] font-extrabold leading-[1.05] tracking-tight md:text-5xl">{H.greeting(part, name)}</h1>
+      <p className="mt-2 flex items-center gap-2 text-base text-brand-foreground/80 md:text-lg" aria-live="polite">
+        {!loading && items.length > 0 && <span className="grid h-6 min-w-6 place-items-center rounded-full bg-caramel px-1.5 text-xs font-extrabold text-[var(--brand-ink)]">{items.length}</span>}
+        {loading ? " " : H.summary(items.length)}
+      </p>
+
+      <div className="mt-7 md:mt-9">
+        {loading ? (
+          <div className="h-36 animate-pulse rounded-[28px_28px_28px_10px] bg-white/15" />
+        ) : first ? (
+          <Link
+            {...first.link}
+            className="press group block max-w-xl -rotate-1 rounded-[28px_28px_28px_10px] bg-qr-surface p-5 text-[var(--brand-ink)] shadow-[0_24px_50px_-24px_oklch(0.15_0.05_264/0.8)] outline-none transition-transform hover:rotate-0 focus-visible:rotate-0 focus-visible:ring-4 focus-visible:ring-caramel md:p-6"
+          >
+            <span className="flex items-center gap-2 text-xs font-bold text-[var(--brand-ink)]/60">
+              <span className="size-2 rounded-full bg-caramel" aria-hidden="true" />
+              {kindTitle(first.kind)}
+            </span>
+            <span className="mt-3 line-clamp-4 block whitespace-pre-wrap break-words text-xl font-semibold leading-snug [overflow-wrap:anywhere] md:text-2xl">{first.text}</span>
+            {first.note && <span className="mt-2 block text-sm text-[var(--brand-ink)]/60">{first.note}</span>}
+            <span className="mt-5 flex items-center gap-3 text-sm">
+              <span className="inline-flex items-center gap-1.5 font-bold">
+                {H.open} <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+              </span>
+              {first.at && <span className="ml-auto text-xs text-[var(--brand-ink)]/55">{timeAgo(first.at)}</span>}
+            </span>
+          </Link>
+        ) : (
+          <div className="max-w-xl -rotate-1 rounded-[28px_28px_28px_10px] bg-qr-surface p-5 text-[var(--brand-ink)] shadow-[0_24px_50px_-24px_oklch(0.15_0.05_264/0.8)] md:p-6">
+            <p className="text-xl font-bold leading-snug md:text-2xl">{H.nothingNew}</p>
+            <p className="mt-2 text-sm text-[var(--brand-ink)]/70">{hasMessages ? H.nothingNewBody : H.nothingNewNoMessages}</p>
+            <button type="button" onClick={onShare} className="press mt-5 inline-flex h-11 items-center gap-2 rounded-full bg-brand px-5 text-sm font-bold text-brand-foreground">
+              <Share2 className="size-4" aria-hidden="true" /> {H.shareLink}
+            </button>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+// Everything new after the first one, as small bubbles.
+function MoreNew({ items }: { items: NewItem[] }) {
+  const H = t.home;
+  return (
+    <section aria-labelledby="more-new">
+      <h2 id="more-new" className="mb-3 px-1 text-lg font-bold">{H.alsoNew}</h2>
+      <ul className="space-y-2.5">
+        {items.slice(0, MAX_MORE).map((it) => {
+          const Icon = KIND_ICON[it.kind];
+          return (
+            <li key={it.key}>
+              <Link {...it.link} className="glass press flex items-center gap-4 rounded-[22px_22px_22px_8px] px-4 py-3.5 outline-none hover:bg-accent/60 focus-visible:ring-2 focus-visible:ring-ring">
+                <span className={cn("grid size-10 shrink-0 place-items-center rounded-full", it.kind === "message" ? "bg-brand text-brand-foreground" : "bg-accent text-primary")}>
+                  <Icon className="size-[18px]" aria-hidden="true" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm font-bold leading-snug">{kindTitle(it.kind)}</span>
+                  <span className="block truncate text-sm text-muted-foreground">“{it.text}”</span>
+                </span>
+                {it.at && <span className="shrink-0 self-start pt-0.5 text-xs text-muted-foreground">{timeAgo(it.at)}</span>}
+                <ChevronRight className="size-5 shrink-0 text-muted-foreground" aria-hidden="true" />
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+      {items.length > MAX_MORE && (
+        <Link to="/inbox" className="mt-3 inline-flex rounded-lg px-1 py-2 text-sm font-semibold text-primary hover:underline">{H.seeInbox}</Link>
       )}
     </section>
   );
 }
 
-function LinkCard({ username, onMore }: { username: string; onMore: () => void }) {
+// Your link as a pass: the QR code people can scan, @username, and one-tap Copy / Share.
+function LinkPass({ username, onMore }: { username: string; onMore: () => void }) {
   const H = t.home;
   const link = useProfileLink(username);
   const { copied, canShare, copy, share } = useCopyShare(link);
   return (
-    <section aria-labelledby="link-title">
-      <h2 id="link-title" className="mb-3 px-1 text-lg font-bold">{H.linkTitle}</h2>
-      <div className="glass rounded-[28px] p-5">
+    <section aria-labelledby="pass-title" className="glass overflow-hidden rounded-[30px]">
+      <div className="flex items-center gap-5 p-5">
+        <button type="button" onClick={onMore} aria-label={H.moreWays} className="press shrink-0 rounded-2xl bg-qr-surface p-2.5 shadow-soft">
+          <QRCodeSVG value={link || " "} size={84} level="M" bgColor="var(--qr-surface)" fgColor="var(--qr-ink)" />
+        </button>
+        <div className="min-w-0">
+          <h2 id="pass-title" className="text-xs font-bold text-muted-foreground">{H.linkTitle}</h2>
+          <p className="mt-1 truncate text-2xl font-extrabold tracking-tight">@{username}</p>
+          <p className="mt-0.5 truncate font-mono text-xs text-muted-foreground" title={link}>{shortLink(link)}</p>
+        </div>
+      </div>
+      {/* the pass's tear line */}
+      <div aria-hidden="true" className="mx-5 border-t-2 border-dashed border-primary/15" />
+      <div className="p-5 pt-4">
         <p className="text-sm text-muted-foreground">{H.linkBody}</p>
-        <p className="mt-4 flex items-center gap-2 truncate rounded-2xl bg-field px-4 py-3 font-mono text-sm" title={link}>
-          <Link2 className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-          <span className="truncate">{shortLink(link)}</span>
-        </p>
-        <div className="mt-3 grid grid-cols-2 gap-2">
+        <div className="mt-4 grid grid-cols-2 gap-2">
           <Button variant="hero" onClick={copy}>{copied ? <Check /> : <Copy />} {t.shareDialog.copyShort}</Button>
           {canShare ? (
             <Button variant="secondary" onClick={share}><Share2 /> {t.common.share}</Button>
@@ -148,11 +208,6 @@ function LinkCard({ username, onMore }: { username: string; onMore: () => void }
             <Button variant="secondary" onClick={onMore}><QrCode /> {H.moreWays}</Button>
           )}
         </div>
-        {canShare && (
-          <button type="button" onClick={onMore} className="mt-3 inline-flex items-center gap-1.5 rounded-lg px-1 py-1 text-sm font-semibold text-primary hover:underline">
-            <QrCode className="size-4" aria-hidden="true" /> {H.moreWays}
-          </button>
-        )}
       </div>
     </section>
   );
@@ -188,11 +243,10 @@ function NextStep({ hasPhoto, hasBio, onShare }: { hasPhoto: boolean; hasBio: bo
       <ChevronRight className="size-5 shrink-0 text-muted-foreground" aria-hidden="true" />
     </>
   );
-  const cls = "press mt-6 flex w-full items-center gap-4 rounded-[24px] border border-caramel/60 bg-caramel/10 px-4 py-3 hover:bg-caramel/20";
+  const cls = "press flex w-full items-center gap-4 rounded-[24px] border border-caramel/60 bg-caramel/10 px-4 py-3 hover:bg-caramel/20";
   return next.to ? <Link to={next.to} className={cls}>{inner}</Link> : <button type="button" onClick={next.action} className={cls}>{inner}</button>;
 }
 
-// The three hottest questions on Ask, and a way in.
 function AskPreview() {
   const A = t.ask;
   const top = useQuery({ ...askTopQuery(), ...live });
@@ -207,21 +261,28 @@ function AskPreview() {
         <Button asChild variant="secondary" size="sm" className="shrink-0"><Link to="/ask"><Plus /> {A.homeCta}</Link></Button>
       </div>
       {top.isLoading ? (
-        <Skeleton className="h-40 rounded-[28px]" />
+        <Skeleton className="h-40 rounded-[22px]" />
       ) : items.length === 0 ? (
-        <Link to="/ask" className="press block rounded-[28px] border-2 border-dashed border-primary/20 p-6 text-muted-foreground hover:bg-accent/40">{A.empty}</Link>
+        <Link to="/ask" className="glass press block rounded-[22px_22px_22px_8px] p-5 text-muted-foreground hover:bg-accent/40">{A.empty}</Link>
       ) : (
-        <ul className="glass divide-y divide-glass-border overflow-hidden rounded-[28px]">
-          {items.map((p) => (
-            <li key={p.id}>
-              <Link to="/ask/$id" params={{ id: p.id }} className="press flex items-start gap-4 px-5 py-4 hover:bg-accent/60 focus-visible:bg-accent">
-                <span className="flex w-9 shrink-0 flex-col items-center pt-0.5 text-sm font-bold tabular-nums text-primary" aria-label={A.votes(p.score)}>
-                  <ArrowBigUp className="size-5" aria-hidden="true" />
-                  {p.score}
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="line-clamp-2 break-words font-semibold [overflow-wrap:anywhere]">{p.body}</span>
-                  <span className="mt-1 block text-xs text-muted-foreground">{p.answer_count ? A.answers(p.answer_count) : A.noAnswersYet} · {timeAgo(p.published_at)}</span>
+        <ul className="space-y-2.5">
+          {items.map((p, i) => (
+            <li key={p.id} className={cn("flex", i % 2 ? "justify-end pl-6" : "pr-6")}>
+              <Link
+                to="/ask/$id"
+                params={{ id: p.id }}
+                className={cn(
+                  "glass press block w-full px-4 py-3.5 outline-none hover:bg-accent/60 focus-visible:ring-2 focus-visible:ring-ring",
+                  i % 2 ? "rounded-[22px_22px_8px_22px]" : "rounded-[22px_22px_22px_8px]",
+                )}
+              >
+                <span className="line-clamp-2 break-words font-semibold leading-snug [overflow-wrap:anywhere]">{p.body}</span>
+                <span className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
+                  <span className="inline-flex items-center gap-1 font-bold text-primary" aria-label={A.votes(p.score)}>
+                    <ArrowBigUp className="size-4" aria-hidden="true" />{p.score}
+                  </span>
+                  <span>{p.answer_count ? A.answers(p.answer_count) : A.noAnswersYet}</span>
+                  <span className="ml-auto">{timeAgo(p.published_at)}</span>
                 </span>
               </Link>
             </li>

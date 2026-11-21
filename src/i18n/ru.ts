@@ -375,6 +375,8 @@ export const ru: Dict = {
     greeting: (part: "morning" | "afternoon" | "evening", name: string) =>
       `${part === "morning" ? "Доброе утро" : part === "afternoon" ? "Добрый день" : "Добрый вечер"}, ${name}`,
     summary: (n: number) => (n === 0 ? "Пока ничего нового." : `У тебя ${n} ${plural(n, "новое событие", "новых события", "новых событий")}.`),
+    alsoNew: "Ещё новое",
+    shareLink: "Поделиться ссылкой",
     newTitle: "Что нового",
     newMessage: "Новое анонимное сообщение",
     newInboxReply: "Новый ответ под полученным сообщением",

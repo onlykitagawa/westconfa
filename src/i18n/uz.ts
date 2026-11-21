@@ -367,6 +367,8 @@ export const uz: Dict = {
     greeting: (part: "morning" | "afternoon" | "evening", name: string) =>
       `${part === "morning" ? "Xayrli tong" : part === "afternoon" ? "Xayrli kun" : "Xayrli kech"}, ${name}`,
     summary: (n: number) => (n === 0 ? "Hozircha yangilik yoʻq." : `Sizda ${n} ta yangilik bor.`),
+    alsoNew: "Yana yangiliklar",
+    shareLink: "Havolani ulashish",
     newTitle: "Yangiliklar",
     newMessage: "Yangi anonim xabar",
     newInboxReply: "Olgan xabaringiz ostida yangi javob",

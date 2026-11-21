@@ -365,6 +365,8 @@ export const en = {
     metaTitle: "Home · Wconfa",
     greeting: (part: "morning" | "afternoon" | "evening", name: string) => `Good ${part}, ${name}`,
     summary: (n: number) => (n === 0 ? "Nothing new right now." : n === 1 ? "You have 1 new thing." : `You have ${n} new things.`),
+    alsoNew: "Also new",
+    shareLink: "Share my link",
     newTitle: "What's new",
     newMessage: "New anonymous message",
     newInboxReply: "New reply under a message you got",
