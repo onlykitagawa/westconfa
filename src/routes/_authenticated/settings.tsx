@@ -13,7 +13,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { UsernameField, type UsernameStatus } from "@/components/site/username-field";
+import { nameErrorText, UsernameField, type UsernameStatus } from "@/components/site/username-field";
+import { saveProfileName, type NameResult } from "@/lib/profile-name.functions";
 import { PasswordField } from "@/components/site/auth-fields";
 import { isValidPassword } from "@/lib/moderation";
 import { cn } from "@/lib/utils";
@@ -39,6 +40,7 @@ function SettingsPage() {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const del = useServerFn(deleteMyAccount);
+  const saveName = useServerFn(saveProfileName);
   const [username, setUsername] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [status, setStatus] = useState<UsernameStatus>("idle");
@@ -80,9 +82,14 @@ function SettingsPage() {
     e.preventDefault();
     if (status !== "ok") return;
     setSaving(true);
-    const { error } = await supabase.from("profiles").update({ username, display_name: displayName.trim() || null }).eq("id", user.id);
+    let r: NameResult;
+    try {
+      r = await saveName({ data: { username, displayName } });
+    } catch {
+      r = { ok: false, code: "generic" };
+    }
     setSaving(false);
-    if (error) toast.error(error.code === "23505" ? t.onboarding.taken : t.common.somethingWrong);
+    if (!r.ok) toast.error(nameErrorText(r));
     else { toast.success(S.saved); refresh(); }
   };
 

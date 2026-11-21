@@ -8,6 +8,15 @@ import { Label } from "@/components/ui/label";
 
 export type UsernameStatus = "idle" | "invalid" | "checking" | "taken" | "ok";
 
+// What to tell a student when their username or display name can't be saved.
+export function nameErrorText(r: { code: "invalid" | "taken" | "blocked" | "generic"; field?: "username" | "display_name" | undefined }) {
+  const O = t.onboarding;
+  if (r.code === "taken") return O.taken;
+  if (r.code === "invalid") return O.invalid;
+  if (r.code === "blocked") return r.field === "display_name" ? O.displayNameNotAllowed : O.usernameNotAllowed;
+  return t.common.somethingWrong;
+}
+
 export function UsernameField({ value, onChange, onStatus, current }: { value: string; onChange: (v: string) => void; onStatus: (s: UsernameStatus) => void; current?: string | null }) {
   const [status, setStatus] = useState<UsernameStatus>("idle");
   useEffect(() => {

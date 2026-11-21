@@ -9,6 +9,7 @@ vi.mock("@tanstack/react-router", () => ({
 }));
 vi.mock("@tanstack/react-start", () => ({ useServerFn: () => vi.fn() }));
 vi.mock("@/lib/account.functions", () => ({ deleteMyAccount: vi.fn() }));
+vi.mock("@/lib/profile-name.functions", () => ({ saveProfileName: vi.fn() }));
 vi.mock("@tanstack/react-query", () => ({ useQueryClient: () => ({ cancelQueries: vi.fn(), clear: vi.fn() }) }));
 vi.mock("sonner", () => ({ toast: { success: mocks.success, error: mocks.error } }));
 vi.mock("@/lib/auth", () => ({
@@ -19,7 +20,7 @@ vi.mock("@/lib/auth", () => ({
   }),
 }));
 vi.mock("@/integrations/supabase/client", () => ({ supabase: { auth: { updateUser: mocks.update, signOut: vi.fn() }, from: vi.fn() } }));
-vi.mock("@/components/site/username-field", () => ({ UsernameField: () => null }));
+vi.mock("@/components/site/username-field", () => ({ UsernameField: () => null, nameErrorText: () => "" }));
 vi.mock("@/components/site/theme", () => ({ ThemeToggle: () => null }));
 
 import { Route } from "@/routes/_authenticated/settings";

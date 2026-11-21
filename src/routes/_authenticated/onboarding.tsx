@@ -2,7 +2,9 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Camera } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { t } from "@/i18n";
-import { supabase } from "@/integrations/supabase/client";
+import { useServerFn } from "@tanstack/react-start";
+import { saveProfileName, type NameResult } from "@/lib/profile-name.functions";
+import { nameErrorText } from "@/components/site/username-field";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +22,7 @@ export const Route = createFileRoute("/_authenticated/onboarding")({
 function Onboarding() {
   const { user, profile, refresh } = useAuth();
   const navigate = useNavigate();
+  const saveName = useServerFn(saveProfileName);
   const [username, setUsername] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [status, setStatus] = useState<UsernameStatus>("idle");
@@ -39,10 +42,15 @@ function Onboarding() {
     if (status !== "ok" || !user) return;
     setBusy(true);
     setErr(null);
-    const { error } = await supabase.from("profiles").update({ username, display_name: displayName.trim() || null }).eq("id", user.id);
-    if (error) {
+    let r: NameResult;
+    try {
+      r = await saveName({ data: { username, displayName } });
+    } catch {
+      r = { ok: false, code: "generic" };
+    }
+    if (!r.ok) {
       setBusy(false);
-      return setErr(error.code === "23505" ? t.onboarding.taken : t.common.somethingWrong);
+      return setErr(nameErrorText(r));
     }
     setReady(true);
     await refresh();
@@ -89,7 +97,8 @@ function Onboarding() {
           </div>
         </div>
         {err && <p role="alert" className="mt-4 text-sm text-destructive">{err}</p>}
-        <Button type="submit" variant="hero" className="mt-6 w-full" disabled={busy || status !== "ok"}>{t.onboarding.continue}</Button>
+        <Button type="submit" variant="hero" className="mt-6 w-full" disabled={busy || status !== "ok"}>{busy ? t.onboarding.checking : t.onboarding.continue}</Button>
+        <p className="mt-3 text-center text-xs text-muted-foreground">{t.onboarding.namesChecked}</p>
       </form>
     </main>
   );
