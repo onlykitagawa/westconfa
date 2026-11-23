@@ -148,6 +148,13 @@
       "when": 1795074108727,
       "tag": "0020_admin_delete_approved",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1795461434121,
+      "tag": "0021_security_hardening",
+      "breakpoints": true
     }
   ]
 }
