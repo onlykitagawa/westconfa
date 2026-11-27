@@ -19,9 +19,25 @@ const nameVerdictSchema = z.object({
 // Underscores and digits often join or disguise words in usernames ("big_suka", "b1yat").
 const asWords = (s: string) => s.replace(/_/g, " ");
 
+// English words that are never fine inside a name, matched anywhere (names are often run together,
+// like "dickass"). Only words that rarely hide inside normal names; the AI judges everything else.
+const NAME_BAD_PARTS = [
+  "fuck", "fuk", "shit", "cunt", "bitch", "biatch", "pussy", "whore", "slut", "nigg", "fagg", "porn", "penis", "vagin",
+  "dick", "asshole", "dumbass", "jackass", "dickass", "boob", "tits", "cum", "rape", "nazi", "hitler", "sex", "horny", "anal",
+];
+const ALLOWED_PARTS = ["dickens", "dickinson", "scum", "cumber", "circum", "document", "acumen", "cucum", "sexton", "essex", "sussex", "middlesex", "analy", "banal", "canal", "kanal", "titsa"];
+const squash = (s: string) =>
+  s.toLowerCase().replace(/0/g, "o").replace(/1/g, "i").replace(/3/g, "e").replace(/4/g, "a").replace(/5/g, "s").replace(/\$/g, "s").replace(/@/g, "a").replace(/[^a-z]/g, "");
+
+export function hasBadNamePart(name: string): boolean {
+  let s = squash(name);
+  for (const ok of ALLOWED_PARTS) s = s.split(ok).join("_");
+  return NAME_BAD_PARTS.some((w) => s.includes(w));
+}
+
 function filterHit(username: string | null, displayName: string | null): NameField | null {
-  if (username && checkMessage(asWords(username))) return "username";
-  if (displayName && checkMessage(displayName)) return "display_name";
+  if (username && (checkMessage(asWords(username)) || hasBadNamePart(username))) return "username";
+  if (displayName && (checkMessage(displayName) || hasBadNamePart(displayName))) return "display_name";
   return null;
 }
 

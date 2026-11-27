@@ -1,5 +1,5 @@
 import { beforeEach, expect, it, vi } from "vitest";
-import { nameInput, screenName } from "@/lib/name-screening";
+import { hasBadNamePart, nameInput, screenName } from "@/lib/name-screening";
 
 const allow = async () => JSON.stringify({ verdict: "allow", field: "none", reason: "" });
 const block = (field: string) => async () => JSON.stringify({ verdict: "block", field, reason: "rude" });
@@ -22,6 +22,14 @@ it("the word filter catches disguised swear words in usernames even before the A
   expect(await screenName("big_suka", null, ai)).toEqual({ ok: false, field: "username" });
   expect(await screenName(null, "x пидор x", ai)).toEqual({ ok: false, field: "display_name" });
   expect(ai).not.toHaveBeenCalled();
+});
+
+it("English swear words are caught even when run together or disguised", async () => {
+  const ai = vi.fn(allow);
+  for (const bad of ["dickass", "nice dick", "big_b1tch", "fuckboy99", "sh1t_happens", "pussycat_x", "xX_n4zi_Xx"])
+    expect((await screenName(bad.replace(/ /g, "_"), null, ai)).ok, bad).toBe(false);
+  for (const fine of ["charles_dickens", "emily.dickinson", "sussex_fan", "glass_class", "cassandra", "beach", "zeo", "Scunthorpe"])
+    expect(hasBadNamePart(fine), fine).toBe(fine === "Scunthorpe");
 });
 
 it("if the AI is down, the filter decides so nobody gets stuck; a garbled answer refuses", async () => {
