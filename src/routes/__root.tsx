@@ -21,6 +21,10 @@ import { Toaster } from "@/components/ui/sonner";
 import { Button } from "@/components/ui/button";
 import { applyLang, storedLang, t } from "@/i18n";
 
+// Before the page paints: mark the page when this browser has a saved sign-in, so the visitor
+// landing page (shown to search engines and visitors) stays hidden until the student's home loads.
+const sessionHintScript = `(function(){try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.indexOf('sb-')===0&&k.slice(-11)==='-auth-token'){document.documentElement.classList.add('wc-session');break;}}}catch(e){}})();`;
+
 function NotFoundComponent() {
   return (
     <main className="mx-auto flex min-h-[60vh] max-w-md flex-col items-center justify-center px-5 text-center">
@@ -83,7 +87,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient; auth
       { rel: "apple-touch-icon", href: "/apple-touch-icon.png?v=2" },
       { rel: "manifest", href: "/manifest.webmanifest" },
     ],
-    scripts: [{ children: themeInitScript }],
+    scripts: [{ children: themeInitScript }, { children: sessionHintScript }],
   }),
   shellComponent: RootShell,
   component: RootComponent,
@@ -144,8 +148,9 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {linkReady ? (
-      <AuthProvider onChange={onChange} authLink={authLink}>
+      {/* Rendered straight away (also on the server, so search engines see real pages); the
+          sign-in state starts only once an email sign-in link in the address has been handled. */}
+      <AuthProvider onChange={onChange} authLink={authLink} ready={linkReady}>
         <SiteHeader />
         <div id="main">
           <Outlet />
@@ -154,7 +159,6 @@ function RootComponent() {
         <CookieNotice />
         <Toaster position="top-center" />
       </AuthProvider>
-      ) : <main className="flex min-h-[60vh] items-center justify-center" role="status">{t.common.loading}</main>}
     </QueryClientProvider>
   );
 }

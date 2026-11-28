@@ -259,3 +259,9 @@ body:has(.cookie-notice) { padding-bottom: 6rem; }
 }
 .auth-card input { min-height: 3.25rem; font-size: 1rem; }
 .auth-card input:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+
+/* Saved sign-in found before the page painted: keep the visitor landing page hidden while the
+   student's home page loads (see sessionHintScript in __root.tsx). */
+html.wc-session .wc-visitor-only {
+  visibility: hidden;
+}

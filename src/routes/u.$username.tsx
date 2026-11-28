@@ -26,7 +26,8 @@ export const Route = createFileRoute("/u/$username")({
         { title }, { name: "description", content: desc },
         { property: "og:title", content: title }, { property: "og:description", content: desc },
         { property: "og:type", content: "profile" }, { name: "twitter:card", content: "summary_large_image" },
-        ...(loaderData?.profile ? [] : [{ name: "robots", content: "noindex" }]),
+        // Profiles stay out of Google search (students' names and photos); link previews still work.
+        { name: "robots", content: "noindex" },
       ],
     };
   },

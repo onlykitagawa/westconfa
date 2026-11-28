@@ -6,18 +6,29 @@ import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useAuth } from "@/lib/auth";
 import { Home } from "@/components/site/home";
+import { pageSeo, SITE_URL } from "@/lib/site";
 
 export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title: t.landing.metaTitle },
-      { name: "description", content: t.landing.metaDesc },
-      { property: "og:title", content: t.landing.metaTitle },
-      { property: "og:description", content: t.landing.metaDesc },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
+  head: () => {
+    const seo = pageSeo("/", t.landing.metaTitle, t.landing.metaDesc);
+    return {
+      ...seo,
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            name: "Wconfa",
+            alternateName: ["West Confa", "WestConfa", "Wconfa WIUT"],
+            url: `${SITE_URL}/`,
+            description: t.landing.metaDesc,
+            inLanguage: ["en", "ru", "uz"],
+          }),
+        },
+      ],
+    };
+  },
   component: Landing,
 });
 
@@ -32,10 +43,13 @@ function Landing() {
   useEffect(() => {
     if (needsUsername) navigate({ to: "/onboarding", replace: true });
   }, [needsUsername, navigate]);
-  if (loading || (user && !profile?.username)) return null;
-  if (user) return <Home />;
+  if (!loading && user && !profile?.username) return null;
+  if (!loading && user) return <Home />;
+  // Visitors and search engines get the landing page straight away. While the sign-in check is still
+  // running, a saved sign-in hides it (html.wc-session, set before the page paints), so signed-in
+  // students never see it flash before their home page.
   return (
-    <main>
+    <main className={loading ? "wc-visitor-only" : undefined}>
       <section className="mx-auto max-w-7xl px-5 pb-16 pt-16 text-center md:pb-24 md:pt-24">
         <div className="mx-auto max-w-3xl">
           <h1 className="animate-rise text-[2.4rem] font-extrabold leading-[1.04] text-foreground md:text-7xl">

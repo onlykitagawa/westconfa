@@ -1,3 +1,4 @@
+import { pageSeo } from "@/lib/site";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { z } from "zod";
@@ -10,13 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
 export const Route = createFileRoute("/contact")({
-  head: () => ({
-    meta: [
-      { title: t.contact.metaTitle }, { name: "description", content: t.contact.metaDesc },
-      { property: "og:title", content: t.contact.metaTitle }, { property: "og:description", content: t.contact.metaDesc },
-      { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
-    ],
-  }),
+  head: () => pageSeo("/contact", t.contact.metaTitle, t.contact.metaDesc),
   component: Contact,
 });
 

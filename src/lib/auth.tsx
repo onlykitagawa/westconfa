@@ -37,7 +37,9 @@ type AuthState = {
 
 const Ctx = createContext<AuthState>({ user: null, profile: null, isAdmin: false, loading: true, openedAuthLink: false, recoveryUserId: null, refresh: async () => {} });
 
-export function AuthProvider({ children, onChange, authLink }: { children: ReactNode; onChange?: (event: string) => void; authLink?: AuthLinkResult | null }) {
+// `ready`: false until an email sign-in link in the address has been handled. Until then nothing
+// touches the session, and pages render as for a visitor (loading).
+export function AuthProvider({ children, onChange, authLink, ready = true }: { children: ReactNode; onChange?: (event: string) => void; authLink?: AuthLinkResult | null; ready?: boolean }) {
   const [openedAuthLink, setOpenedAuthLink] = useState(!!authLink);
   const [recoveryUserId, setRecoveryUserId] = useState<string | null>(authLink?.ok && authLink.recovery ? authLink.userId ?? null : null);
   useEffect(() => {
@@ -68,6 +70,7 @@ export function AuthProvider({ children, onChange, authLink }: { children: React
   }, []);
 
   useEffect(() => {
+    if (!ready) return;
     supabase.auth.getUser().then(async ({ data }) => {
       if (data.user && sessionExpired()) {
         localStorage.removeItem(STAMP);
@@ -87,7 +90,7 @@ export function AuthProvider({ children, onChange, authLink }: { children: React
       }
     });
     return () => sub.subscription.unsubscribe();
-  }, [load, onChange]);
+  }, [load, onChange, ready]);
 
   const refresh = useCallback(async () => {
     const { data } = await supabase.auth.getUser();

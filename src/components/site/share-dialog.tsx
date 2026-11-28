@@ -10,7 +10,7 @@ import { markLinkShared } from "@/lib/link-shared";
 export { linkWasShared } from "@/lib/link-shared";
 
 // The public address people should open (custom domain connected Nov 20, 2026).
-const PUBLIC_SITE_URL = "https://westconfa.tech";
+import { SITE_URL as PUBLIC_SITE_URL } from "@/lib/site";
 
 // Inside the Lovable editor the page runs on a private preview address that makes visitors
 // log in to Lovable first. That address must never end up in a link someone else opens.
