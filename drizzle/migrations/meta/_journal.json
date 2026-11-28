@@ -155,6 +155,13 @@
       "when": 1795461434121,
       "tag": "0021_security_hardening",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1795830570740,
+      "tag": "0022_names_through_server",
+      "breakpoints": true
     }
   ]
 }
